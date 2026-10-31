@@ -43,9 +43,11 @@ const eylemNoktalari = () =>
   Array.from({ length: Math.max(AYAR.eylemHakki, state.eylem) }, (_, i) =>
     `<i class="${i < state.eylem ? 'dolu' : ''}"></i>`).join('');
 
-function modalAc(html, { kapatma = true, sinif = '' } = {}) {
+function modalAc(html, { kapatma = true, sinif = '', tema = null } = {}) {
   kart.innerHTML = html;
   kart.className = 'kart ' + sinif;
+  if (tema) kart.style.setProperty('--tema', tema);
+  else kart.style.removeProperty('--tema');
   kapatilabilir = kapatma;
   modal.classList.remove('gizli');
   acik = true;
@@ -148,16 +150,19 @@ function panelCiz() {
     : '';
 
   modalAc(`
-    <div class="panel-ust"><span class="etiket">KONTROL PANELİ</span><h2>${kacis(def.baslik)}</h2></div>
+    <div class="panel-ust">
+      <span class="etiket">▸ ${kacis(def.kod || 'KONTROL')} // ÇEVRİMİÇİ<i class="led"></i></span>
+      <h2>${kacis(def.baslik)}</h2>
+    </div>
     <p class="aciklama">${kacis(def.aciklama)}</p>
     <div class="mini-gostergeler">${goster}</div>
     <div class="eylemler">${eylemler}</div>
-    ${sonMesaj ? `<p class="mesaj">✓ ${kacis(sonMesaj)}</p>` : ''}
+    ${sonMesaj ? `<p class="mesaj">&gt; ${kacis(sonMesaj)}</p>` : ''}
     ${bitti}
     <div class="alt">
-      <span class="kalan">Kalan eylem <span class="noktalar">${eylemNoktalari()}</span></span>
+      <span class="kalan"><span>Kalan eylem</span> <span class="noktalar">${eylemNoktalari()}</span></span>
       <button class="ikincil" data-kapat>Kapat (Esc)</button>
-    </div>`);
+    </div>`, { sinif: 'panel', tema: def.tema });
 
   kart.querySelectorAll('.eylem').forEach((b) => {
     b.addEventListener('click', () => {
@@ -188,7 +193,7 @@ function olayHtml(olay) {
 }
 
 export function olayGoster(olay) {
-  modalAc(`${olayHtml(olay)}<div class="alt sag"><button data-kapat data-varsayilan>Tamam</button></div>`);
+  modalAc(`${olayHtml(olay)}<div class="alt sag"><button data-kapat data-varsayilan>Tamam</button></div>`, { sinif: 'radyo-kart' });
 }
 
 function bilgiHtml(b) {
@@ -207,11 +212,11 @@ export function gunBaslangici({ rapor, bilgi, gidenZiyaretci }) {
     ? `<p class="uyari">🚪 ${kacis(gidenZiyaretci.ad)} kapıda beklemekten vazgeçip gitti.</p>`
     : '';
   modalAc(`
-    <div class="panel-ust"><span class="etiket">GECE</span><h2>Gün ${state.gun - 1} sona erdi</h2></div>
+    <div class="panel-ust"><span class="etiket">▸ GECE RAPORU<i class="led"></i></span><h2>Gün ${state.gun - 1} sona erdi</h2></div>
     <div class="rapor"><span>Gece tüketimi (👥 ${state.nufus} kişi):</span>${etkiChipleri(rapor) || '<span class="chip">Değişim yok</span>'}</div>
     ${gitti}
     ${bilgiHtml(bilgi)}
-    <div class="alt sag"><button data-sabah data-varsayilan>Sabah oldu</button></div>`, { kapatma: false });
+    <div class="alt sag"><button data-sabah data-varsayilan>Sabah oldu</button></div>`, { kapatma: false, sinif: 'gece' });
   kart.querySelector('[data-sabah]').addEventListener('click', sabahGoster);
 }
 
@@ -220,10 +225,10 @@ function sabahGoster() {
     ? `<p class="kapi-uyari">🚪 Kapı çalınıyor! Biri sığınağa girmek istiyor.</p>`
     : '';
   modalAc(`
-    <div class="panel-ust"><span class="etiket">YENİ GÜN</span><h2>Gün ${state.gun} / ${AYAR.maxGun}</h2></div>
+    <div class="panel-ust"><span class="etiket">▸ YENİ GÜN<i class="led"></i></span><h2>Gün ${state.gun} / ${AYAR.maxGun}</h2></div>
     ${olayHtml(state.olay)}
     ${kapi}
-    <div class="alt sag"><button data-kapat data-varsayilan>Güne başla</button></div>`);
+    <div class="alt sag"><button data-kapat data-varsayilan>Güne başla</button></div>`, { sinif: 'sabah' });
 }
 
 // ---------------------------------------------------------------
@@ -232,7 +237,7 @@ function sabahGoster() {
 export function ziyaretciGoster(z, kabul, ret) {
   const katkiVar = z.anlik || z.gunlukKatki || z.eylemArtisi;
   modalAc(`
-    <div class="panel-ust"><span class="etiket">🚪 KAPIDA BİRİ VAR</span><h2>${z.ikon} ${kacis(z.ad)}</h2></div>
+    <div class="panel-ust"><span class="etiket">▸ KAPIDA BİRİ VAR<i class="led uyari"></i></span><h2><span class="ikon-rozet">${z.ikon}</span>${kacis(z.ad)}</h2></div>
     <p class="kisi-sayisi">👥 ${z.kisi} kişi</p>
     <p>${kacis(z.metin)}</p>
     <div class="ziyaretci-satir"><span>Getirdikleri:</span><span class="chip ${katkiVar ? 'iyi' : ''}">${kacis(z.katkiMetni)}</span></div>
@@ -244,7 +249,7 @@ export function ziyaretciGoster(z, kabul, ret) {
         <button class="ret" data-ret>Geri çevir</button>
         <button data-kabul>İçeri al</button>
       </span>
-    </div>`);
+    </div>`, { sinif: 'kapi' });
   kart.querySelector('[data-kabul]').addEventListener('click', () => { modalKapat(); kabul(); });
   kart.querySelector('[data-ret]').addEventListener('click', () => { modalKapat(); ret(); });
 }
@@ -254,12 +259,12 @@ export function ziyaretciGoster(z, kabul, ret) {
 // ---------------------------------------------------------------
 export function onay(baslik, metin, evetYazi, evet) {
   modalAc(`
-    <h2>${kacis(baslik)}</h2>
+    <div class="panel-ust"><span class="etiket">▸ ONAY<i class="led"></i></span><h2>${kacis(baslik)}</h2></div>
     ${paragraf(metin)}
     <div class="alt sag">
       <button class="ikincil" data-kapat>Vazgeç</button>
       <button data-evet data-varsayilan>${kacis(evetYazi)}</button>
-    </div>`);
+    </div>`, { sinif: 'bilgi' });
   kart.querySelector('[data-evet]').addEventListener('click', () => {
     modalKapat();
     evet();
@@ -267,7 +272,7 @@ export function onay(baslik, metin, evetYazi, evet) {
 }
 
 export function bilgi(baslik, metin) {
-  modalAc(`<h2>${kacis(baslik)}</h2>${paragraf(metin)}<div class="alt sag"><button data-kapat data-varsayilan>Tamam</button></div>`);
+  modalAc(`<div class="panel-ust"><span class="etiket">▸ BİLGİ<i class="led"></i></span><h2>${kacis(baslik)}</h2></div>${paragraf(metin)}<div class="alt sag"><button data-kapat data-varsayilan>Tamam</button></div>`, { sinif: 'bilgi' });
 }
 
 // ---------------------------------------------------------------
@@ -304,7 +309,7 @@ function girisBitti(bitti) {
 export function baslangicEkrani(basla) {
   modalAc(`
     <div class="baslik-ekrani">
-      <span class="etiket">ÇALIŞMA ADI</span>
+      <span class="etiket">▸ ÇALIŞMA ADI<i class="led"></i></span>
       <h1>Son Denge</h1>
       <p><b>Yeşilvadi</b>, Büyük Sessizlik'ten sonra kurulan son ütopya. Ne kadar dayanacağı senin kararlarına bağlı.</p>
       <p>${AYAR.maxGun} gün boyunca enerjiyi, suyu, gıdayı ve atığı yönet. Kolay çözümlerin bir bedeli var.</p>
@@ -315,7 +320,7 @@ export function baslangicEkrani(basla) {
         <span><kbd>Esc</kbd> kapat</span>
       </div>
       <button data-basla data-varsayilan>Başla</button>
-    </div>`, { kapatma: false });
+    </div>`, { kapatma: false, sinif: 'baslangic' });
   kart.querySelector('[data-basla]').addEventListener('click', () => {
     modalKapat();
     basla();
@@ -349,7 +354,7 @@ export function sonGoster({ tip, bilgi }, tekrar) {
   const s = SONLAR[tip];
   modalAc(`
     <div class="son ${s.sinif}">
-      <span class="etiket">SON · GÜN ${state.gun}</span>
+      <span class="etiket">▸ SON · GÜN ${state.gun}<i class="led"></i></span>
       <h1>${s.baslik}</h1>
       <p>${s.metin}</p>
       <div class="son-istatistik">
@@ -360,7 +365,7 @@ export function sonGoster({ tip, bilgi }, tekrar) {
       </div>
       ${bilgiHtml(bilgi)}
       <button data-tekrar data-varsayilan>Tekrar oyna</button>
-    </div>`, { kapatma: false });
+    </div>`, { kapatma: false, sinif: 'son-ekrani' });
   kart.querySelector('[data-tekrar]').addEventListener('click', () => {
     modalKapat();
     tekrar();

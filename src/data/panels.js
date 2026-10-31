@@ -11,6 +11,8 @@
 export const PANELLER = {
   enerji: {
     baslik: 'Enerji Kontrol Paneli',
+    kod: 'ENERJİ_01',
+    tema: '#f2b33d',
     aciklama: 'Güneş panelleri, rüzgar türbini ve yedek dizel jeneratör. Jeneratör hızlıdır ama havayı kirletir.',
     gosterge: ['enerji', 'karbon'],
     eylemler: [
@@ -21,6 +23,8 @@ export const PANELLER = {
   },
   su: {
     baslik: 'Su Arıtma Sistemi',
+    kod: 'HİDRO_02',
+    tema: '#4fc3f7',
     aciklama: 'Gri suyu ve yağmur suyunu arıtır. Tam güç modu çok enerji yer.',
     gosterge: ['su', 'enerji'],
     eylemler: [
@@ -30,6 +34,8 @@ export const PANELLER = {
   },
   sera: {
     baslik: 'Sera',
+    kod: 'BİYO_03',
+    tema: '#7ed957',
     aciklama: 'Yeşilvadi\'nin besin kaynağı. Bitkiler su ister ama karbonu da azaltır.',
     gosterge: ['gida', 'su', 'karbon'],
     eylemler: [
@@ -40,6 +46,8 @@ export const PANELLER = {
   },
   geriDonusum: {
     baslik: 'Geri Dönüşüm İstasyonu',
+    kod: 'DÖNÜŞ_04',
+    tema: '#ff8a3d',
     aciklama: 'Atıkları ayrıştır ya da yak. Yakmak hızlıdır ve biraz enerji verir, ama karbon salar.',
     gosterge: ['atik', 'karbon'],
     eylemler: [
