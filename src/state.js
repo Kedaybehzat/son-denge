@@ -24,6 +24,11 @@ export const AYAR = {
   dengeEsigi: 60,          // sonlar: denge bu ve üstü = "ayakta"
   insanlikEsigi: 50,       // sonlar: insanlık bu ve üstü = "kapı açık"
   baslangicInsanlik: 50,
+  // Yorgunluk: her gece çalışırsa +1, dinlenirse -2. 3+ uyarı, 4+ ayrılma riski.
+  yorgunlukUyari: 3,       // bu puandan itibaren pano'da uyarı
+  yorgunlukAyrilmaEsigi: 4,// bu puandan itibaren ayrılma şansı
+  yorgunlukAyrilmaPay: 0.25, // şans = (yorgunluk - esik + 1) * pay
+  ayrilmaInsanlikCezasi: 8,
 };
 
 const BASLANGIC = { enerji: 50, su: 50, gida: 50, atik: 35, karbon: 35 };
