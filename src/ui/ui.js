@@ -4,6 +4,7 @@
 //  Phaser'ın üstünde duran düz HTML/CSS. Görünüm için style.css.
 // =============================================================
 import { state, abone, eylemYap, eylemYapabilirMi, AYAR, KAYNAKLAR } from '../state.js';
+import { HIKAYE } from '../data/story.js';
 
 const hud = document.getElementById('hud');
 const modal = document.getElementById('modal');
@@ -42,8 +43,9 @@ const eylemNoktalari = () =>
   Array.from({ length: Math.max(AYAR.eylemHakki, state.eylem) }, (_, i) =>
     `<i class="${i < state.eylem ? 'dolu' : ''}"></i>`).join('');
 
-function modalAc(html, { kapatma = true } = {}) {
+function modalAc(html, { kapatma = true, sinif = '' } = {}) {
   kart.innerHTML = html;
+  kart.className = 'kart ' + sinif;
   kapatilabilir = kapatma;
   modal.classList.remove('gizli');
   acik = true;
@@ -219,12 +221,40 @@ export function bilgi(baslik, metin) {
 // ---------------------------------------------------------------
 //  BAŞLANGIÇ VE SON EKRANLARI
 // ---------------------------------------------------------------
+// Başla ekranından önceki hikaye ekranları (data/story.js)
+export function girisHikayesi(bitti, i = 0) {
+  if (i >= HIKAYE.length) return girisBitti(bitti);
+  hud.style.visibility = 'hidden';
+  const h = HIKAYE[i];
+  const noktalar = HIKAYE.map((_, j) => `<i class="${j <= i ? 'dolu' : ''}"></i>`).join('');
+  modalAc(`
+    <div class="hikaye-ekrani">
+      <span class="hikaye-ust">${kacis(h.ust)}</span>
+      <h1>${kacis(h.baslik)}</h1>
+      ${paragraf(h.metin)}
+      <div class="alt">
+        <span class="noktalar">${noktalar}</span>
+        <span class="hikaye-butonlar">
+          <button class="ikincil" data-gec>Geç</button>
+          <button data-devam data-varsayilan>${i === HIKAYE.length - 1 ? 'Sığınağa gir' : 'Devam'}</button>
+        </span>
+      </div>
+    </div>`, { kapatma: false, sinif: 'hikaye' });
+  kart.querySelector('[data-devam]').addEventListener('click', () => girisHikayesi(bitti, i + 1));
+  kart.querySelector('[data-gec]').addEventListener('click', () => girisBitti(bitti));
+}
+
+function girisBitti(bitti) {
+  hud.style.visibility = '';
+  bitti();
+}
+
 export function baslangicEkrani(basla) {
   modalAc(`
     <div class="baslik-ekrani">
       <span class="etiket">ÇALIŞMA ADI</span>
       <h1>Son Denge</h1>
-      <p>2071. Dünya kaynaklarının sonuna geldi. <b>Yeşilvadi</b>, çöküşten sonra kurulan son ütopya, ama ne kadar dayanacağı senin kararlarına bağlı.</p>
+      <p><b>Yeşilvadi</b>, Büyük Sessizlik'ten sonra kurulan son ütopya. Ne kadar dayanacağı senin kararlarına bağlı.</p>
       <p>${AYAR.maxGun} gün boyunca enerjiyi, suyu, gıdayı ve atığı yönet. Kolay çözümlerin bir bedeli var.</p>
       <div class="kontroller">
         <span><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> yürü</span>

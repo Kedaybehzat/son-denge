@@ -26,6 +26,7 @@ npm run build      # dist/ klasörü oluşur
 |---|---|---|
 | `src/data/panels.js` | Paneller ve eylemleri (etkileri, kirli seçenekler) | Tasarım / denge |
 | `src/data/events.js` | Radyo olayları | Tasarım / içerik |
+| `src/data/story.js` | Açılıştaki hikaye ekranları | İçerik |
 | `src/data/rooms.js` | Odalar, pencereler, nesnelerin yerleri | Tasarım / seviye |
 | `src/state.js` | Kurallar: gece tüketimi, denge formülü, sonlar, `AYAR` | Denge |
 | `src/scenes/GameScene.js` | Phaser sahnesi: çizim, hareket, etkileşim, görsel dönüşüm | Programcı |
@@ -34,6 +35,8 @@ npm run build      # dist/ klasörü oluşur
 Sayıları değiştirmek için koda dokunmanız gerekmez: `data/` klasöründeki dosyalar ve `state.js` içindeki `AYAR` yeterli.
 
 ## Nasıl çalışıyor
+
+- **Hikaye:** İklim değişikliği → eriyen buzullardan uyanan eski bir virüs → "Büyük Sessizlik" (nüfusun büyük kısmı yok oldu) → hayatta kalanlar Yeşilvadi'yi kuruyor. Açılışta 4 ekranla anlatılıyor, "Geç" ile atlanabiliyor.
 
 - **Gün döngüsü:** Her gün 3 eylem hakkı var. Yatağa gidince gece tüketimi uygulanır (`AYAR.gunSonuDegisim`), ardından yeni gün ve rastgele bir radyo olayı başlar.
 - **Denge (0–100):** 5 kaynağın ağırlıklı ortalaması. Karbon iki kat sayılır. Her kaynak 80'de tam puan verir, yani fazla enerji kirliliği telafi edemez.

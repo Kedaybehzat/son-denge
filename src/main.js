@@ -18,4 +18,4 @@ window.oyun = new Phaser.Game({
   scene: [GameScene],
 });
 
-ui.baslangicEkrani(() => ui.olayGoster(state.olay));
+ui.girisHikayesi(() => ui.baslangicEkrani(() => ui.olayGoster(state.olay)));

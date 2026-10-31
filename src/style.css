@@ -186,3 +186,22 @@ kbd {
 .son.utopya h1 { color: #2f7d5b; }
 .son.yarali h1 { color: #a0661c; }
 .son.cokus h1 { color: #9a3424; }
+
+/* Giriş hikayesi */
+.kart.hikaye {
+  background: #12161c;
+  color: #e9e4d8;
+  width: min(60cqw, 92%);
+  padding: 3cqw 3.4cqw 2.2cqw;
+  border: 0.1cqw solid #ffffff14;
+}
+.hikaye-ekrani { animation: soluk 0.6s ease-out; }
+@keyframes soluk { from { opacity: 0; } }
+.hikaye-ust { font-size: 1.1cqw; letter-spacing: 0.3em; color: #e0b23a; font-weight: 700; }
+.hikaye-ekrani h1 { font-size: 3.4cqw; margin: 0.6cqw 0 1.4cqw; color: #fff; }
+.hikaye-ekrani p { font-size: 1.6cqw; line-height: 1.65; color: #cfc8b8; }
+.hikaye-ekrani .alt { margin-top: 2.2cqw; }
+.hikaye-ekrani .noktalar i { color: #ffffff55; }
+.hikaye-ekrani .noktalar i.dolu { background: #e0b23a; border-color: #e0b23a; }
+.hikaye-butonlar { display: flex; gap: 0.8cqw; }
+.kart.hikaye button.ikincil { color: #ffffff99; border-color: #ffffff2a; }
