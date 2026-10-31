@@ -169,17 +169,19 @@ Her eylem 1 eylem hakkı harcar. "Kirli" eylemler arayüzde kırmızı kenarlık
 | 3 | Atıkları yak | −35 Atık, +8 Enerji, +15 Karbon | Evet | `yakma` |
 
 ### 4.6 Radyo olayları
-1. gün her zaman "Sakin bir sabah" (öğretici). 2. günden itibaren aşağıdakilerden rastgele biri gelir, bir oyunda aynı olay tekrar etmez.
+1. gün her zaman "Sakin bir sabah" (öğretici). 2. günden itibaren aşağıdakilerden rastgele biri gelir, bir oyunda aynı olay tekrar etmez. **Her olay bir gün önceden radyoda duyurulur** (bölüm 4.15); zararlı olaylara hazırlanılabilir.
 
-| Olay | Radyo metni | Hemen | O gece ek | Eylem hakkı |
-|---|---|---|---|---|
-| Sıcak hava dalgası | "Bugün sıcaklık 46 dereceyi bulacak. Soğutma sistemleri tam kapasite çalışıyor." | — | −10 Enerji, −5 Su | — |
-| Kuraklık | "Baraj doluluk oranı yüzde 8'e geriledi. Su kullanımında tasarruf şart." | — | −12 Su | — |
-| Ani sel | "Gece yağan sağanak seranın alt katını su bastı. Hasar tespit ediliyor." | −15 Gıda, +10 Atık | — | — |
-| Şebeke kesintisi | "Bölge şebekesinde arıza var. Bugün sistemlerin bir kısmı devre dışı." | — | — | -1 |
-| Rüzgarlı gün | "Kuvvetli rüzgar bekleniyor. Türbinler tam kapasite üretimde." | +15 Enerji | — | — |
-| Toz fırtınası | "Çölleşen bölgelerden gelen toz bulutu panelleri kapladı. Güneş enerjisi üretimi düşük." | +5 Karbon | −8 Enerji | — |
-| Komşu sığınaktan takas | "Doğu sığınağı fazla hasatlarını paylaştı. Ambalajlar geri dönüşüm bekliyor." | +12 Gıda, +8 Atık | — | — |
+| Olay | Radyo metni | Hemen | O gece ek | Eylem hakkı | Hazırlık (1 eylem, bir gün önce) |
+|---|---|---|---|---|---|
+| Sıcak hava dalgası | "Bugün sıcaklık 46 dereceyi bulacak. Soğutma sistemleri tam kapasite çalışıyor." | — | −18 Enerji, −10 Su | — | Yalıtımı güçlendir, gölgelikleri kur: tamamen önler |
+| Kuraklık | "Baraj doluluk oranı yüzde 8'e geriledi. Su kullanımında tasarruf şart." | — | −20 Su | — | Tankları doldur, tasarruf planı: tamamen önler |
+| Ani sel | "Gece yağan sağanak seranın alt katını su bastı. Hasar tespit ediliyor." | −22 Gıda, +14 Atık | — | — | Seraya su bariyeri: %70 azaltır |
+| Şebeke kesintisi | "Bölge şebekesinde arıza var. Bugün sistemlerin bir kısmı devre dışı." | — | — | −1 | Yok (sadece önceden duyurulur) |
+| Rüzgarlı gün | "Kuvvetli rüzgar bekleniyor. Türbinler tam kapasite üretimde." | +15 Enerji | — | — | — |
+| Toz fırtınası | "Çölleşen bölgelerden gelen toz bulutu panelleri kapladı. Güneş enerjisi üretimi düşük." | +8 Karbon | −15 Enerji | — | Panelleri örtüyle kapla: tamamen önler |
+| Komşu sığınaktan takas | "Doğu sığınağı fazla hasatlarını paylaştı. Ambalajlar geri dönüşüm bekliyor." | +12 Gıda, +8 Atık | — | — | — |
+
+Zararlı olaylar hazırlık mekaniğiyle ~1,6 kat sertleştirildi (eski: sıcak −10/−5, kuraklık −12, sel −15/+10, toz +5/−8); böylece hazırlanmak bir panel eylemi kadar değerli.
 
 ### 4.7 Kapı ve ziyaretçiler
 2. günden itibaren her sabah aşağıdakilerden rastgele biri gelir (bir oyunda en fazla 4 ziyaretçi, tekrar yok).
@@ -242,15 +244,17 @@ Denge düştükçe dünya kodla değişiyor:
 
 | Oyun tarzı | Kapı | Gerçek ütopya | Yalnız ütopya | Kapımız açıktı | Çöküş | Ort.arş |
 |---|---|---|---|---|---|---|
-| Akıllı | Herkesi al | %91 | %0 | %9 | %0 | 1.67 |
-| Akıllı | Kimseyi alma | %0 | %100 | %0 | %0 | 0.00 |
-| Akıllı | Yarısını al | %34 | %63 | %2 | %1 | 0.78 |
-| Rastgele | Herkesi al | %3 | %0 | %97 | %0 | 1.64 |
-| Rastgele | Kimseyi alma | %0 | %25 | %0 | %75 | 0.00 |
-| Rastgele | Yarısını al | %2 | %9 | %34 | %54 | 0.78 |
-| Kirli | Herkesi al | %0 | %0 | %100 | %0 | 1.65 |
+| Akıllı | Herkesi al | %61 | %0 | %39 | %0 | 1.55 |
+| Akıllı | Kimseyi alma | %0 | %96 | %0 | %4 | 0.00 |
+| Akıllı | Yarısını al | %12 | %69 | %6 | %14 | 0.74 |
+| Rastgele | Herkesi al | %1 | %0 | %99 | %0 | 1.53 |
+| Rastgele | Kimseyi alma | %0 | %10 | %0 | %90 | 0.00 |
+| Rastgele | Yarısını al | %0 | %4 | %18 | %78 | 0.74 |
+| Kirli | Herkesi al | %0 | %0 | %100 | %0 | 1.54 |
 | Kirli | Kimseyi alma | %0 | %0 | %0 | %100 | 0.00 |
-| Kirli | Yarısını al | %0 | %0 | %36 | %64 | 0.79 |
+| Kirli | Yarısını al | %0 | %0 | %19 | %81 | 0.73 |
+
+(1 Kasım, yorgunluk + hazırlıklı olaylar sonrası. Akıllı stil her zararlı olaya hazırlanır; `SIM_HAZIRLIK=0 node tools/simulasyon.mjs` hazırlıksız karşılaştırma verir. Akıllı + herkesi al iyi son oranı yorgunluk ve sert olaylarla %91'den %61'e düştü; dengeleme PROJECT_LOG D10/D12.)
 
 **Yorum:** En iyi son yalnızca hem iyi kaynak yönetimi hem de açık kapıyla mümkün. Kirli oynayan hiçbir koşulda ayakta kalamıyor. Bu, oyunun mesajını mekanikle kanıtlıyor; sunumda kullanılabilir. Araştırma yalnızca kapı açıkken açılıyor: Dr. Leyla gelirse laboratuvara giriyor, kuruculardan laba giden yok. Yani kapıyı kapatan oyuncu Faz 1 teknolojilerine erişemiyor; bu, "paylaşım = ilerleme" mesajını mekanik olarak güçlendiriyor.
 
@@ -316,6 +320,15 @@ Sayılar `src/state.js` → `AYAR` (`yorgunlukUyari`, `yorgunlukAyrilmaEsigi`, `
 - **4 ve üstü:** her gece ayrılma zarı. Şans = (yorgunluk − 4 + 1) × %25 (4'te %25, 5'te %50…).
 - Ayrılan sakin (grup ise tüm grup) nüfustan düşer, görevi boşalır ve **−8 insanlık** verir.
 - Panoda her sakinin yorgunluğu "şimdi ↑ bu gece" ve risk yüzdesiyle görünür. Gece tahmini riskli sakinleri uyarır, gece raporu ayrılanları yazar, son ekranı "Tükenip giden" sayısını gösterir.
+
+### 4.15 Hazırlıklı olaylar (GDD Faz 2: uyarı → hazırlık → etki)
+
+Veri: `src/data/events.js` (`uyari`, `hazirlik: { ad, carpan }`, `HAZIRLIK_MALIYETI`). Kurallar: `src/state.js` → `olayEtkisi()`, `hazirlan()`.
+
+- Yarının olayı bugünden seçilir ve radyo/sabah ekranında **"Yarın için tahmin"** olarak gösterilir (etkileriyle). Son gün tahmin yoktur.
+- Zararlı olaylarda tahminin altında bir **hazırlık eylemi** çıkar (1 eylem). Hazırlanırsan yarın olayın **kötü yöndeki** etkileri `carpan` ile çarpılır (0 = tamamen önlenir, 0.3 = %70 azalır); iyi yöndeki etkiler değişmez.
+- Hazırlanılan gün radyo "Dün hazırlandığın için etkisi azaldı" der; gece tahmini ve rapor azalmış değerleri gösterir. Hazırlanınca o gece `erkenuyari` bilgi kartı çıkar (24 saatlik uyarı zararı ~%30 azaltır, Küresel Uyum Komisyonu 2019).
+- Batarya Deposu enerji olaylarına karşı ikinci bir yoldur (GDD: tek bir doğru cevap olmasın).
 
 ## 5. Teknik yapı
 

@@ -4,7 +4,7 @@
 //  dağılımını gösterir. state.js / data dosyalarında sayı değiştirince
 //  çalıştırın:   node tools/simulasyon.mjs
 // =============================================================
-import { state, sifirla, eylemYap, gunuBitir, ziyaretciKabul, ziyaretciReddet,
+import { state, sifirla, eylemYap, gunuBitir, ziyaretciKabul, ziyaretciReddet, hazirlan,
   dengeHesapla, nufusTuketimi, AYAR, rastgeleAyarla, bosMakineler, kendinCalis,
   masadaArastirabilirMi, masadaArastir, arastirmaSec, arastirmaAcik, gorevAta,
   makineOperatoru, sakinTanimi, MAKINELER } from '../src/state.js';
@@ -79,6 +79,8 @@ function oyna(stilAd, stil, kapi, r) {
     if (stilAd === 'akilli') {
       akilliAtamalariYap();
       akilliArastirmaSec();
+      // Yarının zararlı olayına hazırlan (1 eylem)
+      if (process.env.SIM_HAZIRLIK !== "0") hazirlan();
       // Not: yorgunluk riskindekileri dinlendirmek bu ayarlarla daha KÖTÜ sonuç veriyor
       // (herkes 4. gece aynı anda riske giriyor, PROJECT_LOG D10). Akıllı stil riski göze alır.
     }

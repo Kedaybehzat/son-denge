@@ -1137,3 +1137,17 @@ button.gorev.dolu { opacity: 0.6; }
   aspect-ratio: 16 / 9; max-height: 24cqw; object-fit: cover;
   border-radius: 0.6cqw; margin-bottom: 1cqw;
 }
+
+/* ---------- Yarın için tahmin (hazırlıklı olaylar) ---------- */
+.tahmin {
+  margin-top: 0.9cqw;
+  padding: 0.8cqw 1cqw;
+  border: 0.1cqw dashed color-mix(in oklab, var(--tema) 45%, transparent);
+  border-radius: 0.5cqw;
+}
+.tahmin .radyo-ust { color: var(--terminal-dim); font-size: 0.9cqw; letter-spacing: 0.18em; }
+.tahmin h4 { margin: 0.3cqw 0 0.4cqw; font-size: 1.5cqw; }
+.tahmin p { margin: 0 0 0.5cqw; font-size: 1.05cqw; }
+.tahmin .etki-satir { margin-top: 0.4cqw; }
+.tahmin .etki-satir > span:first-child { color: var(--terminal-dim); font-size: 0.85cqw; letter-spacing: 0.12em; text-transform: uppercase; }
+.tahmin button.eylem { margin-top: 0.6cqw; width: 100%; }
