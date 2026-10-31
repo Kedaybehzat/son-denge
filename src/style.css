@@ -1118,3 +1118,4 @@ button.proje.acik { opacity: 0.75; }
 button.gorev.dolu { opacity: 0.6; }
 .gorevler { grid-template-columns: repeat(auto-fill, minmax(9cqw, 1fr)); }
 .ziyaretci-satir.makine.bos .chip { animation: none; }
+.chip.yorgunluk.uyari-chip { border-color: #e0b23a; color: #f2c14e; }

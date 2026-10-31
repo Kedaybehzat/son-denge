@@ -77,13 +77,14 @@ export function sifirla() {
   state.batarya = 0;         // depodaki enerji (Batarya Deposu açıldıysa)
   state.kabulEdilen = 0;     // içeri alınan kişi sayısı
   state.reddedilen = 0;      // geri çevrilen kişi sayısı
+  state.ayrilan = 0;         // yorgunluktan ayrılan kişi sayısı
   state.eylem = AYAR.eylemHakki;
   state.kullanilanOlaylar = [];
   state.kullanilanZiyaretciler = [];
   state.bugunBilgi = [];     // bugünkü seçimlerin bilgi anahtarları
   state.gosterilenBilgiler = [];
   state.bitti = false;
-  for (const k of KURUCULAR) state.sakinler.push({ uid: state.sakinler.length + 1, id: k.id, gorev: k.varsayilan });
+  for (const k of KURUCULAR) state.sakinler.push({ uid: state.sakinler.length + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
   katkiGuncelle();
   state.denge = dengeHesapla();
   bildir();
@@ -311,6 +312,10 @@ export function geceTahmini() {
     cokus: denge <= AYAR.cokusEsigi,
     sonGun: state.gun >= AYAR.maxGun,
     kapidaBekleyen: state.ziyaretci,
+    riskliler: state.sakinler
+      .map((s) => ({ s, y: yarinkiYorgunluk(s) }))
+      .filter(({ y }) => ayrilmaSansi(y) > 0)
+      .map(({ s, y }) => ({ ad: sakinTanimi(s.id).ad, yorgunluk: y, sans: ayrilmaSansi(y) })),
   };
 }
 
@@ -342,7 +347,7 @@ export function ziyaretciKabul() {
   state.kabulEdilen += z.kisi;
   state.insanlik = sinirla(state.insanlik + (z.insanlik ?? 10));
   etkiUygula(z.anlik);
-  state.sakinler.push({ uid: state.sakinler.length + 1, id: z.id, gorev: varsayilanGorev(z) });
+  state.sakinler.push({ uid: state.sakinler.length + 1, id: z.id, gorev: varsayilanGorev(z), yorgunluk: 0 });
   katkiGuncelle();
   state.bugunBilgi.push({ anahtar: 'goc', kirli: false });
   state.ziyaretci = null;
@@ -396,6 +401,43 @@ function sonucBelirle() {
   return acik ? 'kapimizAcikti' : 'cokus';
 }
 
+// ---------------------------------------------------------------
+//  YORGUNLUK (Faz 2 / M2)
+//  Çalışan (makine ya da laboratuvar) her gece +1, dinlenen -2 (en az 0).
+//  yorgunlukAyrilmaEsigi ve üstünde: ayrılma şansı = (y - esik + 1) * pay.
+// ---------------------------------------------------------------
+const calisiyor = (s) => !!s.gorev && s.gorev !== 'bosta';
+
+// Bu gecenin sonunda sakinin yorgunluğu ne olur
+export function yarinkiYorgunluk(s) {
+  if (!s.gorev) return s.yorgunluk || 0; // çalışmayanlar (çocuklar) değişmez
+  return calisiyor(s) ? (s.yorgunluk || 0) + 1 : Math.max(0, (s.yorgunluk || 0) - 2);
+}
+
+export function ayrilmaSansi(yorgunluk) {
+  if (yorgunluk < AYAR.yorgunlukAyrilmaEsigi) return 0;
+  return Math.min(1, (yorgunluk - AYAR.yorgunlukAyrilmaEsigi + 1) * AYAR.yorgunlukAyrilmaPay);
+}
+
+// Gece sonunda yorgunluğu günceller, sınırı aşanlar için ayrılma zarı atar.
+// Ayrılanların listesini döndürür.
+function yorgunlukGecesi() {
+  const ayrilanlar = [];
+  for (const s of state.sakinler) {
+    s.yorgunluk = yarinkiYorgunluk(s);
+    if (rastgele() < ayrilmaSansi(s.yorgunluk)) ayrilanlar.push(s);
+  }
+  for (const s of ayrilanlar) {
+    const z = sakinTanimi(s.id);
+    state.sakinler.splice(state.sakinler.indexOf(s), 1);
+    state.nufus -= z.kisi;
+    state.ayrilan += z.kisi;
+    state.insanlik = sinirla(state.insanlik - AYAR.ayrilmaInsanlikCezasi);
+  }
+  if (ayrilanlar.length) katkiGuncelle();
+  return ayrilanlar.map((s) => ({ ...sakinTanimi(s.id), yorgunluk: s.yorgunluk }));
+}
+
 /**
  * Günü bitirir: gece tüketimi uygulanır, sonra yeni gün, olay ve ziyaretçi gelir.
  * Dönüş: { tip: 'devam' | son tipi, rapor, bilgi, gidenZiyaretci }
@@ -419,7 +461,9 @@ export function gunuBitir() {
   state.denge = dengeHesapla();
   const rapor = {};
   for (const ad of Object.keys(once)) rapor[ad] = state.kaynak[ad] - once[ad];
-  const ek = { arastirmaPuani: gece.puan, arastirmaBitti, bataryaKullanim: gece.bataryaKullanim, bataryaSarj: gece.bataryaSarj };
+  const ayrilanlar = yorgunlukGecesi();
+  if (ayrilanlar.length) state.denge = dengeHesapla();
+  const ek = { arastirmaPuani: gece.puan, arastirmaBitti, bataryaKullanim: gece.bataryaKullanim, bataryaSarj: gece.bataryaSarj, ayrilanlar };
   const bilgi = bilgiSec();
   state.bugunBilgi = [];
 

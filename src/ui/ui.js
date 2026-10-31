@@ -5,7 +5,7 @@
 // =============================================================
 import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, ziyaretciNetEtki, geceTahmini, AYAR, KAYNAKLAR,
   sakinTanimi, sakinCiktisi, gorevAta, arastirmaSec, arastirmaAcik, masadaArastir, masadaArastirabilirMi,
-  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi } from '../state.js';
+  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi } from '../state.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, OYUNCU_CALISMA_MALIYETI } from '../data/research.js';
 import { HIKAYE } from '../data/story.js';
 
@@ -302,7 +302,7 @@ function bilgiHtml(b) {
 }
 
 // Gün geçişi iki adım: önce gece raporu + bilgi kartı, sonra sabah radyosu
-export function gunBaslangici({ rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj }) {
+export function gunBaslangici({ rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj, ayrilanlar = [] }) {
   const gitti = gidenZiyaretci
     ? `<p class="uyari">🚪 ${kacis(gidenZiyaretci.ad)} kapıda beklemekten vazgeçip gitti.</p>`
     : '';
@@ -313,6 +313,7 @@ export function gunBaslangici({ rapor, bilgi, gidenZiyaretci, arastirmaPuani, ar
     ${bataryaKullanim ? `<div class="rapor"><span>Batarya:</span><span class="chip iyi">🔋 ${bataryaKullanim} enerji depodan geldi</span></div>` : ''}
     ${bataryaSarj ? `<div class="rapor"><span>Batarya:</span><span class="chip iyi">🔋 ${bataryaSarj} fazla enerji depolandı</span></div>` : ''}
     ${arastirmaBitti ? `<p class="mesaj">&gt; ${ARASTIRMALAR[arastirmaBitti].ikon} ${kacis(ARASTIRMALAR[arastirmaBitti].ad)} tamamlandı! ${kacis(ARASTIRMALAR[arastirmaBitti].aciklama)}</p>` : ''}
+    ${ayrilanlar.map((z) => `<p class="uyari">😮‍💨 ${kacis(z.ad)} tükenmişti ve gece sessizce sığınaktan ayrıldı.</p>`).join('')}
     ${gitti}
     ${bilgiHtml(bilgi)}
     <div class="alt sag"><button data-sabah data-varsayilan>Sabah oldu</button></div>`, { kapatma: false, sinif: 'gece' });
@@ -422,6 +423,18 @@ function laboratuvarDurumHtml() {
   return `<span class="chip iyi">🧪 Laboratuvar: ${kim} · bu gece +${puan} 🧪</span>`;
 }
 
+// Sakinin yorgunluk göstergesi: şu an → bu geceden sonra, risk varsa yüzde
+function yorgunlukChip(s) {
+  if (!s.gorev) return '';
+  const simdi = s.yorgunluk || 0;
+  const yarin = yarinkiYorgunluk(s);
+  const sans = ayrilmaSansi(yarin);
+  const sinif = sans > 0 ? 'kotu' : yarin >= AYAR.yorgunlukUyari ? 'uyari-chip' : '';
+  const ok = yarin > simdi ? '↑' : yarin < simdi ? '↓' : '';
+  const risk = sans > 0 ? ` · %${Math.round(sans * 100)} ayrılabilir` : yarin >= AYAR.yorgunlukUyari ? ' · dinlenmeli' : '';
+  return `<span class="chip yorgunluk ${sinif}" title="Çalışınca her gece +1, dinlenince −2. ${AYAR.yorgunlukAyrilmaEsigi} ve üstünde sığınaktan ayrılabilir.">😮‍💨 ${simdi}${ok ? ` ${ok} ${yarin}` : ''}${risk}</span>`;
+}
+
 function panoCiz() {
   const sakinler = state.sakinler.map((s) => {
     const z = sakinTanimi(s.id);
@@ -443,6 +456,7 @@ function panoCiz() {
     return `
       <div class="sakin-satir">
         <div class="sakin-ad"><span class="ikon-rozet">${z.ikon}</span><b>${kacis(z.ad)}</b>
+          ${yorgunlukChip(s)}
           ${z.kosullu ? `<span class="chip ${cikti.kosul ? 'kotu' : ''}">${cikti.kosul ? '⚠ ' : ''}${kacis(z.kosullu)}</span>` : ''}</div>
         <div class="gorevler">${butonlar}</div>
       </div>`;
@@ -467,7 +481,7 @@ function panoCiz() {
 
   modalAc(`
     <div class="panel-ust"><span class="etiket">▸ GÖREV_PANOSU // ÇEVRİMİÇİ<i class="led"></i></span><h2>Görevler ve Araştırma</h2></div>
-    <p class="aciklama">Her makinede bir operatör çalışır; <b>operatörü olmayan makine üretim yapmaz</b>. Boş makinenin paneline gidip kendin çalışabilirsin (${OYUNCU_CALISMA_MALIYETI} eylem). ★ uzmanlık yeridir: orada ek katkı verir. Laboratuvar sınırsız: istediğin kadar sakini araştırmaya atayabilirsin, her biri +2 puan/gün verir. Görev değişikliği bu geceden geçerlidir; +1 eylem hakkı yarın başlar.</p>
+    <p class="aciklama">Her makinede bir operatör çalışır; <b>operatörü olmayan makine üretim yapmaz</b>. Boş makinenin paneline gidip kendin çalışabilirsin (${OYUNCU_CALISMA_MALIYETI} eylem). ★ uzmanlık yeridir: orada ek katkı verir. Laboratuvar sınırsız: istediğin kadar sakini araştırmaya atayabilirsin, her biri +2 puan/gün verir. <b>Yorgunluk:</b> çalışan her gece +1, dinlenen −2; ${AYAR.yorgunlukAyrilmaEsigi} ve üstünde sakin sığınaktan ayrılabilir. Görev değişikliği bu geceden geçerlidir; +1 eylem hakkı yarın başlar.</p>
     <div class="ziyaretci-satir makineler">${makineDurumHtml()}</div>
     <div class="ziyaretci-satir laboratuvar">${laboratuvarDurumHtml()}</div>
     <div class="sakinler">${sakinler}</div>
@@ -510,6 +524,7 @@ export function gunuBitirOnay(evet) {
   if (state.eylem > 0) uyarilar.push(`Hâlâ ${state.eylem} eylem hakkın var.`);
   const bos = bosMakineler();
   if (bos.length) uyarilar.push(`⚙ Boş makine: ${bos.map((m) => MAKINELER[m].ad).join(', ')}. Bu gece üretim yapmayacak.`);
+  for (const r of t.riskliler) uyarilar.push(`😮‍💨 ${r.ad} çok yorgun (${r.yorgunluk}): bu gece %${Math.round(r.sans * 100)} ihtimalle sığınaktan ayrılabilir. Görev Panosu'ndan dinlendir.`);
   if (t.kapidaBekleyen) uyarilar.push(`🚪 ${t.kapidaBekleyen.ad} kapıda bekliyor. Karar vermezsen gidecek.`);
   if (t.cokus) uyarilar.push('⚠ Bu gidişle denge çöküş eşiğinin altına iniyor. Oyun bu gece bitebilir.');
   else if (t.sonGun) uyarilar.push('Bu son gece. Sabah sonuç belli olacak.');
@@ -623,6 +638,7 @@ export function sonGoster({ tip, bilgi }, tekrar) {
         <div><span>İnsanlık</span><b>${state.insanlik}</b><small>/ 100</small></div>
         <div><span>Sığınakta</span><b>${state.nufus}</b><small>kişi</small></div>
         <div><span>Geri çevrilen</span><b>${state.reddedilen}</b><small>kişi</small></div>
+        ${state.ayrilan ? `<div><span>Tükenip giden</span><b>${state.ayrilan}</b><small>kişi</small></div>` : ''}
       </div>
       ${bilgiHtml(bilgi)}
       <button data-tekrar data-varsayilan>Tekrar oyna</button>
