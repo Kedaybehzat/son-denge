@@ -232,19 +232,21 @@ Denge düştükçe dünya kodla değişiyor:
 - Seradaki bitkiler gıda ve dengeye göre yeşerir ya da solar.
 
 ### 4.11 Denge simülasyonu
-`tools/simulasyon.mjs` oyunu farklı oyun tarzlarıyla 4000'er kez oynatıyor:
+`tools/simulasyon.mjs` oyunu farklı oyun tarzlarıyla 4000'er kez oynatıyor. Akıllı stilde boş makinelerde oyuncu kendisi çalışır, uzmanlık yerine atama varsayılan davranış, aktif araştırma batarya → grisu sırasıyla açılır. "Ort.arş": 5 gün sonunda açılmış ortalama araştırma sayısı (en çok 2).
 
-| Oyun tarzı | Kapı | Gerçek ütopya | Yalnız ütopya | Kapımız açıktı | Çöküş |
-|---|---|---|---|---|---|
-| Akıllı | Herkesi al | %96 | %0 | %4 | %0 |
-| Akıllı | Kimseyi alma | %0 | %100 | %0 | %0 |
-| Akıllı | Yarısını al | %35 | %63 | %1 | %0 |
-| Rastgele | Herkesi al | %9 | %0 | %91 | %0 |
-| Rastgele | Kimseyi alma | %0 | %25 | %0 | %75 |
-| Kirli | Herkesi al | %0 | %0 | %100 | %0 |
-| Kirli | Kimseyi alma | %0 | %0 | %0 | %100 |
+| Oyun tarzı | Kapı | Gerçek ütopya | Yalnız ütopya | Kapımız açıktı | Çöküş | Ort.arş |
+|---|---|---|---|---|---|---|
+| Akıllı | Herkesi al | %91 | %0 | %9 | %0 | 1.67 |
+| Akıllı | Kimseyi alma | %0 | %100 | %0 | %0 | 0.00 |
+| Akıllı | Yarısını al | %34 | %63 | %2 | %1 | 0.78 |
+| Rastgele | Herkesi al | %3 | %0 | %97 | %0 | 1.64 |
+| Rastgele | Kimseyi alma | %0 | %25 | %0 | %75 | 0.00 |
+| Rastgele | Yarısını al | %2 | %9 | %34 | %54 | 0.78 |
+| Kirli | Herkesi al | %0 | %0 | %100 | %0 | 1.65 |
+| Kirli | Kimseyi alma | %0 | %0 | %0 | %100 | 0.00 |
+| Kirli | Yarısını al | %0 | %0 | %36 | %64 | 0.79 |
 
-**Yorum:** En iyi son yalnızca hem iyi kaynak yönetimi hem de açık kapıyla mümkün. Kirli oynayan hiçbir koşulda ayakta kalamıyor. Bu, oyunun mesajını mekanikle kanıtlıyor; sunumda kullanılabilir.
+**Yorum:** En iyi son yalnızca hem iyi kaynak yönetimi hem de açık kapıyla mümkün. Kirli oynayan hiçbir koşulda ayakta kalamıyor. Bu, oyunun mesajını mekanikle kanıtlıyor; sunumda kullanılabilir. Araştırma yalnızca kapı açıkken açılıyor: Dr. Leyla gelirse laboratuvara giriyor, kuruculardan laba giden yok. Yani kapıyı kapatan oyuncu Faz 1 teknolojilerine erişemiyor; bu, "paylaşım = ilerleme" mesajını mekanik olarak güçlendiriyor.
 
 ### 4.12 Ayar değerleri (`src/state.js` → `AYAR`)
 ```js

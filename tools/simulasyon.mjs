@@ -5,8 +5,11 @@
 //  çalıştırın:   node tools/simulasyon.mjs
 // =============================================================
 import { state, sifirla, eylemYap, gunuBitir, ziyaretciKabul, ziyaretciReddet,
-  dengeHesapla, nufusTuketimi, AYAR, rastgeleAyarla, bosMakineler, kendinCalis } from '../src/state.js';
+  dengeHesapla, nufusTuketimi, AYAR, rastgeleAyarla, bosMakineler, kendinCalis,
+  masadaArastirabilirMi, masadaArastir, arastirmaSec, arastirmaAcik, gorevAta,
+  makineOperatoru, sakinTanimi, MAKINELER } from '../src/state.js';
 import { PANELLER } from '../src/data/panels.js';
+import { ARASTIRMALAR } from '../src/data/research.js';
 
 const N = 4000;
 const TUM_EYLEMLER = Object.values(PANELLER).flatMap((p) => p.eylemler);
@@ -50,35 +53,65 @@ const KAPI = {
   yarisi: (r) => r() < 0.5,
 };
 
-function oyna(stil, kapi, r) {
+// Akıllı atama: Araştırma uzmanı (bilim) laboratuvara gönderilir;
+// aksi halde varsayılan görev (uzmanlık makinesi) zaten iyi.
+function akilliAtamalariYap() {
+  for (const s of state.sakinler) {
+    const z = sakinTanimi(s.id);
+    if (!z || z.calisir === false) continue;
+    if (z.uzman === 'arastirma' && s.gorev !== 'arastirma') {
+      gorevAta(s.uid, 'arastirma');
+    }
+  }
+}
+
+// Akıllı araştırma kuyruğu: batarya varsa önce, sonra grisu
+function akilliArastirmaSec() {
+  if (!arastirmaAcik('batarya')) arastirmaSec('batarya');
+  else if (!arastirmaAcik('grisu')) arastirmaSec('grisu');
+}
+
+function oyna(stilAd, stil, kapi, r) {
   rastgeleAyarla(r);
   sifirla();
   for (;;) {
     if (state.ziyaretci) (kapi(r) ? ziyaretciKabul : ziyaretciReddet)();
+    if (stilAd === 'akilli') {
+      akilliAtamalariYap();
+      akilliArastirmaSec();
+    }
     // Operatörü olmayan makinelerde önce oyuncu kendisi çalışır
     for (const m of bosMakineler()) kendinCalis(m);
     while (state.eylem > 0) eylemYap(stil(r));
     const s = gunuBitir();
-    if (s.tip !== 'devam') return { tip: s.tip, gun: state.gun, denge: state.denge, insanlik: state.insanlik, nufus: state.nufus };
+    if (s.tip !== 'devam') {
+      return {
+        tip: s.tip, gun: state.gun, denge: state.denge,
+        insanlik: state.insanlik, nufus: state.nufus,
+        acilan: state.arastirma.acik.length,
+      };
+    }
   }
 }
 
 const SONLAR = ['gercekUtopya', 'yalnizUtopya', 'kapimizAcikti', 'cokus'];
 console.log(`Her satır ${N} oyun. Sonların yüzdesi:\n`);
-console.log('stil      kapı         ' + SONLAR.map((s) => s.padEnd(14)).join('') + 'ort.denge  erken bitiş');
+console.log('stil      kapı         ' + SONLAR.map((s) => s.padEnd(14)).join('') + 'ort.denge  erken bitiş  ort.arş');
 for (const [sAd, stil] of Object.entries(STILLER)) {
   for (const [kAd, kapi] of Object.entries(KAPI)) {
     const say = Object.fromEntries(SONLAR.map((s) => [s, 0]));
-    let denge = 0, erken = 0;
+    let denge = 0, erken = 0, acilan = 0;
     const r = tohumlu(42);
     for (let i = 0; i < N; i++) {
-      const s = oyna(stil, kapi, r);
+      const s = oyna(sAd, stil, kapi, r);
       say[s.tip]++;
       denge += s.denge;
+      acilan += s.acilan;
       if (s.gun < AYAR.maxGun) erken++;
     }
     console.log(sAd.padEnd(10) + kAd.padEnd(13) +
       SONLAR.map((s) => ((say[s] / N) * 100).toFixed(0).padStart(4) + '%'.padEnd(10)).join('') +
-      (denge / N).toFixed(1).padStart(8) + ((erken / N) * 100).toFixed(0).padStart(10) + '%');
+      (denge / N).toFixed(1).padStart(8) + ((erken / N) * 100).toFixed(0).padStart(10) + '%' +
+      (acilan / N).toFixed(2).padStart(9));
   }
 }
