@@ -21,6 +21,7 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Yorgunluk ve ayrılma (Faz 2 / M2) | `src/state.js` → `yarinkiYorgunluk()`, `ayrilmaSansi()`, `yorgunlukGecesi()` (gunuBitir içinde), `AYAR.yorgunluk*`; arayüz: `ui.js` → `yorgunlukChip()`; sahne: `GameScene.js` → `sakinGuncelle()` (ayrılan figür solar) |
 | Hazırlıklı olaylar (tahmin, hazırlık) | Veri: `events.js` (`uyari`, `hazirlik`, `HAZIRLIK_MALIYETI`); kurallar: `state.js` → `state.tahmin`, `olayEtkisi()`, `hazirlan()`, `gunuBitir()` (tahmin → olay); arayüz: `ui.js` → `tahminHtml()`, `olayHtml()`, `hazirlikBagla()` |
 | Eğitici karar kartları | Veri: `src/data/cards.js` → `KARTLAR`; kurallar: `state.js` → `kartKontrol()` (gunuBitir sonunda), `kartSec()`, `kartSecenekleri()`, `state.kartGeceEtki` (geceHesapla); arayüz: `ui.js` → `kararKartiGoster()`, `sabahGoster()` |
+| Keşif (sefer, dönüş) | Veri: `src/data/exploration.js` → `KESIF_NOKTALARI`; kurallar: `state.js` → `kesfeGonder()`, `kesifSansi()`, `seferSabahi()` (gunuBitir sabahı), `state.sefer`; arayüz: `ui.js` → `kesifHtml()` (pano), `seferHtml()` (gece raporu); sahne: `sakinGuncelle()` keşiftekini gizler |
 | Araştırma ve batarya | `src/state.js` → `arastirmaSec()`, `masadaArastir()`, `puanEkle()`, `geceHesapla()`; veri: `src/data/research.js` |
 | Görev ve Araştırma Panosu arayüzü | `ui.js` → `panoAc()`, `panoCiz()`; nesne: `rooms.js` (`tip: 'pano'`), doku: `GameScene.js` → `dokulariUret()` |
 | Panel eylemi yapma kuralları | `src/state.js` → `eylemYapabilirMi()`, `eylemYap()` |
@@ -65,7 +66,7 @@ src/state.js               Oyun durumu ve tüm kurallar (abone/bildir ile UI'ya 
 src/scenes/GameScene.js    Phaser sahnesi: çizim, hareket, etkileşim, görsel dönüşüm
 src/ui/ui.js               HTML/CSS arayüz katmanı
 src/style.css              Arayüz stili (cqw ile ölçekleme)
-src/data/*.js              İçerik verisi (panels, events, visitors, facts, story, rooms, research, assets, animations, cards)
+src/data/*.js              İçerik verisi (panels, events, visitors, facts, story, rooms, research, assets, animations, cards, exploration)
 public/assets/             Oyun görselleri (CLAUDE.md 6.3 adlarıyla; eksikse yer tutucu)
 public/assets/anim/        Animasyon kareleri (<animasyon>-<kare>.png)
 tools/simulasyon.mjs       4000 oyunluk denge simülasyonu
@@ -107,7 +108,7 @@ Kaynak: `src/data/assets.js` (`ASSETLER`). Kod değişikliği gerekmez.
 | Dosya | Ne | Yükseklik | Prompt | Durum | Eklendi |
 |---|---|---|---|---|---|
 | `oyuncu.png` | Ana karakter, sağa bakıyor | 72 px | 6.5 Karakter | ✅ (256×768, 01.11) | 31.10 |
-| `panel.png` | Genel kontrol paneli (tüm odalarda) | 100 px | 6.5 Kontrol paneli | ⏳ | 31.10 |
+| `panel.png` | Genel kontrol paneli (tüm odalarda) | 100 px | 6.5 Kontrol paneli | ✅ (918×1334, 01.11) | 31.10 |
 | `panel-enerji.png` | Enerji odası paneli | 100 px | 6.5 varyasyon | 💤 | 31.10 |
 | `panel-su.png` | Su arıtma paneli | 100 px | 6.5 varyasyon | 💤 | 31.10 |
 | `panel-sera.png` | Sera paneli | 100 px | 6.5 varyasyon | 💤 | 31.10 |
@@ -183,6 +184,35 @@ Oyunda `GameScene.js` → `dekorCiz()` / `evCiz()` içinde kodla çiziliyor. Gö
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz3-kesif` → `main`
+
+- **Prompt:** Commit, push, PR, merge; sonra geliştirmeye devam.
+- **Yapılan değişiklik:** Keşif sistemi ve ekibin `panel.png`'si commit'lenip PR ile `main`'e merge edildi.
+
+| Dosya | Açıklama |
+|---|---|
+| `PROJECT_LOG.md` | Bu kayıt |
+
+- **Debt:** Yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz3-kesif`
+
+- **Prompt:** (PR #3 merge sonrası) geliştirmeye devam.
+- **Yapılan değişiklik:** GDD bölüm 8 keşif: 4 nokta (santral, eski şehir, komşu yerleşim, rezervuar). Panodan kişi gönderilir; erzak düşer, kişi çalışmaz ve yorulur; dönüşte uzmansa başarı kesin, değilse şans; başarısızlık nedenini anlatır. Headless uçtan uca test: kişi listesi şanslarla (Burak ★ %100), gönderince su makinesi boşaldı ve figür gizlendi, gece raporunda dönüş + ödül (+8 su, Gri Su +4) + bilgi kartı.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/exploration.js` | Yeni: `KESIF_NOKTALARI` (süre, erzak, şans, uzman, ödül, başarı/başarısızlık metni, bilgi) |
+| `src/state.js` | `state.sefer/kesfedilenler`; `kesifSansi()`, `kesfeGonderebilirMi()`, `kesfeGonder()`, `seferSabahi()`; `puanEkle()` belirli projeye puan verebiliyor; keşifteki kişi uzmanlık katkısı vermez ve görev değiştirilemez |
+| `src/ui/ui.js` | Panoda `kesifHtml()` (noktalar, kişi seçimi, aktif sefer), sakin satırında "Keşifte"; gece raporunda `seferHtml()` (sefer kartı varken olağan bilgi kartı gösterilmez) |
+| `src/scenes/GameScene.js` | Keşifteki sakin görünmez |
+| `src/style.css` | Keşif ve sefer sonucu stilleri |
+| `public/assets/panel.png` | Ekipten (repoya eklenecek) |
+| `CLAUDE.md` | 4.17 yeni bölüm |
+
+- **Asset:** Ekip `public/assets/panel.png` (918×1334, şeffaf) yükledi; listede ✅ (2/23 görsel, 1/13 animasyon).
+- **Debt:** Yok. Simülasyon keşfi kullanmıyor (isteğe bağlı mekanik; denge sonuçları değişmedi). Asset gerektiren yeni nesne yok (emoji ikonlar). Commit atılmadı.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz3-karar-kartlari` → `main`
 

@@ -669,6 +669,8 @@ export default class GameScene extends Phaser.Scene {
           varOlan.gorev = kaynakSakin.gorev;
           this.sakinTasi(varOlan, hedefX);
         }
+        // Keşifteki sakin sığınakta görünmez
+        varOlan.sprite.setVisible(kaynakSakin.gorev !== 'kesif');
       } else {
         const idx = this.sakinler.length;
         const sakinDoku = 'sakin' + (idx % 4);

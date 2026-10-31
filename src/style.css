@@ -1152,3 +1152,15 @@ button.gorev.dolu { opacity: 0.6; }
 .tahmin .etki-satir > span:first-child { color: var(--terminal-dim); font-size: 0.85cqw; letter-spacing: 0.12em; text-transform: uppercase; }
 .tahmin button.eylem { margin-top: 0.6cqw; width: 100%; }
 .gece-etiket { color: var(--terminal-dim); font-size: 0.8cqw; letter-spacing: 0.12em; text-transform: uppercase; margin-left: 0.3cqw; }
+
+/* ---------- Keşif ---------- */
+.projeler.kesif button.proje .chipler { gap: 0.3cqw; }
+.sefer-sonuc {
+  margin: 0.8cqw 0; padding: 0.7cqw 0.9cqw;
+  border-left: 0.3cqw solid var(--terminal-dim); border-radius: 0.4cqw;
+  background: color-mix(in oklab, var(--terminal-ekran) 85%, #000);
+}
+.sefer-sonuc.iyi { border-left-color: #52e3a4; }
+.sefer-sonuc.kotu { border-left-color: #e0b23a; }
+.sefer-sonuc .etiket { font-size: 0.85cqw; letter-spacing: 0.16em; color: var(--terminal-dim); }
+.sefer-sonuc p { margin: 0.4cqw 0; }

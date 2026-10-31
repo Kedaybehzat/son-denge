@@ -347,6 +347,22 @@ Veri: `src/data/cards.js` (`KARTLAR`). Kurallar: `src/state.js` → `kartKontrol
 
 Kartların bilgi kartları mevcut `facts.js` anahtarlarını kullanır (yeni kaynaksız iddia yok). Sayılar [DENGE TASLAĞI].
 
+### 4.17 Keşif (GDD bölüm 8)
+
+Veri: `src/data/exploration.js` (`KESIF_NOKTALARI`). Kurallar: `src/state.js` → `kesfeGonder()`, `kesifSansi()`, `seferSabahi()`. Arayüz: Görev Panosu → Keşif.
+
+- Panoda bir nokta seç → kimi göndereceğini seç. Giderken **erzak** düşer; kişi sefer boyunca kolonide **çalışmaz** (makinesi boşalır), her gece **yorulur**, sahnede görünmez. Aynı anda tek sefer; her nokta bir oyunda bir kez; oyun bitmeden dönülemeyecek sefer açılmaz.
+- Dönüşte (sabah, gece raporunda) başarı zarı: noktanın **uzmanı** giderse başarı kesin (★), değilse noktanın şansı. Başarısızlık nedenini anlatır (hazırlık/uzmanlık eksikliği). Kişi eski görevine döner (makinesi doluysa dinlenir).
+
+| Nokta | Süre | Erzak | Şans | Uzman (★) | Ödül |
+|---|---|---|---|---|---|
+| Terk edilmiş enerji santrali | 1 gece | −4 gıda, −4 su | %65 | Enerji (Selin, Deniz) | +12 enerji, Batarya'ya +4 puan |
+| Eski şehir | 2 gece | −8 gıda, −6 su | %75 | Geri Dönüşüm (Can, Kemal) | −10 atık, +8 enerji, +8 gıda |
+| Komşu yerleşim | 1 gece | −3 gıda, −3 su | %85 | Herkese açık (Sahil ailesi kesin) | +10 gıda, +10 su, +5 insanlık |
+| Kurumuş rezervuar | 1 gece | −4 gıda, −2 su | %70 | Su (Burak) | +8 su, Gri Su'ya +4 puan |
+
+Simülasyon keşfi kullanmıyor (isteğe bağlı mekanik). Sayılar [DENGE TASLAĞI].
+
 ## 5. Teknik yapı
 
 - **Motor:** Phaser 3.90 (2D) · **Derleme:** Vite · **Dil:** JavaScript (ES modülleri)

@@ -5,11 +5,12 @@
 // =============================================================
 import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, ziyaretciNetEtki, geceTahmini, AYAR, KAYNAKLAR,
   sakinTanimi, sakinCiktisi, gorevAta, arastirmaSec, arastirmaAcik, masadaArastir, masadaArastirabilirMi,
-  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec } from '../state.js';
+  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi } from '../state.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, OYUNCU_CALISMA_MALIYETI } from '../data/research.js';
 import { HIKAYE } from '../data/story.js';
 import { HAZIRLIK_MALIYETI } from '../data/events.js';
 import { BILGILER } from '../data/facts.js';
+import { KESIF_NOKTALARI } from '../data/exploration.js';
 import { KURUCULAR } from '../data/visitors.js';
 import { portreDosyasi, hikayeDosyasi } from '../data/assets.js';
 
@@ -23,6 +24,7 @@ let aktifPanel = null;
 let aktifPanelAnahtar = null;
 let panoAcik = false;
 let sonMesaj = '';
+let seciliKesif = null; // panoda seçilmiş keşif noktası (kişi seçimi bekliyor)
 
 // Sahne ile arayüz arasında basit olay köprüsü
 function yayinla(ad, ayrinti = {}) {
@@ -358,7 +360,7 @@ function bilgiHtml(b) {
 }
 
 // Gün geçişi iki adım: önce gece raporu + bilgi kartı, sonra sabah radyosu
-export function gunBaslangici({ rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj, ayrilanlar = [] }) {
+export function gunBaslangici({ rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj, ayrilanlar = [], sefer = null }) {
   const gitti = gidenZiyaretci
     ? `<p class="uyari">🚪 ${kacis(gidenZiyaretci.ad)} kapıda beklemekten vazgeçip gitti.</p>`
     : '';
@@ -371,9 +373,28 @@ export function gunBaslangici({ rapor, bilgi, gidenZiyaretci, arastirmaPuani, ar
     ${arastirmaBitti ? `<p class="mesaj">&gt; ${ARASTIRMALAR[arastirmaBitti].ikon} ${kacis(ARASTIRMALAR[arastirmaBitti].ad)} tamamlandı! ${kacis(ARASTIRMALAR[arastirmaBitti].aciklama)}</p>` : ''}
     ${ayrilanlar.map((z) => `<p class="uyari">😮‍💨 ${kacis(z.ad)} tükenmişti ve gece sessizce sığınaktan ayrıldı.</p>`).join('')}
     ${gitti}
-    ${bilgiHtml(bilgi)}
+    ${seferHtml(sefer)}
+    ${sefer?.basari && sefer.bilgi ? '' : bilgiHtml(bilgi)}
     <div class="alt sag"><button data-sabah data-varsayilan>Sabah oldu</button></div>`, { kapatma: false, sinif: 'gece' });
   kart.querySelector('[data-sabah]').addEventListener('click', sabahGoster);
+}
+
+// Sabah dönen keşif seferinin sonucu (gece raporunda)
+function seferHtml(sf) {
+  if (!sf) return '';
+  const odul = sf.odul
+    ? [etkiChipleri(sf.odul.kaynak),
+      sf.odul.arastirma ? `<span class="chip iyi">🧪 +${sf.odul.arastirma.puan} ${kacis(ARASTIRMALAR[sf.odul.arastirma.id].ad)}</span>` : '',
+      sf.odul.insanlik ? '<span class="chip iyi">🤝 dayanışma</span>' : ''].join('')
+    : '';
+  return `
+    <div class="sefer-sonuc ${sf.basari ? 'iyi' : 'kotu'}">
+      <span class="etiket">🧭 KEŞİF · ${sf.ikon} ${kacis(sf.ad)}</span>
+      <p><b>${sf.kisi ? kacis(sf.kisi) + ' döndü. ' : ''}${sf.basari ? 'Sefer başarılı!' : 'Sefer sonuçsuz kaldı.'}</b> ${kacis(sf.metin)}</p>
+      ${odul ? `<div class="rapor">${odul}</div>` : ''}
+      ${sf.arastirmaBitti ? `<p class="mesaj">&gt; ${kacis(ARASTIRMALAR[sf.arastirmaBitti].ad)} tamamlandı!</p>` : ''}
+    </div>
+    ${sf.basari && sf.bilgi ? bilgiHtml(BILGILER[sf.bilgi]) : ''}`;
 }
 
 function sabahGoster() {
@@ -539,12 +560,59 @@ function yorgunlukChip(s) {
   return `<span class="chip yorgunluk ${sinif}" title="Çalışınca her gece +1, dinlenince −2. ${AYAR.yorgunlukAyrilmaEsigi} ve üstünde sığınaktan ayrılabilir.">😮‍💨 ${simdi}${ok ? ` ${ok} ${yarin}` : ''}${risk}</span>`;
 }
 
+// Panodaki keşif bölümü: noktalar, seçilince kişi listesi, aktif sefer
+function kesifHtml() {
+  const sf = state.sefer;
+  const aktif = sf
+    ? (() => {
+        const kisi = state.sakinler.find((x) => x.uid === sf.uid);
+        const n = KESIF_NOKTALARI[sf.yer];
+        return `<p class="mesaj">&gt; 🧭 ${kacis(kisi ? sakinTanimi(kisi.id).ad : '')} keşifte: ${n.ikon} ${kacis(n.ad)} · dönüş: ${sf.kalan === 1 ? 'yarın sabah' : `${sf.kalan} gün sonra`} · başarı %${Math.round(sf.sans * 100)}</p>`;
+      })()
+    : '';
+  const noktalar = Object.entries(KESIF_NOKTALARI).map(([id, n]) => {
+    const gidildi = state.kesfedilenler.includes(id);
+    const yetismez = state.gun + n.sure > AYAR.maxGun;
+    const odul = [
+      etkiChipleri(n.odul.kaynak),
+      n.odul.arastirma ? `<span class="chip iyi">🧪 +${n.odul.arastirma.puan} ${kacis(ARASTIRMALAR[n.odul.arastirma.id].ad)}</span>` : '',
+      n.odul.insanlik ? '<span class="chip iyi">🤝 dayanışma</span>' : '',
+    ].join('');
+    const durum = gidildi ? 'gidildi' : yetismez ? 'oyun bitmeden dönülemez' : `${n.sure} gece · başarı %${Math.round(n.sans * 100)}`;
+    return `
+      <button class="proje ${seciliKesif === id ? 'secili' : ''}" data-kesif="${id}" ${gidildi || yetismez || sf ? 'disabled' : ''}>
+        <span class="ad">${n.ikon} ${kacis(n.ad)}</span>
+        <span class="chipler"><span class="gece-etiket">erzak:</span>${etkiChipleri(n.erzak)}</span>
+        <span class="chipler"><span class="gece-etiket">ödül:</span>${odul}</span>
+        <span class="kalan">${kacis(durum)}</span>
+      </button>`;
+  }).join('');
+  let kisiler = '';
+  if (seciliKesif && !sf) {
+    const n = KESIF_NOKTALARI[seciliKesif];
+    kisiler = `<div class="ziyaretci-satir"><span>Kimi göndereceksin?</span>${state.sakinler
+      .filter((s) => kesfeGonderebilirMi(seciliKesif, s.uid))
+      .map((s) => {
+        const sans = kesifSansi(seciliKesif, s.uid);
+        return `<button class="gorev" data-gonder="${s.uid}">${kacis(sakinTanimi(s.id).ad)}${sans === 1 ? ' ★' : ''}<small>başarı %${Math.round(sans * 100)}${MAKINELER[s.gorev] ? ` · ${kacis(MAKINELER[s.gorev].ad)} boşalır` : ''}</small></button>`;
+      }).join('')}</div>
+      <p class="aciklama">Seferdeki kişi kolonide çalışmaz ve her gece yorulur. ★ = bu işin uzmanı (başarı kesin). Sefer ${n.sure} gece sürer.</p>`;
+  }
+  return `
+    <h3>Keşif</h3>
+    ${aktif}
+    <div class="projeler kesif">${noktalar}</div>
+    ${kisiler}`;
+}
+
 function panoCiz() {
   const sakinler = state.sakinler.map((s) => {
     const z = sakinTanimi(s.id);
     const cikti = sakinCiktisi(s);
     const gorevler = [...Object.keys(MAKINELER), ...Object.keys(GOREVLER)];
-    const butonlar = z.calisir === false
+    const butonlar = s.gorev === 'kesif'
+      ? `<span class="chip iyi">🧭 Keşifte: ${kacis(KESIF_NOKTALARI[state.sefer?.yer]?.ad || '')}</span>`
+      : z.calisir === false
       ? '<span class="chip">Çalışmaz</span>'
       : gorevler.map((id) => {
           const g = gorevBilgisi(id);
@@ -589,6 +657,7 @@ function panoCiz() {
     <div class="ziyaretci-satir makineler">${makineDurumHtml()}</div>
     <div class="ziyaretci-satir laboratuvar">${laboratuvarDurumHtml()}</div>
     <div class="sakinler">${sakinler}</div>
+    ${kesifHtml()}
     <h3>Araştırma</h3>
     <div class="projeler">${projeler}</div>
     ${batarya}
@@ -611,6 +680,19 @@ function panoCiz() {
   kart.querySelectorAll('[data-proje]').forEach((b) => b.addEventListener('click', () => {
     sonMesaj = '';
     arastirmaSec(b.dataset.proje);
+  }));
+  kart.querySelectorAll('[data-kesif]').forEach((b) => b.addEventListener('click', () => {
+    seciliKesif = seciliKesif === b.dataset.kesif ? null : b.dataset.kesif;
+    panoCiz();
+  }));
+  kart.querySelectorAll('[data-gonder]').forEach((b) => b.addEventListener('click', () => {
+    const yer = seciliKesif;
+    const s = state.sakinler.find((x) => x.uid === Number(b.dataset.gonder));
+    if (yer && s && kesfeGonder(yer, s.uid)) {
+      sonMesaj = `${sakinTanimi(s.id).ad} erzakını aldı ve ${KESIF_NOKTALARI[yer].ad} yönüne yola çıktı.`;
+      seciliKesif = null;
+      panoCiz();
+    }
   }));
   kart.querySelector('[data-masa]').addEventListener('click', () => {
     if (!masadaArastirabilirMi()) return;

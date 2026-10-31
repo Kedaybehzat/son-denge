@@ -5,6 +5,7 @@
 // =============================================================
 import { ILK_OLAY, OLAYLAR, HAZIRLIK_MALIYETI } from './data/events.js';
 import { KARTLAR } from './data/cards.js';
+import { KESIF_NOKTALARI } from './data/exploration.js';
 import { ZIYARETCILER, KURUCULAR } from './data/visitors.js';
 import { PANELLER } from './data/panels.js';
 import { BILGILER, GENEL_BILGILER } from './data/facts.js';
@@ -91,6 +92,8 @@ export function sifirla() {
   state.kart = null;            // bekleyen karar kartı (sabah çıkar)
   state.gosterilenKartlar = [];
   state.kartGeceEtki = {};      // karar kartından bu geceye eklenen etki
+  state.sefer = null;           // { yer, uid, kalan } aktif keşif seferi
+  state.kesfedilenler = [];     // bu oyunda gidilmiş keşif noktaları
   for (const k of KURUCULAR) state.sakinler.push({ uid: state.sakinler.length + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
   katkiGuncelle();
   state.denge = dengeHesapla();
@@ -203,6 +206,73 @@ export function kartSec(sec) {
   return sec;
 }
 
+// ---------------------------------------------------------------
+//  KEŞİF (GDD bölüm 8, veri: data/exploration.js)
+// ---------------------------------------------------------------
+// Kişinin uzmanlığı: ziyaretçide uzman, kurucuda başlangıç makinesi
+const uzmanlik = (z) => z.uzman ?? z.varsayilan;
+
+export function kesifSansi(yer, uid) {
+  const n = KESIF_NOKTALARI[yer];
+  const s = state.sakinler.find((x) => x.uid === uid);
+  if (!n || !s) return 0;
+  const u = uzmanlik(sakinTanimi(s.id));
+  return u === n.uzman || (n.uzman === '*' && u === '*') ? 1 : n.sans;
+}
+
+export function kesfeGonderebilirMi(yer, uid) {
+  const n = KESIF_NOKTALARI[yer];
+  const s = state.sakinler.find((x) => x.uid === uid);
+  return !state.bitti && !!n && !!s && !state.sefer && !state.kesfedilenler.includes(yer)
+    && sakinTanimi(s.id).calisir !== false && state.gun + n.sure <= AYAR.maxGun;
+}
+
+export function kesfeGonder(yer, uid) {
+  if (!kesfeGonderebilirMi(yer, uid)) return false;
+  const n = KESIF_NOKTALARI[yer];
+  const s = state.sakinler.find((x) => x.uid === uid);
+  etkiUygula(n.erzak);
+  s.oncekiGorev = s.gorev;
+  s.gorev = 'kesif';
+  state.sefer = { yer, uid, kalan: n.sure, sans: kesifSansi(yer, uid) };
+  state.kesfedilenler.push(yer);
+  katkiGuncelle();
+  state.denge = dengeHesapla();
+  bildir();
+  return true;
+}
+
+// Sabah: seferin bir gecesi geçti; bittiyse sonucu uygula ve döndür
+function seferSabahi() {
+  const sf = state.sefer;
+  if (!sf) return null;
+  const n = KESIF_NOKTALARI[sf.yer];
+  const s = state.sakinler.find((x) => x.uid === sf.uid);
+  if (!s) { // seferdeyken yorgunluktan ayrıldı
+    state.sefer = null;
+    return { yer: sf.yer, ad: n.ad, ikon: n.ikon, basari: false, kayip: true, metin: 'Seferdeki ekip geri dönmedi.' };
+  }
+  sf.kalan -= 1;
+  if (sf.kalan > 0) return null;
+  const z = sakinTanimi(s.id);
+  const basari = rastgele() < sf.sans;
+  let arastirmaBitti = null;
+  if (basari) {
+    etkiUygula(n.odul.kaynak);
+    if (n.odul.insanlik) state.insanlik = sinirla(state.insanlik + n.odul.insanlik);
+    if (n.odul.arastirma) arastirmaBitti = puanEkle(n.odul.arastirma.puan, n.odul.arastirma.id);
+  }
+  // Eski görevine döner (makinesi başkasına verildiyse dinlenir)
+  const eski = s.oncekiGorev;
+  s.gorev = eski && (!MAKINELER[eski] || !makineOperatoru(eski)) ? eski : 'bosta';
+  delete s.oncekiGorev;
+  state.sefer = null;
+  katkiGuncelle();
+  if (n.bilgi) state.gosterilenBilgiler.push(n.bilgi);
+  return { yer: sf.yer, ad: n.ad, ikon: n.ikon, kisi: z.ad, basari, metin: basari ? n.basari : n.basarisiz,
+    odul: basari ? n.odul : null, arastirmaBitti, bilgi: n.bilgi };
+}
+
 // Gece kişi başı tüketim
 export function nufusTuketimi(nufus = state.nufus) {
   const t = {};
@@ -246,8 +316,8 @@ export function sakinCiktisi(s, kosullar = true) {
   let etki = {};
   if (MAKINELER[s.gorev]) etki = { ...MAKINELER[s.gorev].uretim };
   else if (s.gorev === 'arastirma') sonuc.puan = GOREVLER.arastirma.puan * (z.uzman === 'arastirma' ? 2 : 1);
-  // Uzmanlık yerinde (ya da '*' her yerde) kişisel katkı eklenir
-  if (z.uzman === s.gorev || z.uzman === '*') {
+  // Uzmanlık yerinde (ya da '*' her yerde) kişisel katkı eklenir; keşifteyken yok
+  if (s.gorev !== 'kesif' && (z.uzman === s.gorev || z.uzman === '*')) {
     etki = topla(etki, z.gunlukKatki);
     sonuc.eylem = z.eylemArtisi || 0;
   }
@@ -286,7 +356,7 @@ function katkiGuncelle() {
 // Bir sakini göreve gönderir. Makine doluysa eski operatör dinlenmeye geçer.
 export function gorevAta(uid, gorev) {
   const s = state.sakinler.find((x) => x.uid === uid);
-  if (!s || state.bitti || sakinTanimi(s.id).calisir === false) return;
+  if (!s || state.bitti || sakinTanimi(s.id).calisir === false || s.gorev === 'kesif') return;
   if (!MAKINELER[gorev] && !GOREVLER[gorev]) return;
   if (MAKINELER[gorev]) {
     const eski = makineOperatoru(gorev);
@@ -332,15 +402,17 @@ export function arastirmaSec(id) {
 }
 
 // Puanı aktif projeye ekler; tamamlanan projenin id'sini döndürür
-function puanEkle(puan) {
+// proje verilmezse aktif projeye; proje açıksa puan boşa gider
+function puanEkle(puan, proje = state.arastirma.aktif) {
   const a = state.arastirma;
-  if (!a.aktif || puan <= 0) return null;
-  a.puan[a.aktif] = (a.puan[a.aktif] || 0) + puan;
-  if (a.puan[a.aktif] < ARASTIRMALAR[a.aktif].maliyet) return null;
-  const biten = a.aktif;
-  a.acik.push(biten);
-  a.aktif = Object.keys(ARASTIRMALAR).find((id) => !a.acik.includes(id)) || null;
-  return biten;
+  if (!proje || puan <= 0 || a.acik.includes(proje)) return null;
+  a.puan[proje] = (a.puan[proje] || 0) + puan;
+  if (a.puan[proje] < ARASTIRMALAR[proje].maliyet) return null;
+  a.acik.push(proje);
+  if (!a.aktif || a.acik.includes(a.aktif)) {
+    a.aktif = Object.keys(ARASTIRMALAR).find((id) => !a.acik.includes(id)) || null;
+  }
+  return proje;
 }
 
 export function masadaArastirabilirMi() {
@@ -570,8 +642,9 @@ export function gunuBitir() {
   state.eylem = Math.max(0, AYAR.eylemHakki + state.ekEylem + (state.olay.eylem || 0));
   etkiUygula(olayEtkisi(state.olay.anlik));
   state.kartGeceEtki = {};
+  const sefer = seferSabahi();
   kartKontrol();
   state.denge = dengeHesapla();
   bildir();
-  return { tip, rapor, bilgi, gidenZiyaretci, ...ek };
+  return { tip, rapor, bilgi, gidenZiyaretci, ...ek, sefer };
 }
