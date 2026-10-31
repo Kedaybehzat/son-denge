@@ -46,6 +46,7 @@ Bu dosyayı bir yapay zeka asistanına veriyorsan, asistan şunları bilmeli:
    - Doğrudan sahnede çizilen nesne ise `src/data/assets.js` → `ASSETLER`'e de ekle (yer tutucusu `dokulariUret()`'te kalsın) ve A tablosuna yaz; değilse B ya da C tablosuna.
    - `CLAUDE.md` bölüm 6'ya görsel promptunu ekle (yoksa listede "yok, yazılacak" yaz).
    - Asset geldiğinde ya da kaldırıldığında `node tools/asset-durum.mjs` çalıştır ve Durum sütununu güncelle.
+   - **Dosya boyutu:** Oyun her şeyi tarayıcıda indirir. Gelen görselleri repoya koymadan önce oyunun ihtiyacına küçült (orijinali `assets-orijinal/` altına yedekle, git'e girmez): nesne/karakter/animasyon karesi en fazla 600 px yükseklik, portre 512×512, hikaye 1280 px genişlik. Oda ve manzara görselleri olduğu gibi kalır.
 
 ---
 
@@ -383,7 +384,7 @@ Sayılar `src/state.js` → `AYAR` (`baslangicMemnuniyet`, `itirazEsigi`, `guven
 
 - **Motor:** Phaser 3.90 (2D) · **Derleme:** Vite · **Dil:** JavaScript (ES modülleri)
 - **Arayüz:** Phaser canvas'ının üstünde HTML/CSS katmanı (HUD, paneller, kartlar). Tüm arayüz sahneyle birlikte ölçeklenir (CSS `cqw` birimleri).
-- **Görseller:** `GameScene.preload()` `public/assets/` içindeki dosyaları dener (liste ve hedef yükseklikler: `src/data/assets.js`). Dosya varsa o kullanılır, yoksa `dokulariUret()` kodla çizilmiş yer tutucuyu üretir. Hangi görsellerin yüklendiği tarayıcı konsolunda `[asset]` satırında yazar.
+- **Görseller:** `vite.config.js` içindeki `assetListesi` eklentisi `public/assets/`'teki dosyaları listeler (`virtual:asset-listesi` → `src/assetListesi.js`); `GameScene.preload()` ve arayüz yalnızca var olan dosyaları yükler, eksikler için istek atılmaz (konsolda 404 yok). Hedef yükseklikler: `src/data/assets.js`. Dosya yoksa `dokulariUret()` kodla çizilmiş yer tutucuyu üretir. `npm run dev` açıkken klasöre dosya eklenip silinince sayfa kendiliğinden yenilenir. Hangi görsellerin yüklendiği tarayıcı konsolunda `[asset]` satırında yazar.
 - **Görüntü kalitesi:** Oyun dünyası 960×540 koordinatlıdır ama 1920×1080 tuvale kamera zoom'uyla (`CIZIM_OLCEGI = 2`) çizilir; yazılar da 2× çözünürlükte. Büyük görseller yüklenince oyundaki boylarının ~3 katına (`DOKU_PAYI`) adım adım yüksek kaliteyle küçültülür; WebGL'in büyük küçültmede yaptığı "pikselli" görüntü böylece oluşmaz. Ekrana sabit/paralaks katmanlar `ekranaSabitle()` ile eklenmelidir (zoom kaymasını düzeltir).
 - **Yayın:** `main` dalına her push'ta GitHub Actions oyunu derleyip GitHub Pages'e yayınlar.
 
@@ -444,7 +445,7 @@ node tools/asset-durum.mjs   # hangi görseller hazır
 
 ### 6.3 Teslim formatı ve dosya adları
 
-**Oyun nesneleri doğrudan oyuna girer:** dosyayı aşağıdaki adla `public/assets/` klasörüne koyun, kod değişikliği gerekmez. Boyut önemli değil; görselin **şeffaf olmayan kısmı** otomatik ölçülür, oranı korunarak "oyundaki yükseklik"e ölçeklenir ve en alt dolu satırı (ayaklar/taban) zemine oturur. Üstte/altta şeffaf boşluk kalması sorun değil; arka plan mutlaka **şeffaf** olmalı (beyaz arka plan da "dolu" sayılır). Eksik dosya yerine kodla çizilmiş yer tutucu görünür. Yükseklikler `src/data/assets.js`'ten değiştirilebilir.
+**Oyun nesneleri doğrudan oyuna girer:** dosyayı aşağıdaki adla `public/assets/` klasörüne koyun, kod değişikliği gerekmez (`npm run dev` açıksa sayfa kendiliğinden yenilenir). Boyut önemli değil; görselin **şeffaf olmayan kısmı** otomatik ölçülür, oranı korunarak "oyundaki yükseklik"e ölçeklenir ve en alt dolu satırı (ayaklar/taban) zemine oturur. Üstte/altta şeffaf boşluk kalması sorun değil; arka plan mutlaka **şeffaf** olmalı (beyaz arka plan da "dolu" sayılır). Eksik dosya yerine kodla çizilmiş yer tutucu görünür. Yükseklikler `src/data/assets.js`'ten değiştirilebilir.
 
 | Dosya adı | Ne | Format | Oyundaki yükseklik |
 |---|---|---|---|
@@ -457,6 +458,7 @@ node tools/asset-durum.mjs   # hangi görseller hazır
 | `kapi.png` | Kapı | Şeffaf PNG | 120 px |
 | `bitki.png`, `bitki-solgun.png` | Sera bitkisi, iki hâl (solgun isteğe bağlı; gıda/denge düşünce geçer) | Şeffaf PNG | 56 px |
 | `sakin-1.png` … `sakin-4.png` | Sığınakta dolaşan sakinler (sağa bakıyor) | Şeffaf PNG | 64 px |
+| `sakin-<id>.png` | **İsteğe bağlı:** belirli bir karakterin sahne görseli (`selin`, `burak`, `nur`, `can`, `muhendis`, `ciftci`, `bilim`, `cocuklar`, `tamirci`, `kafile`). Varsa o kişi genel sakin görseli yerine bununla görünür. Tarif: 6.9'daki portre tarifinin tam boy, yandan, sağa bakan hâli (stil bloğu A) | Şeffaf PNG | 64 px (çocuklar 50 px) |
 
 **Arka planlar ve arayüz görselleri** (bunlar da `public/assets/`'e konunca oyuna girer; yoksa kodla çizilen duvar/şehir, emoji ya da düz ekran kalır):
 
@@ -546,6 +548,15 @@ A shelter resident in simple patched work clothes, full body, side view facing r
 ```
 
 ### 6.6 Oda arka planları (stil bloğu B + aşağıdaki detay)
+
+**Oyunda nasıl yerleşir:** Oda genişliği (776 px) görsel oranına göre ayarlandı, görsel **kırpılmaz**; oyuncunun yürüdüğü çizgi görselin yüksekliğinin **%82**'sine (zeminin ortası) denk gelir. Nesne boyları gerçek ölçüden (1 m = 62 oyun px) hesaplanır. **Rework brifi, oda–nesne listesi ve hazır promptlar: bölüm 6.12.** Duvara yaslanan nesneler (paneller, pano, radyo, kapı) **duvar–zemin çizgisine (%74,5)** basar ve %90 boyuta küçülür. Odaya özel yerleşim `src/data/rooms.js` → `gorsel` (nesne x'leri, görselde çizili nesneler, su göstergeleri, duman noktası). Oda sınırlarını taşıyıcı kolon ve gölge örter.
+
+**Yeniden çizim (rework) için kurallar** (odalar arası uyum ve yumuşak geçiş):
+- Tüm odalarda **duvar–zemin çizgisi aynı yükseklikte** olsun (~%74–75) ve zemin malzemesi/rengi odalar arasında benzer tonda başlasın.
+- Görselin sol ve sağ **%4**'ünü sade kolon/duvar bırakın (oda sınırı kolonu biner); komşu odayla birleşen kenarlar aynı ışıkta olsun.
+- Oyunun kendi nesnelerinin duracağı yerleri **boş duvar** bırakın: Yaşam (kapı ~%15, radyo ~%27, pano ~%76), diğer odalarda kontrol paneli (Enerji ~%62, Su ~%66, Sera ~%85, Geri ~%50). Yaşam alanındaki yatak görselde kalabilir (oyun onu kullanıyor).
+- Işık yönü tüm odalarda aynı olsun (şu an soldan-üstten sıcak ışık).
+- Pencere camını şeffaf bırakırsanız dış dünyadaki ütopya/distopya değişimi pencereden görünür.
 Üretimden sonra pencere camı kısmını silip **şeffaf** bırakın: oyunda pencereden dışarıdaki şehir (ve ütopya/distopya değişimi) görünür. Silinmezse pencere boyalı görünür, oyun yine çalışır.
 - **Yaşam Alanı → `oda-yasam.png`:** `cozy living area, a shelf with books, a framed photo, a rug`
 - **Enerji → `oda-enerji.png`:** `energy room, battery racks on the back wall, cables along the ceiling`
@@ -641,6 +652,96 @@ Key art for a climate video game: a small glowing eco-bunker in the foreground, 
 - Kesince her kare **aynı genişlik ve yükseklikte** olsun; alt kenardaki boşluğu tüm karelerden aynı miktar kırpın.
 - Arka planı silin (6.2 kuralı), `<animasyon>-1.png`, `-2.png` … diye kaydedin.
 - Kontrol: `node tools/asset-durum.mjs` eksik kare numaralarını gösterir; tarayıcı konsolundaki `[anim]` satırı kurulan animasyonları yazar.
+
+### 6.12 Oda arka planları — rework brifi (yerleşim listesi + şablon + prompt)
+
+**Şablon görselleri:** `docs/oda-sablonlari/sablon-<oda>.png` (1891×831). Görsel üretim aracına **referans olarak yükleyin** ve aşağıdaki promptu verin. Şablonda: kırmızı = oyunun nesnesi gelecek, **boş duvar bırakın** · yeşil = görselde **çizin** · turuncu/mavi = **boş zemin** (oyun çizer / karakterler durur) · mor kenar bantları = komşu odayla aynı sade kolon.
+
+**Boyut — ölçekleme gerekmez:** Görsel üretim aracında en-boy oranını **21:9** seçin (yoksa en yakın geniş oran, 2,2–2,4:1 arası); çözünürlük önemli değil, oyun kendisi ölçekler. Tüm ölçüler **yüzde** olarak verilir, her çözünürlükte geçerlidir:
+- duvar–zemin çizgisi yüksekliğin **%74,5**'i · yürüme çizgisi **%82** · tavan kirişi üst **%4** · kenar bantları her yanda genişliğin **%4**'ü
+- ölçek: **1 m ≈ görsel yüksekliğinin %18'i** (ön zemin), duvar dibinde **%16,5**'i · 1,75 m insan ≈ yüksekliğin **%32**'si · 2,1 m kapı ≈ **%34**'ü
+- Şablonlar 1891×831 (2,28:1) çizildi; 21:9'a yüklenince oranlar aynen tutar.
+
+#### Oda → nesne listesi (rework'te bu alanlar ayrılmalı)
+
+| Oda | Nesne | Kim çizer | Konum (x, görsel genişliğine %) | Boyut (gen × yük) | Not |
+|---|---|---|---|---|---|
+| Yaşam | Kapı | Oyun (`kapi.png`) | %14 | 1,1 × 2,1 m | Duvar dibine basar; arkası boş duvar |
+| Yaşam | Radyo + sehpa | Oyun (`radyo.png`) | %27 | 0,8 × 0,9 m | Boş duvar |
+| Yaşam | Yatak | **Görselde çizili** | %46 | 2,0 × 0,9 m | Tek kişilik, başlık solda; oyun bununla etkileşir |
+| Yaşam | Sakinlerin dinlenme alanı | — | %41–%59 | ön zemin | Zemin boş |
+| Yaşam | Görev ve araştırma panosu | Oyun (`pano.png`) | %76 | 1,1 × 1,7 m | Boş duvar |
+| Enerji | Dizel jeneratör | **Görselde çizili** | %4–%28 | 2,4 × 1,9 m | Bacası/egzozu tepesi ≈ (x %17, y %42): kirli eylem dumanı buradan çıkar |
+| Enerji | Enerji paneli | Oyun (`panel-enerji.png`) | %60 | 0,9 × 1,5 m | Boş duvar |
+| Enerji | Operatör alanı | — | %48–%72 | ön zemin | Zemin boş |
+| Su | 2 büyük tank | **Görselde çizili** | %35 ve %53 | her biri 1,7 × 2,4 m | Önlerinde dikey gösterge camı **boş/düz açık gri**: x %34,5–%35,9 ve %52,1–%53,5, y %34,5–%60,5 (su seviyesini oyun çizer) |
+| Su | Arıtma paneli | Oyun (`panel-su.png`) | %64 | 0,9 × 1,5 m | Boş duvar |
+| Su | Operatör alanı | — | %53–%76 | ön zemin | Zemin boş |
+| Sera | 7 saksılık sıra | Oyun (`bitki.png`) | %10–%61 | ön zemin, 0,7 m | Ön zemin boş (arka duvarda yükseltilmiş yatak/raf olabilir) |
+| Sera | Sera paneli | Oyun (`panel-sera.png`) | %86 | 0,9 × 1,5 m | Boş duvar |
+| Sera | Operatör alanı | — | %74–%82 | ön zemin | Zemin boş |
+| Geri D. | Çöp yığını | Oyun (`cop-yigini.png`) | %5–%23 | ön zemin, 1,8 × 1,0 m | Ön zemin boş (arka duvarda hurda kasaları olabilir) |
+| Geri D. | Geri dönüşüm paneli | Oyun (`panel-geri.png`) | %47 | 0,9 × 1,5 m | Boş duvar |
+| Geri D. | Operatör alanı | — | %35–%59 | ön zemin | Zemin boş |
+
+Bu konumlar değişirse `src/data/rooms.js` → `ODALAR[].gorsel` (oranlar) güncellenmeli.
+
+#### Ana düzeltme promptu (her oda için; şablonu referans olarak yükleyin, sonuna oda ekini koyun)
+
+```
+Redraw this room as a 2D side-view game background that will be placed in a horizontal row of five shelter rooms. Use the attached layout template as the exact layout guide (the colored boxes and lines are guides only, do not draw them). Follow every rule strictly:
+
+1. FORMAT: wide 21:9 aspect ratio (about 2.3:1), any resolution. All positions below are percentages of the image width and height. Straight-on orthographic cross-section of one room: back wall and floor only, viewed perfectly front-on. No perspective vanishing point, no camera tilt, no side walls, no fisheye, no foreground objects overlapping the bottom edge.
+
+2. FLOOR LINE: the back wall meets the floor on a perfectly straight horizontal line at exactly 74.5% of the image height from the top. Below it is a flat, even floor that continues to the bottom edge. The top 4% of the height is a dark steel-and-wood ceiling beam running edge to edge.
+
+3. SEAMLESS EDGES: the leftmost 4% and the rightmost 4% of the width are an identical plain riveted steel support column on a calm wall, with the same wall color, the same floor material and the same lighting on both sides, so this room tiles next to any other room with no visible seam. Nothing (furniture, plants, pipes, cables, light) may touch or cross these edge strips.
+
+4. SAME WORLD IN EVERY ROOM: the floor is the same worn warm-beige concrete slabs with a thin dark drain grate line at 84% of the height in every room; the lower wall is the same weathered cream plaster with a darker skirting about 5% of the height tall; the ceiling beam is identical; the light is the same warm late-afternoon light coming from the upper left; same palette, same line weight, same level of detail.
+
+5. REAL-WORLD SCALE: 1 meter equals 18% of the image height at the front of the floor and 16.5% at the base of the wall. A 1.75 m adult standing on the floor would be 32% of the image height; a 2.1 m door at the wall is 34% of the image height; the ceiling is about 3.4 m high. Draw every piece of furniture and machinery at true real-world size for this scale: a door is 2.1 m, a table 0.75 m, a chair seat 0.45 m, a bed 0.9 m with headboard, ceiling about 3.4 m. Nothing oversized, nothing toy-sized.
+
+6. RESERVED EMPTY AREAS: wherever the template shows a red box, leave PLAIN EMPTY WALL down to the floor line (no furniture, no shelves, no posters, no plants, no pipes, no cast shadows). Wherever it shows an orange or blue box, leave PLAIN EMPTY FLOOR. The game draws its own objects and characters there.
+
+7. WINDOWS: fill every window pane and every glass surface with flat solid pure magenta #FF00FF, edge to edge inside the frame, with no reflections, no curtains over the glass and no shadows on it. (It will be cut out to transparency so the dynamic outside world shows through.)
+
+8. NO people, no animals, no text, no letters, no logos, no UI, no watermark.
+
+9. STYLE: 2D side-view game background, interior cross-section of a room in an eco-bunker, flat vector illustration with soft cel shading, clean dark outlines, warm solarpunk color palette (sage green, cream, terracotta, teal, rusty steel), cozy, lived-in but tidy, slightly weathered.
+```
+
+#### Oda ekleri (ana promptun sonuna ekleyin)
+
+**Yaşam Alanı → `oda-yasam.png`**
+```
+ROOM: cozy living area of the shelter. Leave plain empty wall at 10–18% (door goes there), 25–29% (radio side table) and 72–80% (notice board). Draw ONE single wooden bed with a blue-green blanket, headboard on the left, centered at 46% (2 m long, 0.9 m high) standing on the floor line. Keep the floor in front of the bed (41–59%) empty. Decorate only these wall ranges: 5–9% (narrow plant shelf), 30–38% (small bookshelf below 1.2 m, one window above it between 1.3 and 2.3 m height), 56–71% (wall shelf, coat hooks, a closed trunk on the floor), 82–95% (armchair and a large potted plant). Rug on the floor only under the bed.
+```
+
+**Enerji Odası → `oda-enerji.png`**
+```
+ROOM: energy workshop. Draw a large olive-green diesel generator on the left at 5–28% (2.4 m wide, 1.9 m high) with a vertical exhaust pipe whose top opening is at about x = 17%, y = 42% of the image. Leave plain empty wall at 56–64% (energy control panel goes there) and keep the floor at 48–72% empty. Decorate: workbench with tools and two small solar panel samples at 31–47%, a tall metal battery rack with labeled battery boxes at 74–95%, cable trays along the upper wall, one high window between 1.8 and 2.6 m height at 32–46%.
+```
+
+**Su Arıtma → `oda-su.png`**
+```
+ROOM: water treatment room with tiled lower walls. Draw two large riveted teal water tanks standing on short legs, centered at 35% and 53% (each 1.7 m wide, 2.4 m high). On the front of each tank draw ONE tall empty vertical sight-gauge window with a metal frame: tank 1 gauge at x 34.5–35.9%, tank 2 gauge at x 52.1–53.5%, both from y 34.5% to y 60.5%; fill the inside of both gauges with flat plain light grey (no water drawn, the game draws the water level). Leave plain empty wall at 61–68% (purification control panel) and keep the floor at 53–76% empty. Decorate: storage shelf with jars at 5–24%, a concrete basin with running water at 79–95%, pipes and valves on the upper wall connecting the tanks, one high window at 6–20%.
+```
+
+**Sera → `oda-sera.png`**
+```
+ROOM: indoor greenhouse inside the bunker. The back wall is a large greenhouse glass wall with steel mullions from 1.0 m height up to the ceiling; ALL glass panes flat solid magenta #FF00FF. Under the glass, against the wall: raised planting beds with tomatoes and leafy vegetables at 5–36% and slatted shelves with seedlings and grow lights at 38–70%, all below 1.0 m height. Leave the whole front floor from 8% to 63% EMPTY (the game places a row of potted plants there). Leave plain empty wall at 83–89% (greenhouse control panel) and keep the floor at 74–82% empty. Hanging vines may grow on the mullions but must not cover the reserved areas.
+```
+
+**Geri Dönüşüm → `oda-geri.png`**
+```
+ROOM: recycling and repair workshop. Against the back wall draw sorted scrap crates (metal, plastic, glass) at 5–22%, but keep the floor in front of them (5–23%) EMPTY (the game draws a growing junk pile there). Leave plain empty wall at 44–51% (recycling control panel) and keep the floor at 35–59% empty. Decorate: a long wooden repair workbench with a pegboard of tools at 24–42%, a recycling-symbol poster at 53–57% above 1.6 m, tall shelves with sorted bins, bottles and paper bundles at 60–95%, one high window at 6–20%.
+```
+
+**İsteğe bağlı, tek seferde 5 oda:** Araç çok geniş görsel destekliyorsa (≈11,4:1) tek panorama isteyin ("five rooms side by side in this order: living area, energy workshop, water treatment, greenhouse, recycling workshop, separated by identical steel support columns at exactly 20%, 40%, 60% and 80% of the width"), sonra 5 eşit parçaya kesin. Geçişler en pürüzsüz bu yolla olur. Kesilen parçalar 2,28:1 olur, ölçekleme gerekmez.
+
+**Tek mesajlık final sürüm:** Oyunun son durumuna göre eksik/düzeltilecek tüm görseller (5 oda, 2 manzara, çatı, çöp yığını, oda paneli animasyonları, sakin animasyonları, isteğe bağlı karakter sprite'ları) asset sohbetine tek seferde: `docs/final-asset-promptu.md`. Sprite sheet'ler 2×2 ızgara gelir, kod tarafında karelere kesilir.
+
+**Teslim sonrası:** ölçekleme/kırpma yapmayın; sadece magenta camları silip şeffaf yapın (remove.bg'de değil, bir görsel düzenleyicide "renk seç → sil"), dosyayı `oda-<tip>.png` adıyla `public/assets/`'e koyun. Konumlar değiştiyse `src/data/rooms.js` → `ODALAR[].gorsel` oranlarını güncelleyin.
 
 ---
 

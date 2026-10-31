@@ -11,23 +11,32 @@
 //  yedek      : bu dosya yoksa kullanılacak başka anahtar (yer tutucusu yok)
 // =============================================================
 
+import { ZIYARETCILER, KURUCULAR } from './visitors.js';
+
+// Ölçek: oda görsellerindeki mobilyalara göre 1 metre = 62 oyun pikseli
+// (yatak başlığı ~1 m ≈ 66 px, pencere ~1,25 m ≈ 78 px ölçüldü). Nesne boyları
+// gerçek metre değerinden hesaplanır ki arka planla orantılı dursunlar.
+export const PX_METRE = 62;
+const m = (metre) => Math.round(metre * PX_METRE);
+
 export const ASSETLER = {
-  oyuncu:              { dosya: 'oyuncu.png', yukseklik: 72 },
-  panel:               { dosya: 'panel.png', yukseklik: 100 },
-  'panel-enerji':      { dosya: 'panel-enerji.png', yukseklik: 100, yedek: 'panel' },
-  'panel-su':          { dosya: 'panel-su.png', yukseklik: 100, yedek: 'panel' },
-  'panel-sera':        { dosya: 'panel-sera.png', yukseklik: 100, yedek: 'panel' },
-  'panel-geriDonusum': { dosya: 'panel-geri.png', yukseklik: 100, yedek: 'panel' },
-  radyo:               { dosya: 'radyo.png', yukseklik: 80 },
-  pano:                { dosya: 'pano.png', yukseklik: 110 },
-  yatak:               { dosya: 'yatak.png', yukseklik: 60 },
-  kapi:                { dosya: 'kapi.png', yukseklik: 120 },
-  bitki:               { dosya: 'bitki.png', yukseklik: 56 },
-  'bitki-solgun':      { dosya: 'bitki-solgun.png', yukseklik: 56, yedek: 'bitki' },
-  sakin0:              { dosya: 'sakin-1.png', yukseklik: 64 },
-  sakin1:              { dosya: 'sakin-2.png', yukseklik: 64 },
-  sakin2:              { dosya: 'sakin-3.png', yukseklik: 64 },
-  sakin3:              { dosya: 'sakin-4.png', yukseklik: 64 },
+  oyuncu:              { dosya: 'oyuncu.png', yukseklik: m(1.75) },
+  panel:               { dosya: 'panel.png', yukseklik: m(1.5) },
+  'panel-enerji':      { dosya: 'panel-enerji.png', yukseklik: m(1.5), yedek: 'panel' },
+  'panel-su':          { dosya: 'panel-su.png', yukseklik: m(1.5), yedek: 'panel' },
+  'panel-sera':        { dosya: 'panel-sera.png', yukseklik: m(1.5), yedek: 'panel' },
+  'panel-geriDonusum': { dosya: 'panel-geri.png', yukseklik: m(1.5), yedek: 'panel' },
+  radyo:               { dosya: 'radyo.png', yukseklik: m(0.9) },
+  pano:                { dosya: 'pano.png', yukseklik: m(1.7) },
+  yatak:               { dosya: 'yatak.png', yukseklik: m(0.9) },
+  kapi:                { dosya: 'kapi.png', yukseklik: m(2.1) },
+  bitki:               { dosya: 'bitki.png', yukseklik: m(0.65) },
+  'bitki-solgun':      { dosya: 'bitki-solgun.png', yukseklik: m(0.65), yedek: 'bitki' },
+  sakin0:              { dosya: 'sakin-1.png', yukseklik: m(1.7) },
+  sakin1:              { dosya: 'sakin-2.png', yukseklik: m(1.7) },
+  sakin2:              { dosya: 'sakin-3.png', yukseklik: m(1.7) },
+  sakin3:              { dosya: 'sakin-4.png', yukseklik: m(1.7) },
+  'cop-yigini':        { dosya: 'cop-yigini.png', yukseklik: m(0.9) },   // atığa göre büyür/küçülür
 
   // Arka planlar (sahneye yayılır; yer tutucusu yok, yoksa kodla çizilen duvar/şehir kalır)
   //  oda-*: 640×280'e gerilir, duvarın üstüne biner. Pencereyi ŞEFFAF bırakırsanız dışarısı görünür.
@@ -39,7 +48,16 @@ export const ASSETLER = {
   'oda-geri':          { dosya: 'oda-geri.png', yukseklik: 280, arka: true },
   'manzara-iyi':       { dosya: 'manzara-iyi.png', yukseklik: 470, arka: true },
   'manzara-kotu':      { dosya: 'manzara-kotu.png', yukseklik: 470, arka: true },
+  cati:                { dosya: 'cati.png', yukseklik: 70, arka: true },  // yatayda döşenen çatı şeridi (güneş panelleri)
 };
+
+// Karaktere özel sakin görseli: sakin-<id>.png (ör. sakin-selin.png, sakin-tamirci.png).
+// Varsa o kişi sahnede bununla görünür; yoksa sırayla sakin-1..4 kullanılır.
+// Özel görselli sakine genel sakin-N animasyonları uygulanmaz (başkasına dönüşmesin).
+export const SAKIN_OZEL_YUKSEKLIK = { cocuklar: m(1.3) };
+for (const k of [...KURUCULAR, ...ZIYARETCILER]) {
+  ASSETLER['sakin-' + k.id] = { dosya: `sakin-${k.id}.png`, yukseklik: SAKIN_OZEL_YUKSEKLIK[k.id] ?? m(1.7), ozelSakin: true };
+}
 
 // HTML arayüzünde kullanılan görseller (Phaser'a yüklenmez; <img>, yoksa emoji/düz ekran)
 //  ziyaretci-<id>.png  : kapı kartı + Görev Panosu

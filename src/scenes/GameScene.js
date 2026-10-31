@@ -6,9 +6,10 @@
 //  kodla çizilmiş yer tutucu üretir.
 // =============================================================
 import Phaser from 'phaser';
-import { ODALAR, ODA_GENISLIK, TAVAN_Y, ZEMIN_Y } from '../data/rooms.js';
+import { ODALAR, ODA_GENISLIK, TAVAN_Y, ZEMIN_Y, GORSEL_ZEMIN_ORANI, GORSEL_DUVAR_ORANI, ARKA_OLCEK } from '../data/rooms.js';
 import { PANELLER } from '../data/panels.js';
 import { ASSETLER } from '../data/assets.js';
+import { assetVar } from '../assetListesi.js';
 import { ANIMASYONLAR, animKareAnahtari, animKareDosyasi } from '../data/animations.js';
 import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet,
   KAYNAKLAR, MAKINELER, makineOperatoru, makineCalisiyorMu, sakinTanimi } from '../state.js';
@@ -56,9 +57,11 @@ function yuksekKaliteKucult(img, w, h) {
 }
 
 // Kirli eylemlerde dumanın hangi odadan çıkacağı (dekorCiz ile uyumlu)
+// Eski (görselsiz) çizim koordinatları 640 px oda için yazıldı; oda genişliğine ölçeklenir
+const OK = ODA_GENISLIK / 640;
 const DUMAN_KONUMU = {
-  enerji: { odaIndex: 1, x: 146, y: ZEMIN_Y - 100 },      // jeneratör bacası
-  geriDonusum: { odaIndex: 4, x: 520, y: ZEMIN_Y - 70 },  // atık yakma noktası
+  enerji: { odaIndex: 1, x: 146 * OK, y: ZEMIN_Y - 100 },      // jeneratör bacası
+  geriDonusum: { odaIndex: 4, x: 520 * OK, y: ZEMIN_Y - 70 },  // atık yakma noktası
 };
 
 // İki renk arasında geçiş: t=0 kötü renk, t=1 iyi renk
@@ -73,17 +76,17 @@ export default class GameScene extends Phaser.Scene {
     super('Game');
   }
 
-  // public/assets/ içindeki görselleri dener; olmayanlar hata vermez
+  // public/assets/ içinde bulunan görselleri yükler (liste: assetListesi.js); olmayanlar istenmez
   preload() {
     this.load.setPath('assets/');
     this.load.on('loaderror', (dosya) => EKSIK_ASSETLER.add(dosya.key));
     for (const [anahtar, a] of Object.entries(ASSETLER)) {
-      if (!this.textures.exists(anahtar)) this.load.image(anahtar, a.dosya);
+      if (!this.textures.exists(anahtar) && assetVar(a.dosya)) this.load.image(anahtar, a.dosya);
     }
     // Animasyonlar: önce sadece 1. kare denenir (eksik animasyon = tek hata satırı)
     for (const ad of Object.keys(ANIMASYONLAR)) {
       const k = animKareAnahtari(ad, 1);
-      if (!this.textures.exists(k)) this.load.image(k, animKareDosyasi(ad, 1));
+      if (!this.textures.exists(k) && assetVar(animKareDosyasi(ad, 1))) this.load.image(k, animKareDosyasi(ad, 1));
     }
   }
 
@@ -96,6 +99,8 @@ export default class GameScene extends Phaser.Scene {
     this.lambalar = [];
     this.bitkiler = [];
     this.suTanklari = [];
+    this.odaYerlesimi = {};   // oda tipi -> görselin dünya yerleşimi
+    this.dumanNoktasi = {};   // panel -> görseldeki duman noktası
     this.copYigini = null;
     this.gecisVar = false;
     this.yurumeTozSayac = 0;
@@ -111,6 +116,7 @@ export default class GameScene extends Phaser.Scene {
     }
     this.disariCiz();
     this.evCiz();
+    this.odaGecisleriCiz();
     this.oyuncuOlustur();
     this.animasyonlariYukle();
 
@@ -270,6 +276,23 @@ export default class GameScene extends Phaser.Scene {
     });
     g2.destroy();
 
+    // Çöp yığını: üst üste torbalar, hurda parçaları, kutu (atığa göre büyür)
+    if (!this.textures.exists('cop-yigini')) {
+      const gc = this.make.graphics({ x: 0, y: 0, add: false });
+      gc.fillStyle(0x3b3127).fillEllipse(80, 70, 156, 26);
+      [[38, 52, 46, 34, 0x4f5a3c], [78, 44, 56, 46, 0x5b4a39], [118, 54, 44, 32, 0x3f4a52], [62, 30, 40, 30, 0x6b5a44], [100, 28, 38, 28, 0x56603f]]
+        .forEach(([x, y, w, h, c]) => {
+          gc.fillStyle(c).fillEllipse(x, y, w, h);
+          gc.lineStyle(2, 0x1d1712, 0.8).strokeEllipse(x, y, w, h);
+          gc.fillStyle(0xffffff, 0.12).fillEllipse(x - w * 0.15, y - h * 0.2, w * 0.35, h * 0.25);
+        });
+      gc.fillStyle(0x8a7350).fillRect(18, 40, 22, 18).lineStyle(2, 0x1d1712, 0.8).strokeRect(18, 40, 22, 18); // karton
+      gc.fillStyle(0x9aa3a8).fillRect(122, 20, 6, 26).fillRect(108, 34, 26, 5);  // metal çubuklar
+      gc.fillStyle(0xb7c2b0).fillCircle(56, 58, 5).fillCircle(132, 62, 4);      // teneke
+      this.dokuUret(gc, 'cop-yigini', 160, 80);
+      gc.destroy();
+    }
+
     if (this.textures.exists('isik')) return; // efekt dokuları zaten var (restart)
 
     // Lamba ışığı: yumuşak radyal parıltı
@@ -413,17 +436,68 @@ export default class GameScene extends Phaser.Scene {
     const a = ASSETLER[anahtar];
     if (!a || !sprite.frame?.height) return sprite;
     const k = kutu || this.icerikKutusu(sprite.texture.key);
-    const o = a.yukseklik / Math.max(1, k.alt - k.ust);
+    const ek = sprite.ekOlcek ?? 1; // perspektif: duvar dibindeki nesneler biraz küçük
+    const o = (a.yukseklik * ek) / Math.max(1, k.alt - k.ust);
     sprite.setScale(o);
     sprite.setOrigin(sprite.originX, k.alt / k.h);
     sprite.temelOlcek = o;
-    sprite.gorunurYukseklik = a.yukseklik;
+    sprite.gorunurYukseklik = a.yukseklik * ek;
     return sprite;
   }
 
   // İpucu/işaret konumu için görünen yükseklik (şeffaf boşluk hariç)
   gorunurY(sprite) {
     return sprite.gorunurYukseklik ?? sprite.displayHeight;
+  }
+
+  // Oda görselini yerleştirir (oran korunur, yürüme çizgisi zeminin ortasına
+  // denk gelir, taşan yanlar kırpılır). Görsel yoksa null döner.
+  odaGorseliYerlestir(oda, i) {
+    const anahtar = 'oda-' + oda.tip;
+    if (!this.gercekAsset(anahtar)) return null;
+    const x0 = i * ODA_GENISLIK;
+    const kaynak = this.textures.get(anahtar).getSourceImage();
+    const oran = kaynak.width / kaynak.height;
+    let H = (ZEMIN_Y - TAVAN_Y) / GORSEL_ZEMIN_ORANI;
+    let W = H * oran;
+    if (W < ODA_GENISLIK) { W = ODA_GENISLIK; H = W / oran; }
+    const ust = ZEMIN_Y - GORSEL_ZEMIN_ORANI * H;
+    const sol = x0 - (W - ODA_GENISLIK) / 2;
+    const img = this.add.image(sol, ust, anahtar).setOrigin(0).setDisplaySize(W, H).setDepth(0.5);
+    const olcek = W / kaynak.width;
+    img.setCrop((x0 - sol) / olcek, 0, ODA_GENISLIK / olcek, kaynak.height);
+    const yer = { sol, ust, W, H, alt: ust + H };
+    // Görsel üzerindeki oran koordinatını dünyaya çevirir
+    yer.nokta = (fx, fy) => ({ x: sol + fx * W, y: ust + fy * H });
+    this.odaYerlesimi[oda.tip] = yer;
+    if (oda.gorsel?.duman) {
+      const panel = oda.nesneler.find((n) => n.tip === 'panel')?.panel;
+      if (panel) this.dumanNoktasi[panel] = yer.nokta(...oda.gorsel.duman);
+    }
+    return yer;
+  }
+
+  // Oda sınırlarına taşıyıcı kolon + yumuşak gölge: görseller arası sert geçişi örter
+  odaGecisleriCiz() {
+    const yerler = Object.values(this.odaYerlesimi);
+    if (!yerler.length) return;
+    const ust = TAVAN_Y - 4;
+    const alt = Math.max(...yerler.map((y) => y.alt));
+    const g = this.add.graphics().setDepth(0.8);
+    for (let i = 0; i <= ODALAR.length; i++) {
+      const x = i * ODA_GENISLIK;
+      // iki yana kararan gölge şeritleri
+      for (let k = 0; k < 8; k++) {
+        const a = 0.22 * (1 - k / 8);
+        g.fillStyle(0x0d0905, a).fillRect(x + 9 + k * 4, ust, 4, alt - ust);
+        g.fillStyle(0x0d0905, a).fillRect(x - 13 - k * 4, ust, 4, alt - ust);
+      }
+      // kolon: koyu ahşap/metal, ışık ve gölge kenarı, perçinler
+      g.fillStyle(0x3a2d22, 1).fillRect(x - 9, ust, 18, alt - ust);
+      g.fillStyle(0x5a4632, 1).fillRect(x - 9, ust, 4, alt - ust);
+      g.fillStyle(0x221a13, 1).fillRect(x + 5, ust, 4, alt - ust);
+      for (let y = ust + 24; y < alt - 10; y += 56) g.fillStyle(0x8a7350, 1).fillCircle(x, y, 2);
+    }
   }
 
   // ---------------------------------------------------------------
@@ -436,7 +510,7 @@ export default class GameScene extends Phaser.Scene {
       if (this.anims.exists(ad) || !this.textures.exists(animKareAnahtari(ad, 1))) continue;
       for (let n = 2; n <= a.kare; n++) {
         const k = animKareAnahtari(ad, n);
-        if (!this.textures.exists(k)) { this.load.image(k, animKareDosyasi(ad, n)); bekleyen = true; }
+        if (!this.textures.exists(k) && assetVar(animKareDosyasi(ad, n))) { this.load.image(k, animKareDosyasi(ad, n)); bekleyen = true; }
       }
     }
     const kur = () => {
@@ -485,12 +559,21 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // Operatörü olan makinenin paneli "çalışıyor" animasyonu oynatır, boş olan durur
+  // Odaya özel panelde kendi animasyonu (panel-<oda>-calis), genel panelde panel-calis.
+  // Genel animasyon odaya özel panelin yerine geçmez (tasarımı kaybolmasın).
+  // Ayrıca panelin üstünde durum ışığı: çalışıyorsa yanıp sönen yeşil, boşsa kırmızı.
   makineAnimGuncelle() {
     for (const n of this.nesneler || []) {
       if (n.def.tip !== 'panel' || !MAKINELER[n.def.panel]) continue;
-      if (!(makineCalisiyorMu(n.def.panel) && this.animOynat(n.sprite, 'panel-calis'))) {
-        this.animDurdur(n.sprite, n.statik, 'panel');
+      const calisiyor = makineCalisiyorMu(n.def.panel);
+      const ozelAnim = n.statik === 'panel' ? 'panel-calis' : n.statik.replace('panel-geriDonusum', 'panel-geri') + '-calis';
+      if (!(calisiyor && this.animOynat(n.sprite, ozelAnim))) this.animDurdur(n.sprite, n.statik, n.statik);
+      if (!n.isik) {
+        n.isik = this.add.circle(n.sprite.x, n.sprite.y - this.gorunurY(n.sprite) - 7, 4, 0x52e3a4).setDepth(4);
+        n.isikTween = this.tweens.add({ targets: n.isik, alpha: 0.35, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       }
+      n.isik.setFillStyle(calisiyor ? 0x52e3a4 : 0xe85d4a);
+      if (calisiyor) n.isikTween.resume(); else { n.isikTween.pause(); n.isik.setAlpha(1); }
     }
   }
 
@@ -573,14 +656,16 @@ export default class GameScene extends Phaser.Scene {
       g.fillStyle(0x000000, 0.12).fillRect(x0, alt - 16, ODA_GENISLIK, 16);
 
       // Oda arka planı görseli varsa kodla çizilen duvarın üstüne biner
-      if (this.gercekAsset('oda-' + oda.tip)) {
-        this.add.image(x0, ust, 'oda-' + oda.tip).setOrigin(0).setDisplaySize(ODA_GENISLIK, alt - ust).setDepth(0.5);
-      }
+      const yer = this.odaGorseliYerlestir(oda, i);
 
       // Oda adı
-      this.add.text(x0 + 22, ust + 12, oda.ad.toUpperCase(), {
-        fontFamily: 'system-ui, sans-serif', fontSize: '13px', color: '#3a3328', fontStyle: 'bold',
-      }).setAlpha(0.55).setDepth(1);
+      // Oda görseli varsa üstünde okunsun diye açık renk + koyu kontur
+      const odaGorselli = this.gercekAsset('oda-' + oda.tip);
+      this.add.text(x0 + 26, ust + 12, oda.ad.toUpperCase(), {
+        fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontStyle: 'bold',
+        color: odaGorselli ? '#f3ead2' : '#3a3328',
+        ...(odaGorselli ? { stroke: '#1d1712', strokeThickness: 3 } : {}),
+      }).setAlpha(odaGorselli ? 0.9 : 0.55).setDepth(1);
 
       // Tavan lambası (enerjiye göre parlar)
       const lx = x0 + ODA_GENISLIK / 2 + (oda.pencereX > ODA_GENISLIK / 2 ? -150 : 150);
@@ -593,7 +678,16 @@ export default class GameScene extends Phaser.Scene {
       // Etkileşimli nesneler
       for (const n of oda.nesneler) {
         const anahtar = n.tip === 'panel' ? this.dokuAnahtari('panel-' + n.panel) : n.tip;
-        const s = this.olcekle(this.add.sprite(x0 + n.x, alt, anahtar).setOrigin(0.5, 1).setDepth(3), anahtar);
+        // Oda görseli varken: konum görsele göre, duvara yaslananlar duvar dibine ve biraz küçük
+        const ad = n.tip === 'panel' ? n.panel : n.tip;
+        const oranX = yer ? oda.gorsel?.nesneOran?.[ad] : null;
+        const nx = oranX != null ? yer.sol + oranX * yer.W - x0 : n.x;
+        const ny = yer && n.arka ? yer.ust + GORSEL_DUVAR_ORANI * yer.H + 4 : alt;
+        const s = this.add.sprite(x0 + nx, ny, anahtar).setOrigin(0.5, 1).setDepth(3);
+        if (yer && n.arka) s.ekOlcek = ARKA_OLCEK;
+        this.olcekle(s, anahtar);
+        // Görselde zaten çizili nesne: sprite görünmez, etkileşim ve ipucu kalır
+        if (yer && oda.gorsel?.gorseldeVar?.includes(n.tip)) s.setAlpha(0);
         this.nesneler.push({ sprite: s, def: n, statik: anahtar });
       }
     });
@@ -609,51 +703,91 @@ export default class GameScene extends Phaser.Scene {
     g.fillStyle(0x6e5a46).fillRect(0, ust, 14, alt - ust).fillRect(this.dunyaG - 14, ust, 14, alt - ust);
     g.fillStyle(0x5b4a3a).fillRect(-20, ust - 18, this.dunyaG + 40, 18);
     g.fillStyle(0x3f4a3a).fillRect(-20, ust - 30, this.dunyaG + 40, 12);
-    // Çatıdaki güneş panelleri
-    for (let x = 60; x < this.dunyaG; x += 180) {
-      g.fillStyle(0x2c3e66).fillRect(x, ust - 52, 110, 22);
-      g.lineStyle(1, 0x8fb3e8, 0.6).strokeRect(x, ust - 52, 110, 22).lineBetween(x + 55, ust - 52, x + 55, ust - 30);
+    // Çatı: cati.png varsa yatayda döşenir (alt kenarı tavan kirişine oturur);
+    // yoksa kodla çizilen eğik, ayaklı güneş panelleri
+    if (this.gercekAsset('cati')) {
+      const h = ASSETLER.cati.yukseklik;
+      const kaynak = this.textures.get('cati').getSourceImage();
+      this.add.tileSprite(-20, ust - h, this.dunyaG + 40, h, 'cati').setOrigin(0).setDepth(0.6)
+        .setTileScale(h / kaynak.height, h / kaynak.height);
+    } else {
+      for (let x = 60; x < this.dunyaG; x += 180) {
+        const taban = ust - 30;
+        g.fillStyle(0x3a3a36).fillRect(x + 18, taban - 14, 4, 14).fillRect(x + 88, taban - 22, 4, 22); // ayaklar
+        g.fillStyle(0x23314f).fillPoints([{ x, y: taban - 12 }, { x: x + 110, y: taban - 28 }, { x: x + 110, y: taban - 20 }, { x, y: taban - 4 }], true);
+        g.lineStyle(2, 0x5b6470, 1).strokePoints([{ x, y: taban - 12 }, { x: x + 110, y: taban - 28 }, { x: x + 110, y: taban - 20 }, { x, y: taban - 4 }], true);
+        g.lineStyle(1, 0x7fa6d8, 0.5).lineBetween(x + 37, taban - 17, x + 37, taban - 9).lineBetween(x + 73, taban - 23, x + 73, taban - 15);
+      }
     }
     g.fillStyle(0x4b3b2c).fillRect(-20, alt, this.dunyaG + 40, 14);
     g.fillStyle(0x3a2e24).fillRect(-20, alt + 14, this.dunyaG + 40, EKRAN_Y - alt);
   }
 
   // Odaya göre dekor. Bazıları kaynaklara göre değişir (su tankı, çöp yığını, bitkiler).
+  // Oda görseli (oda-<tip>.png) varsa sadece süs amaçlı çizimler atlanır (görselde
+  // zaten var, çift görünmesin); işlevi olanlar (su tankı, bitki, çöp, jeneratör) kalır.
   dekorCiz(tip, x0) {
     const g = this.add.graphics().setDepth(2);
     const alt = ZEMIN_Y;
+    const gorselli = this.gercekAsset('oda-' + tip);
     if (tip === 'yasam') {
-      g.fillStyle(0x8c6b4a).fillRect(x0 + 340, alt - 70, 70, 70); // dolap
-      g.fillStyle(0x6e5236).fillRect(x0 + 344, alt - 40, 62, 3);
+      if (gorselli) return;
+      g.fillStyle(0x8c6b4a).fillRect(x0 + 340 * OK, alt - 70, 70, 70); // dolap
+      g.fillStyle(0x6e5236).fillRect(x0 + 344 * OK, alt - 40, 62, 3);
     } else if (tip === 'enerji') {
-      for (let i = 0; i < 3; i++) {
-        const bx = x0 + 400 + i * 50;
+      for (let i = 0; i < (gorselli ? 0 : 3); i++) {
+        const bx = x0 + (400 + i * 50) * OK;
         g.fillStyle(0x2e3a44).fillRoundedRect(bx, alt - 90, 38, 90, 4);
         g.fillStyle(0x52e3a4).fillRect(bx + 8, alt - 80, 22, 6);
       }
-      g.fillStyle(0x6b6b6b).fillRoundedRect(x0 + 60, alt - 70, 110, 70, 6); // jeneratör
-      g.fillStyle(0x3d3d3d).fillRect(x0 + 140, alt - 100, 12, 32);
-    } else if (tip === 'su') {
-      for (let i = 0; i < 2; i++) {
-        const tx = x0 + 470 + i * 90;
-        g.fillStyle(0xdfe7ec).fillRoundedRect(tx - 34, alt - 150, 68, 150, 12);
-        const su = this.add.rectangle(tx, alt - 6, 56, 138, 0x4aa3df).setOrigin(0.5, 1).setDepth(2);
+      if (!gorselli) { // jeneratör (görselde zaten var; duman yine bu noktadan çıkar)
+        g.fillStyle(0x6b6b6b).fillRoundedRect(x0 + 60 * OK, alt - 70, 110, 70, 6);
+        g.fillStyle(0x3d3d3d).fillRect(x0 + 140 * OK, alt - 100, 12, 32);
+      }
+    } else if (tip === 'su' && gorselli && this.odaYerlesimi.su && ODALAR.find((o) => o.tip === 'su').gorsel?.suGostergeleri) {
+      // Görseldeki tankların gösterge camlarında su seviyesi
+      for (const [x1, y1, x2, y2] of ODALAR.find((o) => o.tip === 'su').gorsel.suGostergeleri) {
+        const a = this.odaYerlesimi.su.nokta(x1, y1);
+        const b = this.odaYerlesimi.su.nokta(x2, y2);
+        g.fillStyle(0x10202a, 0.55).fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
+        const su = this.add.rectangle((a.x + b.x) / 2, b.y, b.x - a.x - 2, b.y - a.y - 2, 0x5ec8f0, 0.9).setOrigin(0.5, 1).setDepth(2);
         this.suTanklari.push(su);
       }
-      g.lineStyle(6, 0x8a9aa6).lineBetween(x0 + 60, alt - 120, x0 + 430, alt - 120);
+    } else if (tip === 'su') {
+      for (let i = 0; i < 2; i++) {
+        const tx = x0 + (470 + i * 90) * OK;
+        if (gorselli) {
+          // Görsele uyumlu: koyu metal çerçeve, yarı saydam cam, perçin şeridi
+          g.fillStyle(0x2f3a40, 0.92).fillRoundedRect(tx - 34, alt - 150, 68, 150, 10);
+          g.fillStyle(0x9fc6d6, 0.18).fillRoundedRect(tx - 28, alt - 144, 56, 138, 6);
+          g.lineStyle(2, 0x7c6a4f, 1).strokeRoundedRect(tx - 34, alt - 150, 68, 150, 10);
+          g.fillStyle(0x7c6a4f, 1).fillRect(tx - 34, alt - 112, 68, 4).fillRect(tx - 34, alt - 52, 68, 4);
+        } else {
+          g.fillStyle(0xdfe7ec).fillRoundedRect(tx - 34, alt - 150, 68, 150, 12);
+        }
+        const su = this.add.rectangle(tx, alt - 6, 56, 138, 0x4aa3df, gorselli ? 0.75 : 1).setOrigin(0.5, 1).setDepth(2);
+        this.suTanklari.push(su);
+      }
+      if (!gorselli) g.lineStyle(6, 0x8a9aa6).lineBetween(x0 + 60 * OK, alt - 120, x0 + 430 * OK, alt - 120);
     } else if (tip === 'sera') {
-      g.fillStyle(0x7a5a3a).fillRect(x0 + 40, alt - 30, 440, 30); // saksı sırası
+      if (!gorselli) g.fillStyle(0x7a5a3a).fillRect(x0 + 40 * OK, alt - 30, 440, 30); // saksı sırası
       for (let i = 0; i < 7; i++) {
-        const b = this.olcekle(this.add.image(x0 + 75 + i * 62, alt - 28, 'bitki').setOrigin(0.5, 1).setDepth(2), 'bitki');
+        const yerS = this.odaYerlesimi.sera;
+        const bo = ODALAR.find((o) => o.tip === 'sera').gorsel?.bitkiOran;
+        const bx = gorselli && yerS && bo ? yerS.sol + yerS.W * (bo[0] + i * bo[1]) : x0 + (75 + i * 62) * OK;
+        const b = this.olcekle(this.add.image(bx, gorselli ? alt : alt - 28, 'bitki').setOrigin(0.5, 1).setDepth(2), 'bitki');
         this.bitkiler.push(b);
       }
     } else if (tip === 'geri') {
       const renkler = [0x3b82c4, 0xe0b23a, 0x4caf50, 0x9a9a9a];
-      renkler.forEach((r, i) => {
-        g.fillStyle(r).fillRoundedRect(x0 + 420 + i * 52, alt - 70, 44, 70, 5);
-        g.fillStyle(0x000000, 0.2).fillRect(x0 + 420 + i * 52, alt - 70, 44, 8);
+      if (!gorselli) renkler.forEach((r, i) => {
+        g.fillStyle(r).fillRoundedRect(x0 + (420 + i * 52) * OK, alt - 70, 44, 70, 5);
+        g.fillStyle(0x000000, 0.2).fillRect(x0 + (420 + i * 52) * OK, alt - 70, 44, 8);
       });
-      this.copYigini = this.add.ellipse(x0 + 120, alt, 160, 80, 0x6f6252).setOrigin(0.5, 1).setDepth(2);
+      const yerG = this.odaYerlesimi.geri;
+      const co = ODALAR.find((o) => o.tip === 'geri').gorsel?.copOran;
+      const cx = gorselli && yerG && co ? yerG.sol + yerG.W * co : x0 + 120 * OK;
+      this.copYigini = this.olcekle(this.add.image(cx, alt + 4, 'cop-yigini').setOrigin(0.5, 1).setDepth(2), 'cop-yigini');
     }
   }
 
@@ -685,15 +819,15 @@ export default class GameScene extends Phaser.Scene {
     // Makine görevi: panelin iki yanına dizilir
     if (gorev && MAKINELER[gorev]) {
       const sprite = this.panelSpritesi(gorev);
-      if (sprite) return sprite.x + (sira % 2 === 0 ? -52 : 52);
+      if (sprite) return sprite.x + (sira % 2 === 0 ? -62 : 62);
     }
     // Laboratuvar: panonun yanı (birden çok kişi yan yana)
     if (gorev === 'arastirma') {
       const pano = this.panoSpritesi();
-      if (pano) return pano.x + 46 + (sira % 3) * 22;
+      if (pano) return pano.x - 70 - (sira % 3) * 26;
     }
     // Bosta ya da çalışmıyor (çocuklar): yaşam alanı ortası
-    return 320 + ((sira % 4) - 1.5) * 32;
+    return 320 * OK + ((sira % 4) - 1.5) * 40;
   }
 
   sakinIdleBaslat(s) {
@@ -730,6 +864,7 @@ export default class GameScene extends Phaser.Scene {
       if (!s.sprite.active) continue;
       const hareket = Math.abs(s.sprite.x - (s.oncekiX ?? s.sprite.x)) > 0.05;
       s.oncekiX = s.sprite.x;
+      if (s.ozelDoku) continue; // karaktere özel görselde genel animasyon yok
       const ad = `sakin-${(s.tip ?? 0) + 1}-${hareket ? 'yuru' : 'bekle'}`;
       if (!this.animOynat(s.sprite, ad)) this.animDurdur(s.sprite, 'sakin' + (s.tip ?? 0));
     }
@@ -756,10 +891,13 @@ export default class GameScene extends Phaser.Scene {
         varOlan.sprite.setVisible(kaynakSakin.gorev !== 'kesif');
       } else {
         const idx = this.sakinler.length;
-        const sakinDoku = 'sakin' + (idx % 4);
+        // Karaktere özel görsel varsa o, yoksa sırayla genel sakin-1..4
+        const ozel = 'sakin-' + kaynakSakin.id;
+        const sakinDoku = this.gercekAsset(ozel) ? ozel : 'sakin' + (idx % 4);
         const sprite = this.olcekle(this.add.sprite(hedefX, ZEMIN_Y - 55, sakinDoku)
           .setOrigin(0.5, 1).setDepth(5).setAlpha(0), sakinDoku);
-        const yeni = { uid: kaynakSakin.uid, gorev: kaynakSakin.gorev, sprite, hedefX, wander: null, tip: idx % 4, oncekiX: hedefX };
+        const yeni = { uid: kaynakSakin.uid, gorev: kaynakSakin.gorev, sprite, hedefX, wander: null, tip: idx % 4, oncekiX: hedefX,
+          doku: sakinDoku, ozelDoku: sakinDoku === ozel };
         this.tweens.add({ targets: sprite, alpha: 1, duration: 350 });
         this.tweens.add({
           targets: sprite, y: ZEMIN_Y, duration: 720, ease: 'Bounce.easeOut',
@@ -818,8 +956,11 @@ export default class GameScene extends Phaser.Scene {
   kirliEfekt(panelAnahtar) {
     const konum = DUMAN_KONUMU[panelAnahtar];
     if (konum) {
-      const x = konum.odaIndex * ODA_GENISLIK + konum.x;
-      const em = this.add.particles(x, konum.y, 'duman', {
+      // Oda görseli varsa görseldeki noktadan (ör. jeneratörün üstü)
+      const gorselde = this.dumanNoktasi?.[panelAnahtar];
+      const x = gorselde ? gorselde.x : konum.odaIndex * ODA_GENISLIK + konum.x;
+      const y = gorselde ? gorselde.y : konum.y;
+      const em = this.add.particles(x, y, 'duman', {
         speed: { min: 25, max: 60 },
         angle: { min: 255, max: 285 },
         scale: { start: 0.5, end: 1.8 },
@@ -1006,7 +1147,7 @@ export default class GameScene extends Phaser.Scene {
       }
     }
     for (const su of this.suTanklari) su.setScale(1, Math.max(0.02, k.su / 100));
-    if (this.copYigini) this.copYigini.setScale(0.3 + (k.atik / 100) * 1.0);
+    if (this.copYigini) this.copYigini.setScale((this.copYigini.temelOlcek ?? 1) * (0.3 + (k.atik / 100) * 1.0));
     const saglik = (k.gida / 100) * 0.6 + t * 0.4;
     const gercekBitki = this.gercekAsset('bitki');
     const solgunVar = this.gercekAsset('bitki-solgun');
