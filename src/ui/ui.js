@@ -5,7 +5,7 @@
 // =============================================================
 import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, ziyaretciNetEtki, geceTahmini, AYAR, KAYNAKLAR,
   sakinTanimi, sakinCiktisi, gorevAta, arastirmaSec, arastirmaAcik, masadaArastir, masadaArastirabilirMi,
-  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi } from '../state.js';
+  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi, kapaliMakineler, makineKapali } from '../state.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, OYUNCU_CALISMA_MALIYETI } from '../data/research.js';
 import { HIKAYE } from '../data/story.js';
 import { HAZIRLIK_MALIYETI } from '../data/events.js';
@@ -561,13 +561,27 @@ function gorevAciklama(s, gorev) {
   return parca.join(' ') || 'üretim yok';
 }
 
-// Makinelerin durum özeti: operatör, oyuncu ya da BOŞ
+// Makinelerin durum özeti: operatör, oyuncu, KAPALI ya da BOŞ
 function makineDurumHtml() {
   return Object.entries(MAKINELER).map(([id, m]) => {
     const op = makineOperatoru(id);
     const oyuncu = state.oyuncuMakineler.includes(id);
-    const kim = op ? `${sakinTanimi(op.id).ikon} ${kacis(sakinTanimi(op.id).ad)}` : oyuncu ? '🧍 Sen (bugün)' : 'BOŞ: üretim yok';
-    return `<span class="chip ${op || oyuncu ? 'iyi' : 'kotu'}">${m.ikon} ${kacis(m.ad)}: ${kim}</span>`;
+    const kapali = makineKapali(id);
+    let kim, sinif;
+    if (kapali) {
+      kim = '⚡ KAPALI: enerji yetersiz';
+      sinif = 'kotu';
+    } else if (op) {
+      kim = `${sakinTanimi(op.id).ikon} ${kacis(sakinTanimi(op.id).ad)}`;
+      sinif = 'iyi';
+    } else if (oyuncu) {
+      kim = '🧍 Sen (bugün)';
+      sinif = 'iyi';
+    } else {
+      kim = 'BOŞ: üretim yok';
+      sinif = 'kotu';
+    }
+    return `<span class="chip ${sinif}">${m.ikon} ${kacis(m.ad)}: ${kim}</span>`;
   }).join('');
 }
 
@@ -687,7 +701,7 @@ function panoCiz() {
 
   modalAc(`
     <div class="panel-ust"><span class="etiket">▸ GÖREV_PANOSU // ÇEVRİMİÇİ<i class="led"></i></span><h2>Görevler ve Araştırma</h2></div>
-    <p class="aciklama">Her makinede bir operatör çalışır; <b>operatörü olmayan makine üretim yapmaz</b>. Boş makinenin paneline gidip kendin çalışabilirsin (${OYUNCU_CALISMA_MALIYETI} eylem). ★ uzmanlık yeridir: orada ek katkı verir. Laboratuvar sınırsız: istediğin kadar sakini araştırmaya atayabilirsin, her biri +2 puan/gün verir. <b>Yorgunluk:</b> çalışan her gece +1, dinlenen −2; ${AYAR.yorgunlukAyrilmaEsigi} ve üstünde sakin sığınaktan ayrılabilir. Görev değişikliği bu geceden geçerlidir; +1 eylem hakkı yarın başlar.</p>
+    <p class="aciklama">Her makinede bir operatör çalışır; <b>operatörü olmayan makine üretim yapmaz</b>. Boş makinenin paneline gidip kendin çalışabilirsin (${OYUNCU_CALISMA_MALIYETI} eylem). ★ uzmanlık yeridir: orada ek katkı ve <b>%100 verim</b>; başka makinede ${Math.round(AYAR.uzmanOlmayanVerim * 100)}%. Laboratuvar sınırsız: istediğin kadar sakini araştırmaya atayabilirsin, her biri +2 puan/gün verir. <b>Yorgunluk:</b> çalışan her gece +1, dinlenen −2; ${AYAR.yorgunlukAyrilmaEsigi} ve üstünde sakin sığınaktan ayrılabilir. <b>Enerji düştüğünde</b> makineler kademeli kapanır (25 altı: Geri Dönüşüm; 10 altı: Sera da). Görev değişikliği bu geceden geçerlidir; +1 eylem hakkı yarın başlar.</p>
     <div class="ziyaretci-satir makineler">${makineDurumHtml()}</div>
     <div class="ziyaretci-satir laboratuvar">${laboratuvarDurumHtml()}</div>
     <div class="sakinler">${sakinler}</div>
