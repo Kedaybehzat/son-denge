@@ -4,6 +4,7 @@
 //  yani denge ayarı yapan kişi sahneye dokunmadan burayı değiştirir.
 // =============================================================
 import { ILK_OLAY, OLAYLAR, HAZIRLIK_MALIYETI } from './data/events.js';
+import { KARTLAR } from './data/cards.js';
 import { ZIYARETCILER, KURUCULAR } from './data/visitors.js';
 import { PANELLER } from './data/panels.js';
 import { BILGILER, GENEL_BILGILER } from './data/facts.js';
@@ -87,6 +88,9 @@ export function sifirla() {
   state.tahmin = havuzdanSec(OLAYLAR, state.kullanilanOlaylar); // yarının olayı (radyo duyurur)
   state.hazirlik = false;       // yarının olayına bugün hazırlanıldı mı
   state.olayHazirlikli = false; // bugünün olayına dün hazırlanılmış mıydı
+  state.kart = null;            // bekleyen karar kartı (sabah çıkar)
+  state.gosterilenKartlar = [];
+  state.kartGeceEtki = {};      // karar kartından bu geceye eklenen etki
   for (const k of KURUCULAR) state.sakinler.push({ uid: state.sakinler.length + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
   katkiGuncelle();
   state.denge = dengeHesapla();
@@ -150,6 +154,53 @@ export function hazirlan() {
   state.bugunBilgi.push({ anahtar: 'erkenuyari', kirli: false });
   bildir();
   return true;
+}
+
+// ---------------------------------------------------------------
+//  EĞİTİCİ KARAR KARTLARI (GDD bölüm 10, veri: data/cards.js)
+// ---------------------------------------------------------------
+function kartKosuluVar(k) {
+  return k.kosul.every((c) => {
+    if (c.gunMin != null) return state.gun >= c.gunMin;
+    const v = state.kaynak[c.kaynak];
+    if (c.alti != null && !(v < c.alti)) return false;
+    if (c.ust != null && !(v > c.ust)) return false;
+    return true;
+  });
+}
+
+// Seçenek bu durumda gösterilebilir mi (açılmış araştırma seçeneği gizlenir)
+export const kartSecenegiGecerli = (sec) => !(sec.arastirma && arastirmaAcik(sec.arastirma.id));
+export const kartSecenekleri = (k = state.kart) => (k ? k.secenekler.filter(kartSecenegiGecerli) : []);
+export const kartSecebilirMi = (sec) => !state.bitti && !!state.kart && state.eylem >= (sec.maliyet || 0);
+
+// Sabah: koşulu sağlanan, daha önce çıkmamış ilk kartı bekleyen yapar
+function kartKontrol() {
+  state.kart = null;
+  if (state.bitti) return;
+  const k = KARTLAR.find((x) => !state.gosterilenKartlar.includes(x.id) && kartKosuluVar(x) && kartSecenekleri(x).length);
+  if (!k) return;
+  state.kart = k;
+  state.gosterilenKartlar.push(k.id);
+}
+
+// Seçeneği uygular; sonuç ekranı için seçeneği döndürür
+export function kartSec(sec) {
+  if (!kartSecebilirMi(sec) || !kartSecenekleri().includes(sec)) return null;
+  state.eylem -= sec.maliyet || 0;
+  etkiUygula(sec.etki);
+  state.kartGeceEtki = topla(state.kartGeceEtki, sec.geceEtki);
+  if (sec.insanlik) state.insanlik = sinirla(state.insanlik + sec.insanlik);
+  if (sec.arastirma) {
+    state.arastirma.aktif = sec.arastirma.id;
+    const biten = puanEkle(sec.arastirma.puan);
+    if (biten) state.bugunBilgi.push({ anahtar: ARASTIRMALAR[biten].bilgi, kirli: false });
+  }
+  if (sec.bilgi) state.gosterilenBilgiler.push(sec.bilgi); // sonuç ekranında gösterildi, gece tekrar çıkmasın
+  state.kart = null;
+  state.denge = dengeHesapla();
+  bildir();
+  return sec;
 }
 
 // Gece kişi başı tüketim
@@ -311,7 +362,7 @@ export function masadaArastir() {
 function geceHesapla() {
   const sakin = sakinlerToplami(true);
   const teknoloji = state.arastirma.acik.map((id) => ARASTIRMALAR[id].geceEtki);
-  const degisim = topla(AYAR.gunSonuDegisim, nufusTuketimi(), sakin.etki, olayEtkisi(state.olay?.gunSonu), ...teknoloji);
+  const degisim = topla(AYAR.gunSonuDegisim, nufusTuketimi(), sakin.etki, olayEtkisi(state.olay?.gunSonu), state.kartGeceEtki, ...teknoloji);
 
   // Batarya: açık varsa önce depodan karşıla, fazla varsa depoya aktar
   let batarya = state.batarya;
@@ -518,6 +569,8 @@ export function gunuBitir() {
   katkiGuncelle();
   state.eylem = Math.max(0, AYAR.eylemHakki + state.ekEylem + (state.olay.eylem || 0));
   etkiUygula(olayEtkisi(state.olay.anlik));
+  state.kartGeceEtki = {};
+  kartKontrol();
   state.denge = dengeHesapla();
   bildir();
   return { tip, rapor, bilgi, gidenZiyaretci, ...ek };

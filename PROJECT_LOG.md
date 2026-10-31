@@ -20,6 +20,7 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Makineler, operatör, boş makine, kendin çalış | `src/state.js` → `MAKINELER`, `makineOperatoru()`, `bosMakineler()`, `kendinCalis()`; üretim: `panels.js` → `makine.uretim`; arayüz: `ui.js` → `makinePanelHtml()`, `makineDurumHtml()` |
 | Yorgunluk ve ayrılma (Faz 2 / M2) | `src/state.js` → `yarinkiYorgunluk()`, `ayrilmaSansi()`, `yorgunlukGecesi()` (gunuBitir içinde), `AYAR.yorgunluk*`; arayüz: `ui.js` → `yorgunlukChip()`; sahne: `GameScene.js` → `sakinGuncelle()` (ayrılan figür solar) |
 | Hazırlıklı olaylar (tahmin, hazırlık) | Veri: `events.js` (`uyari`, `hazirlik`, `HAZIRLIK_MALIYETI`); kurallar: `state.js` → `state.tahmin`, `olayEtkisi()`, `hazirlan()`, `gunuBitir()` (tahmin → olay); arayüz: `ui.js` → `tahminHtml()`, `olayHtml()`, `hazirlikBagla()` |
+| Eğitici karar kartları | Veri: `src/data/cards.js` → `KARTLAR`; kurallar: `state.js` → `kartKontrol()` (gunuBitir sonunda), `kartSec()`, `kartSecenekleri()`, `state.kartGeceEtki` (geceHesapla); arayüz: `ui.js` → `kararKartiGoster()`, `sabahGoster()` |
 | Araştırma ve batarya | `src/state.js` → `arastirmaSec()`, `masadaArastir()`, `puanEkle()`, `geceHesapla()`; veri: `src/data/research.js` |
 | Görev ve Araştırma Panosu arayüzü | `ui.js` → `panoAc()`, `panoCiz()`; nesne: `rooms.js` (`tip: 'pano'`), doku: `GameScene.js` → `dokulariUret()` |
 | Panel eylemi yapma kuralları | `src/state.js` → `eylemYapabilirMi()`, `eylemYap()` |
@@ -34,6 +35,7 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Animasyonlar (kare yükleme, oynatma) | Tanım: `src/data/animations.js` → `ANIMASYONLAR`; yükleme: `GameScene.js` → `preload()` (1. kare), `animasyonlariYukle()`; oynatma: `animOynat()`, `animDurdur()`, `makineAnimGuncelle()`, `sakinAnimGuncelle()`, `update()` (oyuncu), `efektZiyaretci()` (kapı); dosyalar: `public/assets/anim/` |
 | Arka planlar (oda, manzara) | `GameScene.js` → `evCiz()` (oda-*), `disariCiz()` + `gorselUygula()` (manzara-*, iyi↔kötü geçiş) |
 | Portre ve hikaye görselleri (HTML) | `ui.js` → `portreRozet()`, `portreBuyuk()`, `girisHikayesi()`; yollar: `assets.js` → `portreDosyasi()`, `hikayeDosyasi()` |
+| Görsel içerik kutusu (şeffaf boşluk hariç ölçek) | `GameScene.js` → `icerikKutusu()`, `animKutusu()`, `olcekle()`, `gorunurY()` |
 | Görsel yükleme (public/assets) ve yer tutucular | Liste + hedef yükseklik: `src/data/assets.js` → `ASSETLER`; yükleme: `GameScene.js` → `preload()`; yer tutucu: `dokulariUret()` / `dokuUret()`; ölçek: `olcekle()`, `dokuAnahtari()`, `gercekAsset()`; dosyalar: `public/assets/` |
 | Dışarısı, şehir silueti | `GameScene.js` → `disariCiz()`, `sehirBoya()` |
 | Ev/oda çizimi, oda dekorları | `GameScene.js` → `evCiz()`, `dekorCiz()` |
@@ -63,7 +65,7 @@ src/state.js               Oyun durumu ve tüm kurallar (abone/bildir ile UI'ya 
 src/scenes/GameScene.js    Phaser sahnesi: çizim, hareket, etkileşim, görsel dönüşüm
 src/ui/ui.js               HTML/CSS arayüz katmanı
 src/style.css              Arayüz stili (cqw ile ölçekleme)
-src/data/*.js              İçerik verisi (panels, events, visitors, facts, story, rooms, research, assets, animations)
+src/data/*.js              İçerik verisi (panels, events, visitors, facts, story, rooms, research, assets, animations, cards)
 public/assets/             Oyun görselleri (CLAUDE.md 6.3 adlarıyla; eksikse yer tutucu)
 public/assets/anim/        Animasyon kareleri (<animasyon>-<kare>.png)
 tools/simulasyon.mjs       4000 oyunluk denge simülasyonu
@@ -94,7 +96,7 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 
 **Durum:** ✅ hazır (`public/assets/`'te) · ⏳ yapılacak · 💤 isteğe bağlı (yoksa yedeği kullanılır)
 
-**Genel kurallar:** Şeffaf PNG (beyaz arka planla üretip arkayı silin), yandan görünüş, sağa bakan karakterler, **alt kenarda boşluk yok** (ayak/taban en altta). Boyut serbest: oyun, oranı koruyarak "Yükseklik" sütunundaki değere ölçekler. Büyük üretin (en az 2–3 kat).
+**Genel kurallar:** Şeffaf PNG (beyaz arka planla üretip arkayı silin), yandan görünüş, sağa bakan karakterler. Boyut ve kenar boşluğu serbest: oyun görselin dolu kısmını ölçer, oranı koruyarak "Yükseklik" sütunundaki değere ölçekler ve en alt dolu satırı zemine oturtur. Büyük üretin (en az 2–3 kat).
 
 ---
 
@@ -151,7 +153,7 @@ Kaynak: `src/data/animations.js` (`ANIMASYONLAR`). Kareler 1'den başlar: `oyunc
 | Animasyon | Dosyalar | Kare | FPS | Tür | Ne zaman oynar | Yükseklik | Durum | Eklendi |
 |---|---|---|---|---|---|---|---|---|
 | `oyuncu-bekle` | `oyuncu-bekle-1..4.png` | 4 | 4 | döngü | Oyuncu dururken (nefes alma) | 72 px | ⏳ | 01.11 |
-| `oyuncu-yuru` | `oyuncu-yuru-1..6.png` | 6 | 10 | döngü | Oyuncu yürürken (gelince kodla zıplama kapanır) | 72 px | ⏳ | 01.11 |
+| `oyuncu-yuru` | `oyuncu-yuru-1..6.png` | 6 | 10 | döngü | Oyuncu yürürken (gelince kodla zıplama kapanır) | 72 px | ✅ (512×768, 01.11) | 01.11 |
 | `oyuncu-calis` | `oyuncu-calis-1..4.png` | 4 | 8 | bir kez | Panelle etkileşimde (tuşlara basma) | 72 px | ⏳ | 01.11 |
 | `sakin-1-bekle` … `sakin-4-bekle` | `sakin-N-bekle-1..2.png` | 2 (×4 sakin) | 2 | döngü | Sakin dururken | 64 px | ⏳ | 01.11 |
 | `sakin-1-yuru` … `sakin-4-yuru` | `sakin-N-yuru-1..4.png` | 4 (×4 sakin) | 8 | döngü | Sakin yürürken | 64 px | ⏳ | 01.11 |
@@ -181,6 +183,47 @@ Oyunda `GameScene.js` → `dekorCiz()` / `evCiz()` içinde kodla çiziliyor. Gö
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz3-karar-kartlari` → `main`
+
+- **Prompt:** Commit, push, PR, merge; sonra geliştirmeye devam.
+- **Yapılan değişiklik:** Karar kartları, içerik kutusu ölçeklemesi ve ekibin `oyuncu-yuru` kareleri commit'lenip PR ile `main`'e merge edildi.
+
+| Dosya | Açıklama |
+|---|---|
+| `PROJECT_LOG.md` | Bu kayıt |
+
+- **Debt:** Yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz3-karar-kartlari`
+
+- **Prompt:** (aynı oturum) Ekip `oyuncu-yuru` karelerini yükledi; kontrol ve uyum.
+- **Yapılan değişiklik:** Ekibin 6 karesi (512×768) karakteri karenin alt %75'ine çizmiş; sabit `oyuncu.png` (256×768) neredeyse tam boy. Kare yüksekliğine göre ölçekleme yürürken karakteri ~52 px'e küçültecekti. Görsellerin şeffaf olmayan içerik kutusu ölçülüp ölçek ve zemin hizası ona göre yapılacak şekilde düzeltildi (animasyonda karelerin ortak kutusu). Headless ölçüm: dururken ve yürürken görünen boy 72 px, alt kenar y=470 (zemin). Yan bulgu: `oyuncu.png`'nin altındaki 51 px boşluk yüzünden oyuncu ~5 px havadaydı, düzeldi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/scenes/GameScene.js` | `icerikKutusu()` (alfa taraması, önbellekli), `animKutusu()`, `olcekle()` içerik boyuna göre ölçek + origin; `gorunurY()` ile ipucu, kapı işareti, süzülen sayılar |
+| `public/assets/anim/oyuncu-yuru-1..6.png` | Ekipten (repoya eklenecek) |
+| `CLAUDE.md` | 6.3: kenar boşluğu artık serbest, arka plan şeffaf olmalı; animasyon ölçek notu |
+| `PROJECT_LOG.md` | Asset Listesi D: `oyuncu-yuru` ✅; genel kurallar; harita |
+
+- **Debt:** Yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz3-karar-kartlari`
+
+- **Prompt:** (PR #2 merge sonrası) geliştirmeye devam.
+- **Yapılan değişiklik:** GDD bölüm 10 eğitici karar kartları: 5 koşullu kart (karanlık, su, protesto, kompost, enerji sözü), sabah çıkar, seçim zorunlu, sonuçta metin + bilgi kartı. Grid inşa (GDD Faz 2 ikinci yarısı) bilinçli olarak atlandı: kalan sürede sahneyi yeniden yazmak çok riskli. Headless test: kart Esc ile kapanmıyor, dizel seçimi enerji 20→50, karbon 35→51, sonuç ekranında bilgi kartı. Simülasyon: akıllı+herkesi al iyi son %61 → %72; kirli hâlâ hiç ayakta kalmıyor.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/cards.js` | Yeni: `KARTLAR` (koşul, seçenekler: etki, geceEtki, maliyet, insanlık, araştırma, kirli/panel, sonuç, bilgi) |
+| `src/state.js` | `state.kart/gosterilenKartlar/kartGeceEtki`; `kartKontrol()`, `kartSec()`, `kartSecenekleri()`, `kartSecebilirMi()`; gece hesabına kart etkisi |
+| `src/ui/ui.js` | `kararKartiGoster()` (zorunlu seçim, sonuç ekranı); sabah ekranında "Kararı gör"; kirli seçimde sahne efekti |
+| `src/style.css` | `.gece-etiket` |
+| `tools/simulasyon.mjs` | Stillere göre kart seçimi |
+| `CLAUDE.md` | 4.16 yeni bölüm, 4.11 simülasyon tablosu |
+
+- **Debt:** Yok (sayılar [DENGE TASLAĞI], D10/D12 kapsamında). Grid inşa yapılmadı; gerekirse yeni borç olarak açılabilir. Asset gerektiren yeni nesne yok. Commit atılmadı.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz2-hazirlikli-olaylar` → `main`
 
