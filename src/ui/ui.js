@@ -3,7 +3,7 @@
 //  HUD, paneller, radyo kartı, onay pencereleri ve son ekranı.
 //  Phaser'ın üstünde duran düz HTML/CSS. Görünüm için style.css.
 // =============================================================
-import { state, abone, eylemYap, eylemYapabilirMi, AYAR, KAYNAKLAR } from '../state.js';
+import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, AYAR, KAYNAKLAR } from '../state.js';
 import { HIKAYE } from '../data/story.js';
 
 const hud = document.getElementById('hud');
@@ -80,6 +80,7 @@ export function hudKur() {
     <div class="hud-gun">
       <div class="gun">GÜN <b data-gun></b><span>/ ${AYAR.maxGun}</span></div>
       <div class="eylem-hakki" title="Kalan eylem hakkı"><span>Eylem</span><span class="noktalar" data-eylem></span></div>
+      <div class="nufus" title="Sığınaktaki kişi sayısı">👥 <b data-nufus></b> kişi</div>
     </div>
     <div class="hud-kaynaklar">
       ${Object.entries(KAYNAKLAR).map(([ad, k]) => `
@@ -101,6 +102,7 @@ function hudGuncelle(s) {
   if (!s.kaynak) return;
   hud.querySelector('[data-gun]').textContent = s.gun;
   hud.querySelector('[data-eylem]').innerHTML = eylemNoktalari();
+  hud.querySelector('[data-nufus]').textContent = s.nufus;
   for (const ad of Object.keys(KAYNAKLAR)) {
     const el = hud.querySelector(`[data-k="${ad}"]`);
     const v = s.kaynak[ad];
@@ -189,12 +191,62 @@ export function olayGoster(olay) {
   modalAc(`${olayHtml(olay)}<div class="alt sag"><button data-kapat data-varsayilan>Tamam</button></div>`);
 }
 
-export function gunBaslangici(rapor) {
+function bilgiHtml(b) {
+  if (!b) return '';
+  return `
+    <div class="bilgi-karti">
+      <span class="etiket">💡 BİLİYOR MUYDUN?</span>
+      <p>${kacis(b.metin)}</p>
+      <span class="kaynak">Kaynak: ${kacis(b.kaynak)}</span>
+    </div>`;
+}
+
+// Gün geçişi iki adım: önce gece raporu + bilgi kartı, sonra sabah radyosu
+export function gunBaslangici({ rapor, bilgi, gidenZiyaretci }) {
+  const gitti = gidenZiyaretci
+    ? `<p class="uyari">🚪 ${kacis(gidenZiyaretci.ad)} kapıda beklemekten vazgeçip gitti.</p>`
+    : '';
+  modalAc(`
+    <div class="panel-ust"><span class="etiket">GECE</span><h2>Gün ${state.gun - 1} sona erdi</h2></div>
+    <div class="rapor"><span>Gece tüketimi (👥 ${state.nufus} kişi):</span>${etkiChipleri(rapor) || '<span class="chip">Değişim yok</span>'}</div>
+    ${gitti}
+    ${bilgiHtml(bilgi)}
+    <div class="alt sag"><button data-sabah data-varsayilan>Sabah oldu</button></div>`, { kapatma: false });
+  kart.querySelector('[data-sabah]').addEventListener('click', sabahGoster);
+}
+
+function sabahGoster() {
+  const kapi = state.ziyaretci
+    ? `<p class="kapi-uyari">🚪 Kapı çalınıyor! Biri sığınağa girmek istiyor.</p>`
+    : '';
   modalAc(`
     <div class="panel-ust"><span class="etiket">YENİ GÜN</span><h2>Gün ${state.gun} / ${AYAR.maxGun}</h2></div>
-    <div class="rapor"><span>Gece raporu:</span>${etkiChipleri(rapor) || '<span class="chip">Değişim yok</span>'}</div>
     ${olayHtml(state.olay)}
-    <div class="alt sag"><button data-kapat data-varsayilan>Güne başla</button></div>`, { kapatma: true });
+    ${kapi}
+    <div class="alt sag"><button data-kapat data-varsayilan>Güne başla</button></div>`);
+}
+
+// ---------------------------------------------------------------
+//  KAPIDAKİ ZİYARETÇİ
+// ---------------------------------------------------------------
+export function ziyaretciGoster(z, kabul, ret) {
+  const katkiVar = z.anlik || z.gunlukKatki || z.eylemArtisi;
+  modalAc(`
+    <div class="panel-ust"><span class="etiket">🚪 KAPIDA BİRİ VAR</span><h2>${z.ikon} ${kacis(z.ad)}</h2></div>
+    <p class="kisi-sayisi">👥 ${z.kisi} kişi</p>
+    <p>${kacis(z.metin)}</p>
+    <div class="ziyaretci-satir"><span>Getirdikleri:</span><span class="chip ${katkiVar ? 'iyi' : ''}">${kacis(z.katkiMetni)}</span></div>
+    <div class="ziyaretci-satir"><span>Her gece ek tüketim:</span>${etkiChipleri(nufusTuketimi(z.kisi))}</div>
+    <p class="aciklama">Sığınakta şu an ${state.nufus} kişi var. Karar vermeden günü bitirirsen beklemekten vazgeçip gider.</p>
+    <div class="alt">
+      <button class="ikincil" data-kapat>Sonra karar ver</button>
+      <span class="hikaye-butonlar">
+        <button class="ret" data-ret>Geri çevir</button>
+        <button data-kabul>İçeri al</button>
+      </span>
+    </div>`);
+  kart.querySelector('[data-kabul]').addEventListener('click', () => { modalKapat(); kabul(); });
+  kart.querySelector('[data-ret]').addEventListener('click', () => { modalKapat(); ret(); });
 }
 
 // ---------------------------------------------------------------
@@ -271,28 +323,42 @@ export function baslangicEkrani(basla) {
 }
 
 const SONLAR = {
-  utopya: {
+  gercekUtopya: {
+    sinif: 'utopya',
     baslik: 'Yeşilvadi nefes alıyor',
-    metin: 'Beş günün sonunda sera yeşil, tanklar dolu, gökyüzü açık. Kolay yolu seçmedin ve ütopya ayakta kaldı. Dünyanın geri kalanı için hâlâ umut var.',
+    metin: 'Sera yeşil, tanklar dolu ve sığınak her gün biraz daha kalabalık. Kaynakları dengede tuttun, kapıyı da kapatmadın. Ütopya ancak paylaşıldığında gerçek oluyor.',
   },
-  yarali: {
-    baslik: 'Ayakta, ama yorgun',
-    metin: 'Yeşilvadi yıkılmadı, ama eski hâlinden uzak. Hava ağır, kaynaklar kıt. Ütopya ile distopya arasındaki çizgi hiç bu kadar ince olmamıştı.',
+  yalnizUtopya: {
+    sinif: 'yarali',
+    baslik: 'Yalnız bir ütopya',
+    metin: 'Sığınak ayakta, hava temiz, kaynaklar yeterli. Ama geceleri kapının önünde bekleyenleri düşünüyorsun. Sadece içeridekiler için kurulan bir dünya ne kadar ütopya sayılır?',
+  },
+  kapimizAcikti: {
+    sinif: 'yarali',
+    baslik: 'Kapımız açıktı',
+    metin: 'Kimseyi kaderine terk etmedin, ama kaynaklar bu kadar insana yetmedi. Yeşilvadi zor durumda, yine de kimse yalnız değil. İyi niyet tek başına yetmiyor: dayanışma ancak sürdürülebilir bir sistemle ayakta kalır.',
   },
   cokus: {
+    sinif: 'cokus',
     baslik: 'Işıklar söndü',
-    metin: 'Kaynaklar tükendi, hava solunamaz hâle geldi. Yeşilvadi, önceki şehirlerin yaptığı hatayı tekrarladı. Çöküş bir anda değil, her gün verilen küçük kararlarla geldi.',
+    metin: 'Kaynaklar tükendi, hava ağırlaştı, kapı da kapalı kaldı. Yeşilvadi, Büyük Sessizlik\'ten önceki dünyanın hatasını tekrarladı. Çöküş bir anda değil, her gün verilen küçük kararlarla geldi.',
   },
 };
 
-export function sonGoster(tip, tekrar) {
+export function sonGoster({ tip, bilgi }, tekrar) {
   const s = SONLAR[tip];
   modalAc(`
-    <div class="son ${tip}">
+    <div class="son ${s.sinif}">
       <span class="etiket">SON · GÜN ${state.gun}</span>
       <h1>${s.baslik}</h1>
       <p>${s.metin}</p>
-      <div class="son-denge">Son denge: <b>${state.denge}</b> / 100</div>
+      <div class="son-istatistik">
+        <div><span>Denge</span><b>${state.denge}</b><small>/ 100</small></div>
+        <div><span>İnsanlık</span><b>${state.insanlik}</b><small>/ 100</small></div>
+        <div><span>Sığınakta</span><b>${state.nufus}</b><small>kişi</small></div>
+        <div><span>Geri çevrilen</span><b>${state.reddedilen}</b><small>kişi</small></div>
+      </div>
+      ${bilgiHtml(bilgi)}
       <button data-tekrar data-varsayilan>Tekrar oyna</button>
     </div>`, { kapatma: false });
   kart.querySelector('[data-tekrar]').addEventListener('click', () => {

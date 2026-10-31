@@ -27,10 +27,13 @@ npm run build      # dist/ klasörü oluşur
 | `src/data/panels.js` | Paneller ve eylemleri (etkileri, kirli seçenekler) | Tasarım / denge |
 | `src/data/events.js` | Radyo olayları | Tasarım / içerik |
 | `src/data/story.js` | Açılıştaki hikaye ekranları | İçerik |
+| `src/data/visitors.js` | Kapıya gelen ziyaretçiler ve getirdikleri | Tasarım / içerik |
+| `src/data/facts.js` | "Biliyor muydun?" bilgi kartları ve kaynakları | İçerik |
 | `src/data/rooms.js` | Odalar, pencereler, nesnelerin yerleri | Tasarım / seviye |
 | `src/state.js` | Kurallar: gece tüketimi, denge formülü, sonlar, `AYAR` | Denge |
 | `src/scenes/GameScene.js` | Phaser sahnesi: çizim, hareket, etkileşim, görsel dönüşüm | Programcı |
-| `src/ui/ui.js` + `src/style.css` | HUD, paneller, radyo, başlangıç ve son ekranları | Arayüz |
+| `src/ui/ui.js` + `src/style.css` | HUD, paneller, radyo, kapı kartı, başlangıç ve son ekranları | Arayüz |
+| `tools/simulasyon.mjs` | Dengeyi test eden simülasyon (`node tools/simulasyon.mjs`) | Denge |
 
 Sayıları değiştirmek için koda dokunmanız gerekmez: `data/` klasöründeki dosyalar ve `state.js` içindeki `AYAR` yeterli.
 
@@ -38,10 +41,14 @@ Sayıları değiştirmek için koda dokunmanız gerekmez: `data/` klasöründeki
 
 - **Hikaye:** İklim değişikliği → eriyen buzullardan uyanan eski bir virüs → "Büyük Sessizlik" (nüfusun büyük kısmı yok oldu) → hayatta kalanlar Yeşilvadi'yi kuruyor. Açılışta 4 ekranla anlatılıyor, "Geç" ile atlanabiliyor.
 
-- **Gün döngüsü:** Her gün 3 eylem hakkı var. Yatağa gidince gece tüketimi uygulanır (`AYAR.gunSonuDegisim`), ardından yeni gün ve rastgele bir radyo olayı başlar.
+- **Gün döngüsü:** Her gün 3 eylem hakkı var. Yatağa gidince gece tüketimi uygulanır: sabit tüketim (`AYAR.gunSonuDegisim`) + kişi başı su ve gıda (`AYAR.kisiBasiTuketim`) + içeri alınanların katkıları. Ardından yeni gün ve rastgele bir radyo olayı başlar.
+- **Kapı ve nüfus:** 2. günden itibaren her sabah biri kapıyı çalar (`data/visitors.js`). İçeri alınca nüfus ve gece tüketimi artar ama ziyaretçi bir katkı getirir (ek eylem hakkı, her gece gıda vb.). Geri çevirmek gizli "insanlık" puanını düşürür. Karar verilmeden gün biterse ziyaretçi gider (küçük insanlık kaybı). İçeri alınanlar sığınakta dolaşan sakinler olarak görünür.
 - **Denge (0–100):** 5 kaynağın ağırlıklı ortalaması. Karbon iki kat sayılır. Her kaynak 80'de tam puan verir, yani fazla enerji kirliliği telafi edemez.
-- **Sonlar:** 5. günün sonunda denge 60 ve üstü ise ütopya, 30–59 arası ise "ayakta ama yaralı", altı ise çöküş. Denge herhangi bir gün 10'un altına düşerse oyun erken biter.
+- **Sonlar (denge × insanlık):** Denge ≥ 60 ve insanlık ≥ 50 ise "Yeşilvadi nefes alıyor", denge yüksek ama insanlık düşükse "Yalnız bir ütopya", denge düşük ama insanlık yüksekse "Kapımız açıktı", ikisi de düşükse "Işıklar söndü". Denge 10'un altına düşerse oyun erken biter.
+- **Biliyor muydun?:** Her gece o gün yapılan seçime bağlı gerçek bir iklim bilgisi gösterilir (kirli seçimler önceliklidir). Bilgiler ve kaynakları `data/facts.js` içinde. Sunumdan önce rakamları kaynaklarından bir kez daha kontrol edin.
 - **Görsel dönüşüm:** Denge düştükçe gökyüzü dumanlı turuncuya döner, şehir kararır, bitkiler solar. Lambalar enerjiye, su tankları suya, çöp yığını atığa göre değişir.
+
+**Simülasyon sonuçları** (her biri 4000 oyun): Akıllı oynayıp herkesi içeri alan oyuncu %96 "gerçek ütopya", kimseyi almayan %100 "yalnız ütopya" sonuna ulaşıyor. Rastgele oynayan çoğunlukla "kapımız açıktı" ya da "çöküş" görüyor, kirli oynayan hiçbir zaman ayakta kalamıyor. Sayıları değiştirdikten sonra simülasyonu yeniden çalıştırın.
 
 ## Yeni bir şey eklemek
 
@@ -49,6 +56,8 @@ Sayıları değiştirmek için koda dokunmanız gerekmez: `data/` klasöründeki
 ```js
 { id: 'kasirga', baslik: 'Kasırga', metin: '"..."', anlik: { enerji: -10 }, gunSonu: { su: -5 }, eylem: -1 }
 ```
+
+**Yeni ziyaretçi:** `visitors.js` içindeki listeye ekleyin (alanlar dosyanın başında açıklanıyor).
 
 **Yeni panel eylemi:** `panels.js` içinde ilgili panelin `eylemler` listesine ekleyin:
 ```js
@@ -60,7 +69,6 @@ Panelde ilk 9 eylem 1–9 tuşlarıyla seçilebilir.
 
 ## Sıradaki adımlar
 
-- [ ] Kapı mekaniği: iklim göçmenleri kapıya gelir (içeri al → tüketim artar / alma → vicdani bedel)
 - [ ] Yürüme animasyonu ve gerçek görseller
 - [ ] Ses: ortam sesi, radyo cızırtısı, panel tıklaması (ilk tıklamadan sonra başlatın)
 - [ ] Dengeyi test edin: 3 farklı oyun stiliyle oynayıp (temiz, kirli, karışık) sonuçları kontrol edin

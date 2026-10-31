@@ -4,6 +4,7 @@
 //  Her eylem varsayılan olarak 1 eylem hakkı harcar (maliyet ile değişir).
 //
 //  kirli: true -> hızlı ama kirleten seçenek (arayüzde uyarı gösterilir).
+//  bilgi: facts.js'teki "Biliyor muydun?" kartının anahtarı.
 //  Asıl oyun tasarımı burada: her "kolay" seçeneğin bir bedeli olsun.
 // =============================================================
 
@@ -13,9 +14,9 @@ export const PANELLER = {
     aciklama: 'Güneş panelleri, rüzgar türbini ve yedek dizel jeneratör. Jeneratör hızlıdır ama havayı kirletir.',
     gosterge: ['enerji', 'karbon'],
     eylemler: [
-      { ad: 'Güneş panellerini temizle', etki: { enerji: +20 }, mesaj: 'Paneller pırıl pırıl.' },
-      { ad: 'Rüzgar türbinini onar', etki: { enerji: +12, atik: +5 }, mesaj: 'Türbin yeniden dönüyor.' },
-      { ad: 'Dizel jeneratörü çalıştır', etki: { enerji: +35, karbon: +18 }, kirli: true, mesaj: 'Jeneratör gürültüyle çalıştı. Hava ağırlaştı.' },
+      { ad: 'Güneş panellerini temizle', etki: { enerji: +20 }, mesaj: 'Paneller pırıl pırıl.', bilgi: 'gunes' },
+      { ad: 'Rüzgar türbinini onar', etki: { enerji: +12, atik: +5 }, mesaj: 'Türbin yeniden dönüyor.', bilgi: 'ruzgar' },
+      { ad: 'Dizel jeneratörü çalıştır', etki: { enerji: +35, karbon: +18 }, kirli: true, mesaj: 'Jeneratör gürültüyle çalıştı. Hava ağırlaştı.', bilgi: 'fosil' },
     ],
   },
   su: {
@@ -23,8 +24,8 @@ export const PANELLER = {
     aciklama: 'Gri suyu ve yağmur suyunu arıtır. Tam güç modu çok enerji yer.',
     gosterge: ['su', 'enerji'],
     eylemler: [
-      { ad: 'Filtreleri değiştir', etki: { su: +18, atik: +5 }, mesaj: 'Temiz su akmaya başladı.' },
-      { ad: 'Arıtmayı tam güçle çalıştır', etki: { su: +30, enerji: -15 }, mesaj: 'Tanklar hızla doluyor.' },
+      { ad: 'Filtreleri değiştir', etki: { su: +18, atik: +5 }, mesaj: 'Temiz su akmaya başladı.', bilgi: 'tatlisu' },
+      { ad: 'Arıtmayı tam güçle çalıştır', etki: { su: +30, enerji: -15 }, mesaj: 'Tanklar hızla doluyor.', bilgi: 'suenerji' },
     ],
   },
   sera: {
@@ -32,9 +33,9 @@ export const PANELLER = {
     aciklama: 'Yeşilvadi\'nin besin kaynağı. Bitkiler su ister ama karbonu da azaltır.',
     gosterge: ['gida', 'su', 'karbon'],
     eylemler: [
-      { ad: 'Serayı sula', etki: { gida: +20, su: -10 }, mesaj: 'Yapraklar canlandı.' },
-      { ad: 'Kompost ekle', etki: { gida: +12, atik: -12 }, mesaj: 'Organik atık toprağa döndü.' },
-      { ad: 'Fidan dik', etki: { karbon: -15, su: -6 }, mesaj: 'Küçük bir ağaç, büyük bir umut.' },
+      { ad: 'Serayı sula', etki: { gida: +20, su: -10 }, mesaj: 'Yapraklar canlandı.', bilgi: 'sulama' },
+      { ad: 'Kompost ekle', etki: { gida: +12, atik: -12 }, mesaj: 'Organik atık toprağa döndü.', bilgi: 'metan' },
+      { ad: 'Fidan dik', etki: { karbon: -15, su: -6 }, mesaj: 'Küçük bir ağaç, büyük bir umut.', bilgi: 'agac' },
     ],
   },
   geriDonusum: {
@@ -42,9 +43,9 @@ export const PANELLER = {
     aciklama: 'Atıkları ayrıştır ya da yak. Yakmak hızlıdır ve biraz enerji verir, ama karbon salar.',
     gosterge: ['atik', 'karbon'],
     eylemler: [
-      { ad: 'Atıkları ayrıştır', etki: { atik: -20 }, mesaj: 'Cam, plastik, metal: her şey yerli yerinde.' },
-      { ad: 'Malzemeleri onarıp yeniden kullan', etki: { atik: -10, enerji: +5 }, mesaj: 'Eski parçalar yeni işe yaradı.' },
-      { ad: 'Atıkları yak', etki: { atik: -35, enerji: +8, karbon: +15 }, kirli: true, mesaj: 'Atık gitti, duman kaldı.' },
+      { ad: 'Atıkları ayrıştır', etki: { atik: -20 }, mesaj: 'Cam, plastik, metal: her şey yerli yerinde.', bilgi: 'plastik' },
+      { ad: 'Malzemeleri onarıp yeniden kullan', etki: { atik: -10, enerji: +5 }, mesaj: 'Eski parçalar yeni işe yaradı.', bilgi: 'hiyerarsi' },
+      { ad: 'Atıkları yak', etki: { atik: -35, enerji: +8, karbon: +15 }, kirli: true, mesaj: 'Atık gitti, duman kaldı.', bilgi: 'yakma' },
     ],
   },
 };

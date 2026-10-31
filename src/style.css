@@ -205,3 +205,45 @@ kbd {
 .hikaye-ekrani .noktalar i.dolu { background: #e0b23a; border-color: #e0b23a; }
 .hikaye-butonlar { display: flex; gap: 0.8cqw; }
 .kart.hikaye button.ikincil { color: #ffffff99; border-color: #ffffff2a; }
+
+/* Nüfus (HUD) */
+.nufus { font-size: 1.05cqw; opacity: 0.9; }
+.nufus b { font-size: 1.2cqw; }
+
+/* Biliyor muydun? */
+.bilgi-karti {
+  margin: 1.2cqw 0 0.4cqw;
+  padding: 1.2cqw 1.4cqw;
+  border-radius: 0.9cqw;
+  background: #e6f2ea;
+  border-left: 0.5cqw solid var(--vurgu);
+  text-align: left;
+}
+.bilgi-karti p { margin: 0.4cqw 0 0.5cqw; }
+.bilgi-karti .kaynak { font-size: 1cqw; color: var(--soluk); }
+
+/* Kapı */
+.kapi-uyari {
+  margin: 1.2cqw 0 0;
+  padding: 0.9cqw 1.2cqw;
+  border-radius: 0.8cqw;
+  background: #fff3cf;
+  color: #7a5410;
+  font-weight: 600;
+}
+.kisi-sayisi { color: var(--soluk); font-weight: 600; margin-bottom: 0.4cqw; }
+.ziyaretci-satir { display: flex; flex-wrap: wrap; gap: 0.5cqw; align-items: center; margin: 0.4cqw 0; }
+.ziyaretci-satir > span:first-child { color: var(--soluk); font-size: 1.2cqw; margin-right: 0.3cqw; }
+.ziyaretci-satir .chip { font-size: 1.15cqw; }
+button.ret { background: #9a3424; }
+
+/* Son ekranı istatistikleri */
+.son-istatistik { display: flex; justify-content: center; gap: 1cqw; margin: 1.4cqw 0 0.6cqw; }
+.son-istatistik div {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 9cqw; padding: 0.8cqw 0.6cqw; border-radius: 0.8cqw; background: #0000000a;
+}
+.son-istatistik span { font-size: 1cqw; color: var(--soluk); }
+.son-istatistik b { font-size: 2.4cqw; line-height: 1.2; }
+.son-istatistik small { font-size: 0.95cqw; color: var(--soluk); }
+.son .bilgi-karti { margin-bottom: 1.6cqw; }

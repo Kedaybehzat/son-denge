@@ -7,7 +7,7 @@
 import Phaser from 'phaser';
 import { ODALAR, ODA_GENISLIK, TAVAN_Y, ZEMIN_Y } from '../data/rooms.js';
 import { PANELLER } from '../data/panels.js';
-import { state, abone, gunuBitir, sifirla } from '../state.js';
+import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet } from '../state.js';
 import * as ui from '../ui/ui.js';
 
 const HIZ = 240;
@@ -126,6 +126,18 @@ export default class GameScene extends Phaser.Scene {
     g.fillEllipse(12, 22, 16, 9).fillEllipse(29, 18, 16, 9).fillEllipse(14, 10, 14, 8).fillEllipse(26, 6, 12, 8);
     g.generateTexture('bitki', 40, 56);
     g.destroy();
+
+    // Sığınak sakinleri (farklı kıyafet renkleri)
+    const g2 = this.make.graphics({ x: 0, y: 0, add: false });
+    [0x8a5a44, 0x4f6d8a, 0x7a7a3a, 0x6b4f7a].forEach((renk, i) => {
+      g2.clear();
+      g2.fillStyle(renk).fillRoundedRect(3, 18, 22, 36, 6);
+      g2.fillStyle(0x3a3a3a).fillRect(5, 48, 7, 8).fillRect(16, 48, 7, 8);
+      g2.fillStyle([0xf1c27d, 0xc68642, 0xe0ac69, 0x8d5524][i]).fillCircle(14, 10, 10);
+      g2.fillStyle([0x2b2b2b, 0x6b4a2a, 0xd9c27a, 0x1a1a1a][i]).fillRect(4, 0, 20, 5);
+      g2.generateTexture('sakin' + i, 28, 56);
+    });
+    g2.destroy();
 
     // Lamba ışığı: yumuşak radyal parıltı
     const tuval = this.textures.createCanvas('isik', 256, 256);
@@ -284,6 +296,40 @@ export default class GameScene extends Phaser.Scene {
   oyuncuOlustur() {
     this.oyuncu = this.add.image(220, ZEMIN_Y, 'oyuncu').setOrigin(0.5, 1).setDepth(10);
     this.yurume = 0;
+
+    // Kapıda biri varken kapının üstünde zıplayan işaret
+    const kapi = this.nesneler.find((n) => n.def.tip === 'kapi');
+    this.kapiIsaret = this.add
+      .text(kapi.sprite.x, kapi.sprite.y - kapi.sprite.height - 30, '!', {
+        fontFamily: 'system-ui, sans-serif', fontSize: '34px', fontStyle: 'bold', color: '#ffd23f',
+        stroke: '#3a2a10', strokeThickness: 6,
+      })
+      .setOrigin(0.5, 1).setDepth(20).setVisible(false);
+    this.tweens.add({ targets: this.kapiIsaret, y: '-=10', duration: 450, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+
+    this.sakinler = [];
+  }
+
+  // Nüfus arttıkça sığınakta dolaşan sakinler belirir (oyuncu hariç)
+  sakinGuncelle(nufus) {
+    const hedef = Math.min(nufus - 1, 18);
+    const yasak = this.nesneler.map((n) => n.sprite.x);
+    while (this.sakinler.length < hedef) {
+      let x;
+      do x = Phaser.Math.Between(60, this.dunyaG - 60);
+      while (yasak.some((y) => Math.abs(y - x) < 70));
+      const s = this.add.image(x, ZEMIN_Y, 'sakin' + (this.sakinler.length % 4))
+        .setOrigin(0.5, 1).setDepth(5).setAlpha(0);
+      const adim = Phaser.Math.Between(25, 60) * (Math.random() < 0.5 ? -1 : 1);
+      s.setFlipX(adim < 0);
+      this.tweens.add({ targets: s, alpha: 1, duration: 800 });
+      this.tweens.add({
+        targets: s, x: x + adim, duration: Phaser.Math.Between(2200, 4200), yoyo: true, repeat: -1,
+        hold: 800, repeatDelay: 800, ease: 'Sine.easeInOut',
+        onYoyo: () => s.setFlipX(!s.flipX), onRepeat: () => s.setFlipX(!s.flipX),
+      });
+      this.sakinler.push(s);
+    }
   }
 
   // ---------------------------------------------------------------
@@ -308,6 +354,9 @@ export default class GameScene extends Phaser.Scene {
     this.gunes.setAlpha(0.35 + 0.65 * t);
     this.sehirBoya(renkGecis(0x5a4436, 0xa9bccf, t), renkGecis(0x3e2f27, 0x7d93ad, t));
     this.atmosfer.setAlpha((1 - t) * 0.42);
+
+    this.kapiIsaret.setVisible(!!state.ziyaretci && !state.bitti);
+    this.sakinGuncelle(state.nufus);
 
     for (const l of this.lambalar) l.setAlpha(0.04 + (k.enerji / 100) * 0.32);
     for (const su of this.suTanklari) su.setScale(1, Math.max(0.02, k.su / 100));
@@ -362,7 +411,7 @@ export default class GameScene extends Phaser.Scene {
     if (enYakin) {
       enYakin.sprite.setTint(0xfff7c2);
       this.ipucu
-        .setText(`[E] ${enYakin.def.etiket}`)
+        .setText(`[E] ${enYakin.def.tip === 'kapi' && state.ziyaretci ? 'Kapı: biri kapıyı çalıyor!' : enYakin.def.etiket}`)
         .setPosition(enYakin.sprite.x, enYakin.sprite.y - enYakin.sprite.height - 10)
         .setVisible(true);
       if (eBasildi) this.etkilesim(enYakin.def);
@@ -389,12 +438,25 @@ export default class GameScene extends Phaser.Scene {
           () => this.gunuBitirAkisi(),
         );
         break;
-      case 'kapi':
-        ui.bilgi(
-          'Kapı',
-          'Burada iklim göçmenleri kapıya gelecek. Onları içeri almak kaynak tüketimini artırır, almamak ise vicdani bir bedel getirir.\n\n(Bu mekanik henüz eklenmedi.)',
+      case 'kapi': {
+        const z = state.ziyaretci;
+        if (!z) {
+          ui.bilgi('Kapı', 'Kapının önünde kimse yok. Dışarıda sıcak rüzgar uğulduyor.');
+          break;
+        }
+        ui.ziyaretciGoster(
+          z,
+          () => {
+            ziyaretciKabul();
+            ui.bilgi('Kapı açıldı', `${z.ad} sığınağa yerleşti. ${z.kisi > 1 ? 'Yüzlerinde' : 'Yüzünde'} haftalardır ilk kez bir gülümseme var.`);
+          },
+          () => {
+            ziyaretciReddet();
+            ui.bilgi('Kapı kapalı kaldı', 'Bir süre kapının önünde beklediler. Sonra ayak sesleri sıcak rüzgarın içinde kayboldu.');
+          },
         );
         break;
+      }
     }
   }
 
@@ -407,9 +469,9 @@ export default class GameScene extends Phaser.Scene {
       if (sonuc.tip === 'devam') {
         kam.fadeIn(900, 10, 8, 20);
         this.gecisVar = false;
-        ui.gunBaslangici(sonuc.rapor);
+        ui.gunBaslangici(sonuc);
       } else {
-        ui.sonGoster(sonuc.tip, () => {
+        ui.sonGoster(sonuc, () => {
           sifirla();
           this.scene.restart();
           ui.olayGoster(state.olay);
