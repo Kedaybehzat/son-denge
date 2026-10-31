@@ -3,7 +3,7 @@
 //  Oyunun tüm sayısal mantığı burada. Phaser'dan bağımsızdır,
 //  yani denge ayarı yapan kişi sahneye dokunmadan burayı değiştirir.
 // =============================================================
-import { ILK_OLAY, OLAYLAR } from './data/events.js';
+import { ILK_OLAY, OLAYLAR, HAZIRLIK_MALIYETI } from './data/events.js';
 import { ZIYARETCILER, KURUCULAR } from './data/visitors.js';
 import { PANELLER } from './data/panels.js';
 import { BILGILER, GENEL_BILGILER } from './data/facts.js';
@@ -84,6 +84,9 @@ export function sifirla() {
   state.bugunBilgi = [];     // bugünkü seçimlerin bilgi anahtarları
   state.gosterilenBilgiler = [];
   state.bitti = false;
+  state.tahmin = havuzdanSec(OLAYLAR, state.kullanilanOlaylar); // yarının olayı (radyo duyurur)
+  state.hazirlik = false;       // yarının olayına bugün hazırlanıldı mı
+  state.olayHazirlikli = false; // bugünün olayına dün hazırlanılmış mıydı
   for (const k of KURUCULAR) state.sakinler.push({ uid: state.sakinler.length + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
   katkiGuncelle();
   state.denge = dengeHesapla();
@@ -120,6 +123,33 @@ function topla(...etkiler) {
     for (const [ad, d] of Object.entries(e || {})) sonuc[ad] = (sonuc[ad] || 0) + d;
   }
   return sonuc;
+}
+
+// ---------------------------------------------------------------
+//  HAZIRLIKLI OLAYLAR (GDD Faz 2: uyarı → hazırlık → etki)
+// ---------------------------------------------------------------
+// Bugünün olayına hazırlanıldıysa kötü yöndeki etkiler küçülür
+export function olayEtkisi(etki, olay = state.olay, hazirlikli = state.olayHazirlikli) {
+  if (!etki || !hazirlikli || !olay?.hazirlik) return etki;
+  const sonuc = {};
+  for (const [ad, d] of Object.entries(etki)) {
+    const kotu = (d < 0) === KAYNAKLAR[ad].yuksekIyi;
+    sonuc[ad] = kotu ? Math.round(d * olay.hazirlik.carpan) : d;
+  }
+  return sonuc;
+}
+
+export function hazirlanabilirMi() {
+  return !state.bitti && !!state.tahmin?.hazirlik && !state.hazirlik && state.eylem >= HAZIRLIK_MALIYETI;
+}
+
+export function hazirlan() {
+  if (!hazirlanabilirMi()) return false;
+  state.eylem -= HAZIRLIK_MALIYETI;
+  state.hazirlik = true;
+  state.bugunBilgi.push({ anahtar: 'erkenuyari', kirli: false });
+  bildir();
+  return true;
 }
 
 // Gece kişi başı tüketim
@@ -281,7 +311,7 @@ export function masadaArastir() {
 function geceHesapla() {
   const sakin = sakinlerToplami(true);
   const teknoloji = state.arastirma.acik.map((id) => ARASTIRMALAR[id].geceEtki);
-  const degisim = topla(AYAR.gunSonuDegisim, nufusTuketimi(), sakin.etki, state.olay?.gunSonu, ...teknoloji);
+  const degisim = topla(AYAR.gunSonuDegisim, nufusTuketimi(), sakin.etki, olayEtkisi(state.olay?.gunSonu), ...teknoloji);
 
   // Batarya: açık varsa önce depodan karşıla, fazla varsa depoya aktar
   let batarya = state.batarya;
@@ -477,14 +507,17 @@ export function gunuBitir() {
   }
 
   state.gun += 1;
-  state.olay = havuzdanSec(OLAYLAR, state.kullanilanOlaylar);
+  state.olay = state.tahmin || havuzdanSec(OLAYLAR, state.kullanilanOlaylar);
+  state.olayHazirlikli = state.hazirlik;
+  state.hazirlik = false;
+  state.tahmin = state.gun < AYAR.maxGun ? havuzdanSec(OLAYLAR, state.kullanilanOlaylar) : null;
   state.ziyaretci = state.gun >= AYAR.ziyaretciBaslangicGunu
     ? havuzdanSec(ZIYARETCILER, state.kullanilanZiyaretciler)
     : null;
   state.oyuncuMakineler = [];
   katkiGuncelle();
   state.eylem = Math.max(0, AYAR.eylemHakki + state.ekEylem + (state.olay.eylem || 0));
-  etkiUygula(state.olay.anlik);
+  etkiUygula(olayEtkisi(state.olay.anlik));
   state.denge = dengeHesapla();
   bildir();
   return { tip, rapor, bilgi, gidenZiyaretci, ...ek };

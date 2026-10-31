@@ -5,9 +5,10 @@
 // =============================================================
 import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, ziyaretciNetEtki, geceTahmini, AYAR, KAYNAKLAR,
   sakinTanimi, sakinCiktisi, gorevAta, arastirmaSec, arastirmaAcik, masadaArastir, masadaArastirabilirMi,
-  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi } from '../state.js';
+  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi } from '../state.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, OYUNCU_CALISMA_MALIYETI } from '../data/research.js';
 import { HIKAYE } from '../data/story.js';
+import { HAZIRLIK_MALIYETI } from '../data/events.js';
 import { KURUCULAR } from '../data/visitors.js';
 import { portreDosyasi, hikayeDosyasi } from '../data/assets.js';
 
@@ -282,22 +283,67 @@ function panelCiz() {
 // ---------------------------------------------------------------
 //  RADYO / OLAY KARTI
 // ---------------------------------------------------------------
-function olayHtml(olay) {
+// Bir olayın etki satırları (zaman ifadeleri bugün/yarın'a göre)
+function olayEtkiSatirlari(olay, { hemen, gece, gun }, anlik = olay.anlik, gunSonu = olay.gunSonu) {
   const satirlar = [];
-  if (olay.anlik) satirlar.push(`<div class="etki-satir"><span>Hemen:</span>${etkiChipleri(olay.anlik)}</div>`);
-  if (olay.gunSonu) satirlar.push(`<div class="etki-satir"><span>Bu gece ayrıca:</span>${etkiChipleri(olay.gunSonu)}</div>`);
-  if (olay.eylem) satirlar.push(`<div class="etki-satir"><span>Bugün:</span><span class="chip kotu">Eylem hakkı ${olay.eylem}</span></div>`);
+  const dolu = (e) => e && Object.values(e).some((d) => d !== 0);
+  if (dolu(anlik)) satirlar.push(`<div class="etki-satir"><span>${hemen}:</span>${etkiChipleri(anlik)}</div>`);
+  if (dolu(gunSonu)) satirlar.push(`<div class="etki-satir"><span>${gece}:</span>${etkiChipleri(gunSonu)}</div>`);
+  if (olay.eylem) satirlar.push(`<div class="etki-satir"><span>${gun}:</span><span class="chip kotu">Eylem hakkı ${olay.eylem}</span></div>`);
+  return satirlar.join('');
+}
+
+// Yarının hava/olay tahmini + hazırlık butonu
+function tahminHtml() {
+  const t = state.tahmin;
+  if (!t || state.bitti) return '';
+  let hazirlik = '';
+  if (t.hazirlik) {
+    const azalma = t.hazirlik.carpan === 0 ? 'zararı tamamen önler' : `zararı %${Math.round((1 - t.hazirlik.carpan) * 100)} azaltır`;
+    hazirlik = state.hazirlik
+      ? `<p class="mesaj">&gt; ✓ Hazırlandın: ${kacis(t.hazirlik.ad)}. Yarın ${azalma}.</p>`
+      : `<button class="eylem" data-hazirlan ${hazirlanabilirMi() ? '' : 'disabled'}>
+          <span class="no">🛡</span>
+          <span class="govde"><span class="ad">${kacis(t.hazirlik.ad)}</span><span class="chipler"><span class="chip iyi">Yarın ${azalma}</span></span></span>
+          <span class="maliyet">${HAZIRLIK_MALIYETI} eylem</span>
+        </button>`;
+  }
+  return `
+    <div class="tahmin">
+      <div class="radyo-ust">🔭 YARIN İÇİN TAHMİN · GÜN ${state.gun + 1}</div>
+      <h4>${kacis(t.baslik)}</h4>
+      ${paragraf(t.uyari || t.metin)}
+      ${olayEtkiSatirlari(t, { hemen: 'Sabah', gece: 'Yarın gece', gun: 'Yarın' })}
+      ${hazirlik}
+    </div>`;
+}
+
+function olayHtml(olay) {
+  const hazirlikli = state.olayHazirlikli && olay === state.olay && olay.hazirlik;
   return `
     <div class="radyo">
       <div class="radyo-ust">📻 YEŞİLVADİ RADYOSU · GÜN ${state.gun}</div>
       <h3>${kacis(olay.baslik)}</h3>
       ${paragraf(olay.metin)}
-      ${satirlar.join('')}
-    </div>`;
+      ${hazirlikli ? `<p class="mesaj">&gt; 🛡 Dün hazırlandığın için etkisi azaldı: ${kacis(olay.hazirlik.ad)}.</p>` : ''}
+      ${olayEtkiSatirlari(olay, { hemen: 'Hemen', gece: 'Bu gece ayrıca', gun: 'Bugün' }, olayEtkisi(olay.anlik, olay), olayEtkisi(olay.gunSonu, olay))}
+    </div>
+    ${tahminHtml()}`;
+}
+
+// Radyo/sabah kartındaki hazırlık butonu; basınca kart yeniden çizilir
+function hazirlikBagla(yenidenCiz) {
+  kart.querySelector('[data-hazirlan]')?.addEventListener('click', () => {
+    if (hazirlan()) {
+      yayinla('hazirlikYapildi', {});
+      yenidenCiz();
+    }
+  });
 }
 
 export function olayGoster(olay) {
   modalAc(`${olayHtml(olay)}<div class="alt sag"><button data-kapat data-varsayilan>Tamam</button></div>`, { sinif: 'radyo-kart' });
+  hazirlikBagla(() => olayGoster(olay));
 }
 
 function bilgiHtml(b) {
@@ -339,6 +385,7 @@ function sabahGoster() {
     ${kapi}
     ${bosMakineler().length ? `<p class="kapi-uyari">⚙ Boş makine: ${bosMakineler().map((m) => kacis(MAKINELER[m].ad)).join(', ')}. Görev Panosu'ndan birini gönder ya da kendin çalış.</p>` : ''}
     <div class="alt sag"><button data-kapat data-varsayilan>Güne başla</button></div>`, { sinif: 'sabah' });
+  hazirlikBagla(sabahGoster);
 }
 
 // ---------------------------------------------------------------

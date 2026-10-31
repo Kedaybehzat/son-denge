@@ -19,6 +19,7 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Sakinler, görev atama, trait koşulları | `src/state.js` → `sakinCiktisi()`, `kosulAktif()`, `gorevAta()`, `varsayilanGorev()`, `katkiGuncelle()`; veri: `visitors.js` (`uzman`, `kosul`, `ekTuketim`, `guclu`, `kosullu`, `KURUCULAR`) |
 | Makineler, operatör, boş makine, kendin çalış | `src/state.js` → `MAKINELER`, `makineOperatoru()`, `bosMakineler()`, `kendinCalis()`; üretim: `panels.js` → `makine.uretim`; arayüz: `ui.js` → `makinePanelHtml()`, `makineDurumHtml()` |
 | Yorgunluk ve ayrılma (Faz 2 / M2) | `src/state.js` → `yarinkiYorgunluk()`, `ayrilmaSansi()`, `yorgunlukGecesi()` (gunuBitir içinde), `AYAR.yorgunluk*`; arayüz: `ui.js` → `yorgunlukChip()`; sahne: `GameScene.js` → `sakinGuncelle()` (ayrılan figür solar) |
+| Hazırlıklı olaylar (tahmin, hazırlık) | Veri: `events.js` (`uyari`, `hazirlik`, `HAZIRLIK_MALIYETI`); kurallar: `state.js` → `state.tahmin`, `olayEtkisi()`, `hazirlan()`, `gunuBitir()` (tahmin → olay); arayüz: `ui.js` → `tahminHtml()`, `olayHtml()`, `hazirlikBagla()` |
 | Araştırma ve batarya | `src/state.js` → `arastirmaSec()`, `masadaArastir()`, `puanEkle()`, `geceHesapla()`; veri: `src/data/research.js` |
 | Görev ve Araştırma Panosu arayüzü | `ui.js` → `panoAc()`, `panoCiz()`; nesne: `rooms.js` (`tip: 'pano'`), doku: `GameScene.js` → `dokulariUret()` |
 | Panel eylemi yapma kuralları | `src/state.js` → `eylemYapabilirMi()`, `eylemYap()` |
@@ -79,9 +80,10 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 |---|---|---|---|
 | D11 | Eksik her asset için konsolda hata satırı (dev: "Failed to process file", yayında 404); işlevsel sorun değil | `GameScene.js` → `preload()` | 2026-11-01 |
 | D2 | Otomatik test yok; doğrulama yalnızca simülasyon ve elle oynama | `tools/simulasyon.mjs` | 2026-10-31 |
-| D3 | "Biliyor muydun?" rakamları kaynaklarından kontrol edilmedi (yeni: `batarya`, `grisu`) | `src/data/facts.js` | 2026-10-31 |
+| D3 | "Biliyor muydun?" rakamları kaynaklarından kontrol edilmedi (yeni: `batarya`, `grisu`, `erkenuyari`) | `src/data/facts.js` | 2026-10-31 |
 | D6 | Simülasyon artık görev atama + araştırma seçimini kullanıyor; akıllı stilde ortalama 1.67 araştırma açılıyor. Faz 1 sayıları hâlâ tarayıcıda insan tarafından playtest edilmedi | `tools/simulasyon.mjs` | 2026-10-31 |
 | D10 | Yorgunluk ayarlarıyla dinlendirme stratejisi kötü: herkes 0'dan başlayıp 4. gece aynı anda riske giriyor; riskteki herkesi dinlendiren akıllı stil iyi sonu %82 → %20 düşürüyor. Öneri: kurucuları farklı yorgunlukla başlatmak ya da dinlenmeyi −3 / eşiği 5 yapmak (karar bekliyor) | `AYAR.yorgunluk*`, `KURUCULAR` | 2026-11-01 |
+| D12 | Hazırlıklı olaylarla zararlı olaylar ~1,6 kat sertleştirildi (hazırlık bir eylem değerinde olsun diye). Toplam zorluk arttı: akıllı+herkesi al iyi son %83 → %61 (hazırlanarak; hazırlıksız %62). 1,3 katta hazırlık bazen kötü seçim çıkıyordu. Dengeleme D10 ile birlikte yapılmalı | `events.js`, `AYAR` | 2026-11-01 |
 
 ---
 
@@ -179,6 +181,34 @@ Oyunda `GameScene.js` → `dekorCiz()` / `evCiz()` içinde kodla çiziliyor. Gö
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz2-hazirlikli-olaylar` → `main`
+
+- **Prompt:** PR aç, push'la, merge et, sonra geliştirmeye devam.
+- **Yapılan değişiklik:** Hazırlıklı olaylar commit'lenip push'landı, PR açılıp `main`'e merge edildi.
+
+| Dosya | Açıklama |
+|---|---|
+| `PROJECT_LOG.md` | Bu kayıt |
+
+- **Debt:** Yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz2-hazirlikli-olaylar`
+
+- **Prompt:** (PR #1 merge sonrası) geliştirmeye devam.
+- **Yapılan değişiklik:** GDD Faz 2 "hazırlık gerektiren olaylar": yarının olayı radyoda bir gün önceden duyuruluyor; zararlı olaylara 1 eylemle hazırlanılıyor (toz/sıcak/kuraklık tamamen önlenir, sel %70 azalır). Hazırlığın değerli olması için zararlı olaylar ~1,6 kat sertleştirildi. Headless test: tahmin ve buton görünüyor, hazırlık 1 eylem harcıyor, kart "✓ Hazırlandın" ile yenileniyor. Mantık testi: hazırlıklı toz → karbon artmadı, gece enerji −8 azaldı; hazırlıklı sel → gıda −15 yerine −4 (eski değerlerle); son gün tahmin yok.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/events.js` | Her olaya `uyari` metni; zararlılara `hazirlik { ad, carpan }`; `HAZIRLIK_MALIYETI`; zararlı olay değerleri ~1,6× |
+| `src/data/facts.js` | `erkenuyari` bilgi kartı |
+| `src/state.js` | `state.tahmin/hazirlik/olayHazirlikli`; `olayEtkisi()`, `hazirlanabilirMi()`, `hazirlan()`; gece hesabı ve sabah etkisi hazırlığı dikkate alıyor; tahmin bir gün önceden seçiliyor |
+| `src/ui/ui.js` | `tahminHtml()` (yarın, etkiler, hazırlık butonu), `olayEtkiSatirlari()`, `hazirlikBagla()`; radyo ve sabah ekranında tahmin; hazırlanılan günün radyosunda not |
+| `src/style.css` | `.tahmin` stili |
+| `tools/simulasyon.mjs` | Akıllı stil hazırlanır; `SIM_HAZIRLIK=0` ile kapatılır |
+| `CLAUDE.md` | 4.6 olay tablosu (yeni değerler + hazırlık), 4.15 yeni bölüm, 4.11 simülasyon tablosu güncellendi |
+
+- **Debt:** Yeni D12 (zorluk arttı, D10 ile dengelenecek). D3'e `erkenuyari` kartı eklendi (kaynak kontrol edilmeli). Asset gerektiren yeni nesne yok. Commit atılmadı.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz2-mekanikler` → `main`
 

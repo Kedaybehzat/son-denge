@@ -6,6 +6,10 @@
 // =============================================================
 
 export const BILGILER = {
+  erkenuyari: {
+    metin: 'Bir fırtına ya da sıcak hava dalgasının yalnızca 24 saat önceden haber verilmesi, yol açacağı zararı yaklaşık %30 azaltabilir. Erken uyarı sistemleri iklim uyumunun en ucuz araçlarından biridir.',
+    kaynak: 'Küresel Uyum Komisyonu (Global Commission on Adaptation), 2019',
+  },
   batarya: {
     metin: 'Güneş ve rüzgar üretimi hava durumuna göre değişir. Bataryalar fazla elektriği saklayıp üretimin düştüğü saatlerde kullanır; bu yüzden enerji dönüşümünde depolama, üretim kadar önemlidir.',
     kaynak: 'IEA',
