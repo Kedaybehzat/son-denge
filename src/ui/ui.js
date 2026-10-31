@@ -109,6 +109,18 @@ export function hudKur() {
           <b></b>
         </div>`).join('')}
     </div>
+    <div class="hud-ekstra">
+      <div class="kaynak hud-arastirma" data-arastirma title="Aktif araştırma">
+        <span class="ikon" data-ar-ikon>🧪</span>
+        <div class="bar"><i data-ar-bar></i></div>
+        <b data-ar-puan></b>
+      </div>
+      <div class="kaynak hud-batarya" data-batarya title="Batarya deposu">
+        <span class="ikon">🔋</span>
+        <div class="bar"><i data-bat-bar></i></div>
+        <b data-bat></b>
+      </div>
+    </div>
     <div class="hud-denge">
       <div class="denge-etiket"><span>Distopya</span><b data-denge></b><span>Ütopya</span></div>
       <div class="bar denge"><i></i></div>
@@ -132,6 +144,38 @@ function hudGuncelle(s) {
   }
   hud.querySelector('[data-denge]').textContent = s.denge;
   hud.querySelector('.denge i').style.width = s.denge + '%';
+
+  // Araştırma göstergesi: aktif proje varsa görün
+  const arBox = hud.querySelector('[data-arastirma]');
+  const ar = s.arastirma?.aktif ? ARASTIRMALAR[s.arastirma.aktif] : null;
+  if (ar) {
+    arBox.style.display = '';
+    arBox.title = `Aktif araştırma: ${ar.ad}`;
+    const puan = s.arastirma.puan?.[s.arastirma.aktif] || 0;
+    const yuzde = Math.min(100, Math.round((puan / ar.maliyet) * 100));
+    arBox.querySelector('[data-ar-ikon]').textContent = ar.ikon;
+    const barAr = arBox.querySelector('[data-ar-bar]');
+    barAr.style.width = yuzde + '%';
+    barAr.className = yuzde >= 50 ? 'iyi' : yuzde >= 25 ? 'orta' : 'kotu';
+    arBox.querySelector('[data-ar-puan]').textContent = `${puan}/${ar.maliyet}`;
+  } else {
+    arBox.style.display = 'none';
+  }
+
+  // Batarya göstergesi: ancak Batarya Deposu araştırması bittiyse
+  const batBox = hud.querySelector('[data-batarya]');
+  if (arastirmaAcik('batarya')) {
+    batBox.style.display = '';
+    const yuzde = Math.min(100, Math.round((s.batarya / BATARYA_KAPASITE) * 100));
+    const barBat = batBox.querySelector('[data-bat-bar]');
+    barBat.style.width = yuzde + '%';
+    barBat.className = yuzde >= 50 ? 'iyi' : yuzde >= 25 ? 'orta' : 'kotu';
+    batBox.querySelector('[data-bat]').textContent = s.batarya;
+    batBox.title = `Batarya: ${s.batarya} / ${BATARYA_KAPASITE}`;
+  } else {
+    batBox.style.display = 'none';
+  }
+
   if (aktifPanel) panelCiz();
   if (panoAcik) panoCiz();
 }

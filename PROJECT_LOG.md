@@ -73,8 +73,6 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | D2 | Otomatik test yok; doğrulama yalnızca simülasyon ve elle oynama | `tools/simulasyon.mjs` | 2026-10-31 |
 | D3 | "Biliyor muydun?" rakamları kaynaklarından kontrol edilmedi (yeni: `batarya`, `grisu`) | `src/data/facts.js` | 2026-10-31 |
 | D6 | Simülasyon araştırma ve görev değiştirme kullanmıyor (yalnızca boş makinede kendin çalış); Faz 1 sayıları playtest edilmedi. 4. kurucuyla denge eskiye döndü (akıllı+herkesi al %91, akıllı+kimseyi alma yalnız ütopya %100) | `tools/simulasyon.mjs` | 2026-10-31 |
-| D9 | Sakin sprite'ları atandıkları makinenin yanında durmuyor; boş makine sahnede görsel olarak belli değil | `GameScene.js` → `sakinGuncelle()` | 2026-10-31 |
-| D7 | HUD'da batarya ve araştırma ilerlemesi görünmüyor (yalnızca pano, tahmin, rapor) | `ui.js` → `hudKur()` | 2026-10-31 |
 | D8 | Pano için görsel prompt yok (bölüm 6), şimdilik kodla çizilmiş | `CLAUDE.md` bölüm 6 | 2026-10-31 |
 
 ---
@@ -82,6 +80,20 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Ayberk Alkan (ayberk2002alkangizli@gmail.com)
+
+- **Prompt:** Son geliştirmeler üzerinden mekanik yönden devam et: D9 (sakin konumlandırma + boş makine ipucu) ve D7 (HUD'a araştırma + batarya göstergesi) — efekt değil mekanik odaklı.
+- **Yapılan değişiklik:** Sakin sprite'ları artık `state.sakinler` ile `uid` üzerinden eşlenip görevine göre konumlanıyor (makineyse panelin yanı, araştırmaysa panonun yanı, boşsa yaşam alanı). Görev değişince yeni konuma yürüyor; yürüyüşten sonra o anchor etrafında hafif gezinme. Panel ipucu, makine panelinde operatörü/boşluğu yazıyor. HUD'a aktif araştırma (ikon + segmentli ilerleme barı + puan/maliyet) ve batarya (yalnızca Batarya Deposu açıldıysa) kutuları eklendi. Oyun mantığı ve sayılar değişmedi; `node tools/simulasyon.mjs` çıktısı son commit ile birebir aynı.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/scenes/GameScene.js` | `state.js`'den `MAKINELER, makineOperatoru, sakinTanimi` import; `panoSpritesi`, `sakinKonumu`, `sakinIdleBaslat`, `sakinTasi` yardımcıları; `sakinGuncelle()` artık uid-eşlemeli, görev değişiminde taşıyor; `update()` ipucu metnine operatör durumu |
+| `src/ui/ui.js` | `hudKur()`'a `hud-ekstra` sarmalı (araştırma + batarya kutuları); `hudGuncelle()` ikisini state'e göre doldurup gösteriyor/gizliyor |
+| `src/style.css` | `.hud-ekstra`, `.hud-arastirma`, `.hud-batarya` stilleri; kaynak barı boşluğu daraltıldı |
+| `PROJECT_LOG.md` | D7, D9 kapandı; bu kayıt |
+
+- **Debt:** D7 ve D9 kapandı. D1–D3, D6, D8 açık.
 
 ### 2026-11-01 00:10 · Timujaponya (arda.timucinacar@gmail.com)
 

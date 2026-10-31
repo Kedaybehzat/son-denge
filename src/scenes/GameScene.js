@@ -7,7 +7,8 @@
 import Phaser from 'phaser';
 import { ODALAR, ODA_GENISLIK, TAVAN_Y, ZEMIN_Y } from '../data/rooms.js';
 import { PANELLER } from '../data/panels.js';
-import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet, KAYNAKLAR } from '../state.js';
+import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet,
+  KAYNAKLAR, MAKINELER, makineOperatoru, sakinTanimi } from '../state.js';
 import * as ui from '../ui/ui.js';
 
 const HIZ = 240;
@@ -395,32 +396,78 @@ export default class GameScene extends Phaser.Scene {
     this.sakinler = [];
   }
 
-  // Nüfus arttıkça sığınakta dolaşan sakinler belirir (oyuncu hariç)
-  sakinGuncelle(nufus) {
-    const hedef = Math.min(nufus, 18); // nüfus = sakinler (oyuncu yönetici, sayılmaz)
-    const yasak = this.nesneler.map((n) => n.sprite.x);
-    while (this.sakinler.length < hedef) {
-      let x;
-      do x = Phaser.Math.Between(60, this.dunyaG - 60);
-      while (yasak.some((y) => Math.abs(y - x) < 70));
-      const s = this.add.image(x, ZEMIN_Y - 55, 'sakin' + (this.sakinler.length % 4))
-        .setOrigin(0.5, 1).setDepth(5).setAlpha(0);
-      const adim = Phaser.Math.Between(25, 60) * (Math.random() < 0.5 ? -1 : 1);
-      s.setFlipX(adim < 0);
-      // Yeni sakin: belirip zıplayarak zemine iner
-      this.tweens.add({ targets: s, alpha: 1, duration: 350 });
-      this.tweens.add({
-        targets: s, y: ZEMIN_Y, duration: 720, ease: 'Bounce.easeOut',
-        onComplete: () => {
-          this.tweens.add({
-            targets: s, x: x + adim, duration: Phaser.Math.Between(2200, 4200), yoyo: true, repeat: -1,
-            hold: 800, repeatDelay: 800, ease: 'Sine.easeInOut',
-            onYoyo: () => s.setFlipX(!s.flipX), onRepeat: () => s.setFlipX(!s.flipX),
-          });
-        },
-      });
-      this.sakinler.push(s);
+  // Sakin sprite'ı, görevine göre makinesinin / panonun yanında durur.
+  // Oyuncu nüfusa sayılmaz; state.sakinler kaynak dizidir (uid ile eşlenir).
+  panoSpritesi() {
+    return this.nesneler.find((n) => n.def.tip === 'pano')?.sprite;
+  }
+
+  sakinKonumu(gorev, sira) {
+    // Makine görevi: panelin iki yanına dizilir
+    if (gorev && MAKINELER[gorev]) {
+      const sprite = this.panelSpritesi(gorev);
+      if (sprite) return sprite.x + (sira % 2 === 0 ? -52 : 52);
     }
+    // Laboratuvar: panonun yanı (birden çok kişi yan yana)
+    if (gorev === 'arastirma') {
+      const pano = this.panoSpritesi();
+      if (pano) return pano.x + 46 + (sira % 3) * 22;
+    }
+    // Bosta ya da çalışmıyor (çocuklar): yaşam alanı ortası
+    return 320 + ((sira % 4) - 1.5) * 32;
+  }
+
+  sakinIdleBaslat(s) {
+    if (s.wander) s.wander.remove();
+    const adim = Phaser.Math.Between(14, 24) * (Math.random() < 0.5 ? -1 : 1);
+    s.sprite.setFlipX(adim < 0);
+    s.wander = this.tweens.add({
+      targets: s.sprite,
+      x: s.hedefX + adim,
+      duration: Phaser.Math.Between(1900, 3200),
+      yoyo: true, repeat: -1,
+      hold: 600, repeatDelay: 600,
+      ease: 'Sine.easeInOut',
+      onYoyo: () => s.sprite.setFlipX(!s.sprite.flipX),
+      onRepeat: () => s.sprite.setFlipX(!s.sprite.flipX),
+    });
+  }
+
+  sakinTasi(s, yeniX) {
+    if (s.wander) { s.wander.remove(); s.wander = null; }
+    this.tweens.killTweensOf(s.sprite);
+    s.hedefX = yeniX;
+    s.sprite.setFlipX(yeniX < s.sprite.x);
+    this.tweens.add({
+      targets: s.sprite, x: yeniX,
+      duration: 1100, ease: 'Sine.easeInOut',
+      onComplete: () => this.sakinIdleBaslat(s),
+    });
+  }
+
+  sakinGuncelle() {
+    const kaynak = state.sakinler || [];
+    kaynak.forEach((kaynakSakin, i) => {
+      const hedefX = this.sakinKonumu(kaynakSakin.gorev, i);
+      const varOlan = this.sakinler.find((x) => x.uid === kaynakSakin.uid);
+      if (varOlan) {
+        if (varOlan.gorev !== kaynakSakin.gorev) {
+          varOlan.gorev = kaynakSakin.gorev;
+          this.sakinTasi(varOlan, hedefX);
+        }
+      } else {
+        const idx = this.sakinler.length;
+        const sprite = this.add.image(hedefX, ZEMIN_Y - 55, 'sakin' + (idx % 4))
+          .setOrigin(0.5, 1).setDepth(5).setAlpha(0);
+        const yeni = { uid: kaynakSakin.uid, gorev: kaynakSakin.gorev, sprite, hedefX, wander: null };
+        this.tweens.add({ targets: sprite, alpha: 1, duration: 350 });
+        this.tweens.add({
+          targets: sprite, y: ZEMIN_Y, duration: 720, ease: 'Bounce.easeOut',
+          onComplete: () => this.sakinIdleBaslat(yeni),
+        });
+        this.sakinler.push(yeni);
+      }
+    });
   }
 
   // ---------------------------------------------------------------
@@ -631,7 +678,7 @@ export default class GameScene extends Phaser.Scene {
     this.kapiIsaret.setVisible(ziyaretciVar);
     if (ziyaretciVar) this.kapiTakTakBaslat();
     else this.kapiTakTakDurdur();
-    this.sakinGuncelle(state.nufus);
+    this.sakinGuncelle();
 
     for (const l of this.lambalar) l.setAlpha(0.04 + (k.enerji / 100) * 0.32);
     // Enerji azsa lambaları titret, bol varsa durdur
@@ -705,8 +752,18 @@ export default class GameScene extends Phaser.Scene {
 
     if (enYakin) {
       enYakin.sprite.setTint(0xfff7c2);
+      let metin = enYakin.def.etiket;
+      if (enYakin.def.tip === 'kapi' && state.ziyaretci) {
+        metin = 'Kapı: biri kapıyı çalıyor!';
+      } else if (enYakin.def.tip === 'panel' && MAKINELER[enYakin.def.panel]) {
+        const op = makineOperatoru(enYakin.def.panel);
+        const kendisi = state.oyuncuMakineler?.includes(enYakin.def.panel);
+        if (op) metin += ` · Operatör: ${sakinTanimi(op.id).ad}`;
+        else if (kendisi) metin += ` · Bugün sen çalışıyorsun`;
+        else metin += ` · ⚠ Operatör yok`;
+      }
       this.ipucu
-        .setText(`[E] ${enYakin.def.tip === 'kapi' && state.ziyaretci ? 'Kapı: biri kapıyı çalıyor!' : enYakin.def.etiket}`)
+        .setText(`[E] ${metin}`)
         .setPosition(enYakin.sprite.x, enYakin.sprite.y - enYakin.sprite.height - 10)
         .setVisible(true);
       if (eBasildi) this.etkilesim(enYakin.def);

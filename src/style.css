@@ -132,7 +132,8 @@ body { display: grid; place-items: center; }
 }
 
 /* HUD kaynak kutuları */
-.hud-kaynaklar { display: flex; gap: 0.7cqw; flex: 1; }
+.hud-kaynaklar { display: flex; gap: 0.55cqw; }
+.hud-ekstra { display: flex; gap: 0.55cqw; margin-left: auto; }
 .kaynak {
   display: flex; align-items: center; gap: 0.4cqw;
   padding: 0.35cqw 0.6cqw;
@@ -141,6 +142,12 @@ body { display: grid; place-items: center; }
   border-radius: 0.4cqw;
   box-shadow: inset 0 0 1cqw #000a;
 }
+.hud-ekstra .kaynak .bar { width: 3.6cqw; }
+.hud-ekstra .kaynak b { min-width: 2.4cqw; font-size: 1.3cqw; }
+.hud-arastirma { border-color: color-mix(in oklab, var(--cyan) 35%, #ffffff14); }
+.hud-arastirma .ikon { filter: drop-shadow(0 0 0.3cqw var(--cyan)); }
+.hud-batarya { border-color: color-mix(in oklab, var(--amber) 35%, #ffffff14); }
+.hud-batarya .ikon { filter: drop-shadow(0 0 0.3cqw var(--amber)); }
 .kaynak .ikon {
   font-size: 1.3cqw;
   filter: drop-shadow(0 0 0.3cqw currentColor) saturate(1.1);
