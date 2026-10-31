@@ -23,6 +23,7 @@ export const ODALAR = [
     nesneler: [
       { tip: 'kapi', x: 70, etiket: 'Kapı' },
       { tip: 'radyo', x: 230, etiket: 'Radyo' },
+      { tip: 'pano', x: 370, etiket: 'Görev ve Araştırma Panosu' },
       { tip: 'yatak', x: 500, etiket: 'Yatak (günü bitir)' },
     ],
   },

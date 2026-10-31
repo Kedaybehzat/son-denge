@@ -5,7 +5,7 @@
 //  çalıştırın:   node tools/simulasyon.mjs
 // =============================================================
 import { state, sifirla, eylemYap, gunuBitir, ziyaretciKabul, ziyaretciReddet,
-  dengeHesapla, nufusTuketimi, AYAR, rastgeleAyarla } from '../src/state.js';
+  dengeHesapla, nufusTuketimi, AYAR, rastgeleAyarla, bosMakineler, kendinCalis } from '../src/state.js';
 import { PANELLER } from '../src/data/panels.js';
 
 const N = 4000;
@@ -55,6 +55,8 @@ function oyna(stil, kapi, r) {
   sifirla();
   for (;;) {
     if (state.ziyaretci) (kapi(r) ? ziyaretciKabul : ziyaretciReddet)();
+    // Operatörü olmayan makinelerde önce oyuncu kendisi çalışır
+    for (const m of bosMakineler()) kendinCalis(m);
     while (state.eylem > 0) eylemYap(stil(r));
     const s = gunuBitir();
     if (s.tip !== 'devam') return { tip: s.tip, gun: state.gun, denge: state.denge, insanlik: state.insanlik, nufus: state.nufus };

@@ -1069,3 +1069,45 @@ kbd {
 @container (max-width: 900px) {
   #hud { gap: 1cqw; font-size: 1.3cqw; }
 }
+
+/* Ziyaretçi kartında NET gece etkisi satırı */
+.ziyaretci-satir.net {
+  border-top: 1px dashed var(--terminal-dim);
+  padding-top: 0.5cqw;
+}
+
+/* ---------- Görev ve araştırma panosu ---------- */
+.kart.pano { width: min(72cqw, 100%); }
+.kart.pano h3 { font-size: 1.5cqw; letter-spacing: 0.18em; text-transform: uppercase; color: var(--terminal-dim); margin-top: 1.2cqw; }
+.sakinler { display: grid; gap: 0.7cqw; }
+.sakin-satir {
+  display: grid; gap: 0.5cqw;
+  padding: 0.6cqw 0.8cqw;
+  border: 0.1cqw solid var(--terminal-cizgi);
+  border-radius: 0.5cqw;
+}
+.sakin-ad { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6cqw; }
+.gorevler { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5cqw; }
+button.gorev, button.proje {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.2cqw;
+  text-align: left; font-size: 1.05cqw;
+  background: transparent;
+  border: 0.1cqw solid var(--terminal-cizgi);
+  color: var(--terminal-metin);
+}
+button.gorev small { color: var(--terminal-dim); font-size: 0.85cqw; }
+button.gorev.secili, button.proje.secili {
+  border-color: var(--tema);
+  background: color-mix(in oklab, var(--tema) 16%, transparent);
+  box-shadow: 0 0 0.8cqw color-mix(in oklab, var(--tema) 30%, transparent);
+}
+.projeler { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6cqw; margin-bottom: 0.8cqw; }
+button.proje .ad { font-weight: 700; }
+button.proje .aciklama { font-size: 0.9cqw; }
+button.proje .bar { width: 100%; height: 0.5cqw; background: var(--terminal-cizgi); border-radius: 0.3cqw; overflow: hidden; }
+button.proje .bar i { display: block; height: 100%; background: var(--tema); }
+button.proje .kalan { font-size: 0.85cqw; color: var(--terminal-dim); }
+button.proje.acik { opacity: 0.75; }
+button.gorev.dolu { opacity: 0.6; }
+.gorevler { grid-template-columns: repeat(auto-fill, minmax(9cqw, 1fr)); }
+.ziyaretci-satir.makine.bos .chip { animation: none; }

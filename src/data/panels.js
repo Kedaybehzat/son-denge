@@ -5,12 +5,15 @@
 //
 //  kirli: true -> hızlı ama kirleten seçenek (arayüzde uyarı gösterilir).
 //  bilgi: facts.js'teki "Biliyor muydun?" kartının anahtarı.
+//  makine.uretim: makinede operatör varsa (ya da oyuncu kendisi çalışırsa)
+//                 HER GECE eklenen üretim. Operatörsüz makine üretmez.
 //  Asıl oyun tasarımı burada: her "kolay" seçeneğin bir bedeli olsun.
 // =============================================================
 
 export const PANELLER = {
   enerji: {
     baslik: 'Enerji Kontrol Paneli',
+    makine: { ad: 'Enerji', ikon: '⚡', uretim: { enerji: +6 } },
     kod: 'ENERJİ_01',
     tema: '#f2b33d',
     aciklama: 'Güneş panelleri, rüzgar türbini ve yedek dizel jeneratör. Jeneratör hızlıdır ama havayı kirletir.',
@@ -23,6 +26,7 @@ export const PANELLER = {
   },
   su: {
     baslik: 'Su Arıtma Sistemi',
+    makine: { ad: 'Su Arıtma', ikon: '💧', uretim: { su: +5 } },
     kod: 'HİDRO_02',
     tema: '#4fc3f7',
     aciklama: 'Gri suyu ve yağmur suyunu arıtır. Tam güç modu çok enerji yer.',
@@ -34,6 +38,7 @@ export const PANELLER = {
   },
   sera: {
     baslik: 'Sera',
+    makine: { ad: 'Sera', ikon: '🌾', uretim: { gida: +5 } },
     kod: 'BİYO_03',
     tema: '#7ed957',
     aciklama: 'Yeşilvadi\'nin besin kaynağı. Bitkiler su ister ama karbonu da azaltır.',
@@ -46,6 +51,7 @@ export const PANELLER = {
   },
   geriDonusum: {
     baslik: 'Geri Dönüşüm İstasyonu',
+    makine: { ad: 'Geri Dönüşüm', ikon: '♻️', uretim: { atik: -5 } },
     kod: 'DÖNÜŞ_04',
     tema: '#ff8a3d',
     aciklama: 'Atıkları ayrıştır ya da yak. Yakmak hızlıdır ve biraz enerji verir, ama karbon salar.',

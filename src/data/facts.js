@@ -6,6 +6,14 @@
 // =============================================================
 
 export const BILGILER = {
+  batarya: {
+    metin: 'Güneş ve rüzgar üretimi hava durumuna göre değişir. Bataryalar fazla elektriği saklayıp üretimin düştüğü saatlerde kullanır; bu yüzden enerji dönüşümünde depolama, üretim kadar önemlidir.',
+    kaynak: 'IEA',
+  },
+  grisu: {
+    metin: 'Lavabo, duş ve çamaşırdan gelen "gri su" arıtılarak sulama ve tuvalet için yeniden kullanılabilir. Böylece temiz içme suyu yalnızca gerçekten gereken yerde harcanır.',
+    kaynak: 'US EPA',
+  },
   fosil: {
     metin: 'Kömür, petrol ve doğalgaz gibi fosil yakıtlar, küresel sera gazı salımlarının dörtte üçünden fazlasından ve karbondioksit salımlarının yaklaşık %90\'ından sorumlu.',
     kaynak: 'Birleşmiş Milletler',

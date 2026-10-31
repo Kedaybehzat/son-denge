@@ -14,7 +14,7 @@
 
 Bu dosyayı bir yapay zeka asistanına veriyorsan, asistan şunları bilmeli:
 
-- Proje bir **hackathon oyunu**. Teslim **1 Kasım 2026 Pazar 23:59**. Zaman çok kısa, bu yüzden öneriler küçük, hızlı ve riskten uzak olmalı. Yeni büyük sistemler önerme.
+- Proje bir **hackathon oyunu**. Teslim **1 Kasım 2026 Pazar 23:59**. Zaman çok kısa. `Son_Denge_Mekanik_Tasarim_GDD.pdf`'teki [ÖNERİ] mekanikleri **bu teslim için** yapılıyor (hackathon sonrasına bırakılmadı); GDD bölüm 14'teki faz sırasıyla, her adımı küçük ve test edilebilir dilimler halinde ilerleyin.
 - Oyun **Phaser 3 + Vite** ile yazılmış bir **web oyunu**. Arayüz (paneller, kartlar, HUD) **düz HTML/CSS**, oyun dünyası Phaser.
 - Koddaki **değişken ve fonksiyon adları Türkçe** (`state.kaynak.enerji`, `gunuBitir()`, `ziyaretciKabul()` gibi). Yeni kod da bu stile uymalı.
 - Oyun **veri odaklı**: sayıların ve metinlerin neredeyse tamamı `src/data/` klasöründe ve `src/state.js` içindeki `AYAR` nesnesinde. İçerik değişikliği için sahne koduna dokunmak gerekmez.
@@ -115,7 +115,8 @@ Oyun açılışta 4 ekranla anlatılıyor (`src/data/story.js`). "Geç" butonuyl
 | ☁️ Karbon | 35 | Düşük |
 
 - Tüm kaynaklar 0–100 arasında.
-- **Gece tüketimi:** Sabit olarak −15 enerji, −4 su, −4 gıda, +10 atık, −3 karbon. Buna ek olarak **kişi başı −2 su ve −2 gıda**. Başlangıç nüfusu 4.
+- **Gece tüketimi:** Sabit olarak −21 enerji, −9 su, −9 gıda, +15 atık, −3 karbon. Buna ek olarak **kişi başı −2 su ve −2 gıda**. Başlangıç nüfusu 4: dört kurucu (oyuncu yöneticidir, nüfusa sayılmaz).
+- **Makine üretimi:** Operatörü olan (ya da oyuncunun o gün kendisi çalıştığı) makine her gece üretir: Enerji +6, Su Arıtma +5 su, Sera +5 gıda, Geri Dönüşüm −5 atık. Dördü de çalışırsa net gece etkisi eski −15 / −4 / −4 / +10 ile aynıdır; **boş makine kayıptır**. Ayrıntı bölüm 4.13.
 - **Denge (0–100):** 5 kaynağın ağırlıklı ortalaması. Atık ve karbon ters çevrilerek hesaplanır (100 − değer). **Karbon iki kat ağırlıklı.** Her kaynak **80'de tam puan** verir, yani 80'in üstündeki fazlalık işe yaramaz ve fazla enerji kirliliği telafi edemez. Enerji, su ya da gıdadan biri 0'a düşerse denge 15 puan ceza alır.
 - **İnsanlık (0–100, oyuncuya gizli):** 50'den başlar. Ziyaretçiyi içeri almak artırır, geri çevirmek düşürür, karar vermeden günü bitirmek −8 puan.
 - **Nüfus:** Başlangıçta 4 kişi. Üst çubukta görünür. İçeri alınanlar sığınakta dolaşan sakinler olarak görünür.
@@ -252,10 +253,10 @@ Denge düştükçe dünya kodla değişiyor:
   "eylemHakki": 3,
   "baslangicNufus": 4,
   "gunSonuDegisim": {
-    "enerji": -15,
-    "su": -4,
-    "gida": -4,
-    "atik": 10,
+    "enerji": -21,
+    "su": -9,
+    "gida": -9,
+    "atik": 15,
     "karbon": -3
   },
   "kisiBasiTuketim": {
@@ -273,6 +274,31 @@ Denge düştükçe dünya kodla değişiyor:
 
 ---
 
+### 4.13 Makineler, görevler, traitler, araştırma ve batarya (GDD Faz 1)
+
+Yaşam Alanı'ndaki **Görev ve Araştırma Panosu**'ndan yönetilir. Sayılar `src/data/panels.js` (`makine`), `src/data/research.js` ve `src/data/visitors.js` içinde.
+
+- **Makineler:** Enerji, Su Arıtma, Sera, Geri Dönüşüm. Her makinede **en fazla 1 operatör** çalışır. **Operatörü olmayan makine o gece üretim yapmaz.**
+- **Kendin çalış:** Boş bir makinenin paneline gidip "Makinede kendin çalış" (1 eylem) dersen o makine bu gece üretir. Aynı makinede günde bir kez.
+- **Görevler:** Her sakin bir makineye, **Laboratuvar**'a (+2 araştırma/gece, sınırsız kişi) ya da **Dinlen**'e atanır. Dolu makineye birini atarsan eski operatör dinlenmeye geçer. Görev değişikliği o geceden geçerlidir; +1 eylem hakkı ertesi gün.
+- **Kurucular:** Selin (Enerji), Burak (Su), Nur (Sera), Can (Geri Dönüşüm). Oyun dört makine dolu başlar; biri Laboratuvar'a giderse makinesi boşalır.
+- **Yeni gelenler:** Uzmanlık makinesi boşsa oraya, değilse boş bir makineye, o da yoksa Laboratuvar'a gider.
+- **Uzmanlık (★):** Kişi uzmanlık yerinde çalışırsa makine üretimine ek olarak kişisel katkısını da verir.
+
+| Kişi | Uzmanlık yeri | Güçlü yön (uzmanlık yerinde) | Koşullu bedel |
+|---|---|---|---|
+| Deniz | Enerji | +1 eylem hakkı | Her gece fazladan −1 gıda |
+| Hasan ve Elif | Sera | Ek +5 gıda | Kuraklıkta serada −3 su |
+| Dr. Leyla | Laboratuvar | 2 kat araştırma (+4), −4 karbon | Sıcak hava dalgasında verim yarıya |
+| Kemal | Geri Dönüşüm | Ek −4 atık | Enerji 25 altındaysa o gece hiç üretmez |
+| Sahil ailesi | Her yer | Nerede çalışırlarsa +3 gıda, +3 su | 4 kişi tüketir |
+| Mert ve Ada | Çalışmaz | İnsanlık | 2 kişi tüketir |
+
+- **Araştırma:** Aynı anda tek proje; puan Laboratuvar'dan ya da panodaki "Masa başında araştır"dan (1 eylem = +2 puan) gelir. Biri bitince diğeri aktif olur.
+  - **Batarya Deposu (8 puan):** Gece 80'in üstüne çıkan enerji depoya aktarılır (en çok 30). Gece enerji düşüyorsa açık önce depodan karşılanır.
+  - **Gri Su Geri Kazanımı (8 puan):** Her gece +4 su.
+- Gece tahmini, sabah ekranı ve gece raporu boş makineleri, araştırma puanını ve batarya hareketini gösterir.
+
 ## 5. Teknik yapı
 
 - **Motor:** Phaser 3.90 (2D) · **Derleme:** Vite · **Dil:** JavaScript (ES modülleri)
@@ -289,6 +315,7 @@ Denge düştükçe dünya kodla değişiyor:
 | `src/data/visitors.js` | Kapıya gelen ziyaretçiler |
 | `src/data/facts.js` | "Biliyor muydun?" bilgileri ve kaynakları |
 | `src/data/rooms.js` | Odalar, pencereler, nesnelerin konumları |
+| `src/data/research.js` | Araştırmalar, görevler, batarya ayarları |
 | `src/state.js` | Kurallar: gece tüketimi, denge, insanlık, sonlar, `AYAR` |
 | `src/scenes/GameScene.js` | Phaser sahnesi: çizim, hareket, etkileşim, görsel dönüşüm, sakinler |
 | `src/ui/ui.js` | HUD, paneller, radyo, kapı kartı, gece raporu, hikaye, son ekranı |

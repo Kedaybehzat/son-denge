@@ -158,6 +158,17 @@ export default class GameScene extends Phaser.Scene {
     g.generateTexture('radyo', 80, 80);
     g.clear();
 
+    // Görev ve araştırma panosu (ayaklı mantar pano)
+    g.fillStyle(0x5a3d26).fillRect(8, 70, 6, 40).fillRect(76, 70, 6, 40);
+    g.fillStyle(0x6b4a2f).fillRoundedRect(0, 0, 90, 74, 5);
+    g.fillStyle(0xc9a26b).fillRect(6, 6, 78, 62);
+    g.fillStyle(0xf3efe6).fillRect(12, 12, 26, 20).fillRect(46, 10, 30, 16).fillRect(14, 40, 22, 22);
+    g.fillStyle(0x9fe3c8).fillRect(46, 32, 30, 28);
+    g.fillStyle(0xe85d4a).fillCircle(25, 13, 3).fillCircle(61, 11, 3).fillCircle(25, 41, 3);
+    g.fillStyle(0x2f6b55).fillRect(50, 38, 22, 3).fillRect(50, 45, 16, 3).fillRect(50, 52, 20, 3);
+    g.generateTexture('pano', 90, 110);
+    g.clear();
+
     // Yatak
     g.fillStyle(0x6b4a2f).fillRect(0, 20, 8, 40).fillRect(0, 40, 140, 10);
     g.fillStyle(0x6b4a2f).fillRect(132, 30, 8, 30);
@@ -386,7 +397,7 @@ export default class GameScene extends Phaser.Scene {
 
   // Nüfus arttıkça sığınakta dolaşan sakinler belirir (oyuncu hariç)
   sakinGuncelle(nufus) {
-    const hedef = Math.min(nufus - 1, 18);
+    const hedef = Math.min(nufus, 18); // nüfus = sakinler (oyuncu yönetici, sayılmaz)
     const yasak = this.nesneler.map((n) => n.sprite.x);
     while (this.sakinler.length < hedef) {
       let x;
@@ -712,15 +723,11 @@ export default class GameScene extends Phaser.Scene {
       case 'radyo':
         ui.olayGoster(state.olay);
         break;
+      case 'pano':
+        ui.panoAc();
+        break;
       case 'yatak':
-        ui.onay(
-          'Günü bitirmek istiyor musun?',
-          state.eylem > 0
-            ? `Hâlâ ${state.eylem} eylem hakkın var. Gece boyunca kaynaklar tüketilecek.`
-            : 'Gece boyunca kaynaklar tüketilecek.',
-          'Uyu',
-          () => this.gunuBitirAkisi(),
-        );
+        ui.gunuBitirOnay(() => this.gunuBitirAkisi());
         break;
       case 'kapi': {
         const z = state.ziyaretci;

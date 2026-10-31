@@ -15,6 +15,11 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 |---|---|
 | Denge sayıları, başlangıç değerleri, eşikler | `src/state.js` → `AYAR`, `BASLANGIC`, `AGIRLIK` |
 | Gece tüketimi, gün sonu, sonların belirlenmesi | `src/state.js` → `nufusTuketimi()`, `gunuBitir()`, `sonucBelirle()` |
+| Gece tahmini, ziyaretçinin net gece etkisi | `src/state.js` → `geceHesapla()` (tek gece hesabı), `geceTahmini()`, `ziyaretciNetEtki()` |
+| Sakinler, görev atama, trait koşulları | `src/state.js` → `sakinCiktisi()`, `kosulAktif()`, `gorevAta()`, `varsayilanGorev()`, `katkiGuncelle()`; veri: `visitors.js` (`uzman`, `kosul`, `ekTuketim`, `guclu`, `kosullu`, `KURUCULAR`) |
+| Makineler, operatör, boş makine, kendin çalış | `src/state.js` → `MAKINELER`, `makineOperatoru()`, `bosMakineler()`, `kendinCalis()`; üretim: `panels.js` → `makine.uretim`; arayüz: `ui.js` → `makinePanelHtml()`, `makineDurumHtml()` |
+| Araştırma ve batarya | `src/state.js` → `arastirmaSec()`, `masadaArastir()`, `puanEkle()`, `geceHesapla()`; veri: `src/data/research.js` |
+| Görev ve Araştırma Panosu arayüzü | `ui.js` → `panoAc()`, `panoCiz()`; nesne: `rooms.js` (`tip: 'pano'`), doku: `GameScene.js` → `dokulariUret()` |
 | Panel eylemi yapma kuralları | `src/state.js` → `eylemYapabilirMi()`, `eylemYap()` |
 | Ziyaretçi kabul/ret kuralları | `src/state.js` → `ziyaretciKabul()`, `ziyaretciReddet()` |
 | Panel ve eylem içerikleri | `src/data/panels.js` → `PANELLER` |
@@ -34,12 +39,14 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Radyo, sabah raporu, kapı kartı | `ui.js` → `olayGoster()`, `gunBaslangici()`, `sabahGoster()`, `ziyaretciGoster()` |
 | Hikaye, başlangıç ve son ekranları | `ui.js` → `girisHikayesi()`, `baslangicEkrani()`, `SONLAR`, `sonGoster()` |
 | Genel modal / onay pencereleri | `ui.js` → `modalAc()`, `modalKapat()`, `onay()`, `bilgi()` |
+| Günü bitirme onayı (gece tahmini penceresi) | `ui.js` → `gunuBitirOnay()`; çağrı: `GameScene.js` → `case 'yatak'` |
 | Arayüz stili | `src/style.css` |
 | Giriş noktası (Phaser config) | `src/main.js` |
 | Denge simülasyonu | `tools/simulasyon.mjs` (`node tools/simulasyon.mjs`) |
 | Derleme / tek dosya çıktısı | `vite.config.js`, `package.json` |
 | GitHub Pages yayını | `.github/workflows/deploy.yml` |
 | Takım dokümanı (hikaye, mekanik, görsel promptları) | `CLAUDE.md` |
+| Mekanik tasarım (GDD v2.0; [ÖNERİ]'ler hackathon kapsamında, faz sırası bölüm 14) | `Son_Denge_Mekanik_Tasarim_GDD.pdf` |
 
 ### Dosya ağacı
 
@@ -50,11 +57,12 @@ src/state.js               Oyun durumu ve tüm kurallar (abone/bildir ile UI'ya 
 src/scenes/GameScene.js    Phaser sahnesi: çizim, hareket, etkileşim, görsel dönüşüm
 src/ui/ui.js               HTML/CSS arayüz katmanı
 src/style.css              Arayüz stili (cqw ile ölçekleme)
-src/data/*.js              İçerik verisi (panels, events, visitors, facts, story, rooms)
+src/data/*.js              İçerik verisi (panels, events, visitors, facts, story, rooms, research)
 tools/simulasyon.mjs       4000 oyunluk denge simülasyonu
 .github/workflows/deploy.yml  main → GitHub Pages
 CLAUDE.md                  Takım dokümanı + asistan kuralları
 PROJECT_LOG.md             Bu dosya
+Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 ```
 
 ### Bilinen borçlar (açık debt listesi)
@@ -63,13 +71,107 @@ PROJECT_LOG.md             Bu dosya
 |---|---|---|---|
 | D1 | Tüm görseller kodla çizilmiş yer tutucu; AI görselleri bağlanmadı | `GameScene.js` → `dokulariUret()` | 2026-10-31 |
 | D2 | Otomatik test yok; doğrulama yalnızca simülasyon ve elle oynama | `tools/simulasyon.mjs` | 2026-10-31 |
-| D3 | "Biliyor muydun?" rakamları kaynaklarından kontrol edilmedi | `src/data/facts.js` | 2026-10-31 |
+| D3 | "Biliyor muydun?" rakamları kaynaklarından kontrol edilmedi (yeni: `batarya`, `grisu`) | `src/data/facts.js` | 2026-10-31 |
+| D6 | Simülasyon araştırma ve görev değiştirme kullanmıyor (yalnızca boş makinede kendin çalış); Faz 1 sayıları playtest edilmedi. 4. kurucuyla denge eskiye döndü (akıllı+herkesi al %91, akıllı+kimseyi alma yalnız ütopya %100) | `tools/simulasyon.mjs` | 2026-10-31 |
+| D9 | Sakin sprite'ları atandıkları makinenin yanında durmuyor; boş makine sahnede görsel olarak belli değil | `GameScene.js` → `sakinGuncelle()` | 2026-10-31 |
+| D7 | HUD'da batarya ve araştırma ilerlemesi görünmüyor (yalnızca pano, tahmin, rapor) | `ui.js` → `hudKur()` | 2026-10-31 |
+| D8 | Pano için görsel prompt yok (bölüm 6), şimdilik kodla çizilmiş | `CLAUDE.md` bölüm 6 | 2026-10-31 |
 
 ---
 
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 00:10 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** main'e pushla.
+- **Yapılan değişiklik:** UX kuralları, Faz 1 (görev/trait/araştırma/batarya), makine-operatör sistemi ve 4. kurucu tek commit olarak `main`'e gönderildi; GDD PDF'i repoya eklendi.
+
+| Dosya | Açıklama |
+|---|---|
+| `Son_Denge_Mekanik_Tasarim_GDD.pdf` | Repoya eklendi (CLAUDE.md ve Project Map atıf yapıyor) |
+| `PROJECT_LOG.md` | GDD "untracked" notu kaldırıldı, bu kayıt |
+
+- **Debt:** Yok. Tarayıcıda elle test hâlâ yapılmadı (D6).
+
+### 2026-11-01 00:05 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** 4. kurucuyu ekle, tüm makineler dolu başlasın.
+- **Yapılan değişiklik:** Kurucu Can (Geri Dönüşüm) eklendi; oyun dört makine dolu başlıyor. Nüfus 4 kaldı (dört kurucu, oyuncu sayılmaz). Simülasyon: akıllı+herkesi al iyi son %91, akıllı+kimseyi alma yalnız ütopya %100 (makinelerden önceki 96/100'e yakın).
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/visitors.js` | `KURUCULAR`'a Can (`geriDonusum`) |
+| `src/scenes/GameScene.js` | `sakinGuncelle()`: sakin figürü sayısı `nufus - 1` → `nufus` (oyuncu nüfusa sayılmıyor) |
+| `CLAUDE.md` | 4.3 nüfus açıklaması, 4.13 kurucular |
+| `PROJECT_LOG.md` | D6 güncellendi, bu kayıt |
+
+- **Debt:** Yok (D6 güncellendi). Nüfus 5 seçeneği denendi (iyi son %83 / %98), seçilmedi.
+
+### 2026-10-31 23:55 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Koloni üyeleri makinelerde çalışmaya gönderilebilsin; çalışanı olmayan makine üretim yapmasın; boştaki makinelere oyuncu gidip kendisi çalışabilsin.
+- **Yapılan değişiklik:** Görev sistemi makine modeline çevrildi: 4 makine (tek operatör), Laboratuvar, Dinlen. Makineler gece üretir, boş makine üretmez; oyuncu boş makinede 1 eylemle kendisi çalışabilir. 3 kurucu sakin eklendi. Bakım/Üretim görevleri kaldırıldı; uzmanlık artık bir makine yeri. Sabit gece tüketimi, dört makine çalışınca eski dengeyi verecek şekilde artırıldı.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/panels.js` | Her panele `makine: { ad, ikon, uretim }` |
+| `src/data/research.js` | `GOREVLER` → Laboratuvar + Dinlen; `OYUNCU_CALISMA_MALIYETI` |
+| `src/data/visitors.js` | `uzman` artık makine anahtarı/`arastirma`/`*`; metinler güncellendi; `KURUCULAR` (Selin, Burak, Nur) |
+| `src/state.js` | `AYAR.gunSonuDegisim` −21/−9/−9/+15/−3; `MAKINELER`, operatör/boş makine yardımcıları, `kendinCalis()`, `varsayilanGorev()`; kurucular `sifirla()`'da; `oyuncuMakineler` her sabah sıfırlanır |
+| `src/ui/ui.js` | Panoda makine durum şeridi ve makine/lab/dinlen görev butonları; panelde operatör bilgisi + "Makinede kendin çalış"; tahmin ve sabah ekranında boş makine uyarısı |
+| `src/style.css` | Dolu görev butonu, görev ızgarası |
+| `tools/simulasyon.mjs` | Oyuncu her gün önce boş makinelerde kendisi çalışır |
+| `CLAUDE.md` | 4.3 gece tüketimi + makine üretimi, 4.12 AYAR, 4.13 yeniden yazıldı |
+
+- **Debt:** D6 güncellendi (oyun zorlaştı, karar bekliyor); yeni D9 (sahnede makine/operatör görseli yok). Mantık testleri ve derleme geçti; tarayıcıda elle kontrol edilmedi.
+
+### 2026-10-31 23:20 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Faz 1 dar kapsam (görev atama + traitler + batarya/depolama) ve "localde nasıl çalıştırıp test ederim".
+- **Yapılan değişiklik:** GDD Faz 1 dar kapsam uygulandı: uzman sakinlere Üretim/Bakım/Araştırma görevi, ziyaretçi traitleri (güçlü yön + koşullu bedel), Batarya Deposu ve Gri Su araştırmaları, yeni Görev ve Araştırma Panosu. Gece hesabı tek fonksiyonda toplandı (tahmin = gerçek).
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/research.js` | Yeni: `ARASTIRMALAR`, `GOREVLER`, `MASA_ARASTIRMA`, batarya ayarları |
+| `src/data/visitors.js` | Traitler: `uzman`, `guclu`, `kosullu`, `kosul`, `ekTuketim`, `calisir` |
+| `src/data/facts.js` | `batarya`, `grisu` bilgi kartları |
+| `src/data/rooms.js` | Yaşam Alanı'na `pano` nesnesi (x 370) |
+| `src/state.js` | `sakinler`, `arastirma`, `batarya` durumu; görev/araştırma/batarya fonksiyonları; `geceHesapla()`; `gunuBitir()` araştırma ve batarya sonuçlarını döndürür |
+| `src/ui/ui.js` | `panoAc()`/`panoCiz()`; ziyaretçi kartında traitler ve olası görevler; tahmin ve gece raporunda araştırma/batarya satırları |
+| `src/scenes/GameScene.js` | `pano` dokusu ve etkileşimi |
+| `src/style.css` | Pano stilleri |
+| `CLAUDE.md` | Bölüm 4.13 (yeni mekanikler), dosya tablosuna `research.js` |
+
+- **Debt:** Yeni D6 (denge testi yok), D7 (HUD'da batarya yok), D8 (pano görseli). D3'e yeni kartlar eklendi. Senaryo testi ve derleme geçti; tarayıcıda elle kontrol edilmedi.
+
+### 2026-10-31 22:40 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** GDD önerileri hackathon için yapılıyor (teslim 1 Kasım 23:59), bilgiyi kaydet ve çalışmaya başla.
+- **Yapılan değişiklik:** Kapsam bilgisi kaydedildi; GDD'nin "onaylanmış iki UX kuralı" uygulandı: ziyaretçi kartında NET gece etkisi, günü bitirmeden önce gece tahmini penceresi. Kaynak katsayıları değişmedi, simülasyon çıktısı aynı.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/state.js` | `ziyaretciNetEtki(z)` ve `geceTahmini()` eklendi (durumu değiştirmeyen hesaplar) |
+| `src/ui/ui.js` | Ziyaretçi kartına "Her gece NET etki" satırı; yeni `gunuBitirOnay()` penceresi (kaynak değişimi, denge önce→sonra, bekleyen ziyaretçi / çöküş / son gece uyarıları) |
+| `src/scenes/GameScene.js` | Yatak etkileşimi genel `ui.onay` yerine `ui.gunuBitirOnay` çağırıyor |
+| `src/style.css` | `.ziyaretci-satir.net` ayırıcı çizgi |
+| `CLAUDE.md` | Bölüm 0: "yeni büyük sistem önerme" yerine GDD önerilerinin bu teslim kapsamında olduğu yazıldı |
+| `PROJECT_LOG.md` | Haritaya yeni fonksiyonlar eklendi, D4–D5 kapandı |
+
+- **Debt:** Kapandı: D4, D5. Gece tahmini yarının olayını bilemez (bilinçli; pencerede belirtiliyor). Tarayıcıda elle görsel kontrol yapılmadı, yalnızca derleme + mantık testi.
+
+### 2026-10-31 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Mekanik tasarım dokümanını incele.
+- **Yapılan değişiklik:** `Son_Denge_Mekanik_Tasarim_GDD.pdf` incelendi; [MEVCUT] olarak etiketlenen değerler kodla karşılaştırıldı (hepsi eşleşiyor). Kod değişmedi.
+
+| Dosya | Açıklama |
+|---|---|
+| `PROJECT_LOG.md` | GDD Project Map'e eklendi; D4–D5 borçları ve bu kayıt eklendi |
+
+- **Debt:** Yeni D4, D5 (GDD'nin onaylı iki UX kuralı kodda eksik/kısmi).
 
 ### 2026-10-31 · Ayberk Alkan (ayberk2002alkangizli@gmail.com)
 
