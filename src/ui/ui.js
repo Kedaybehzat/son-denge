@@ -411,6 +411,17 @@ function makineDurumHtml() {
   }).join('');
 }
 
+// Laboratuvarda şu an kimler çalışıyor + bu gece ne üretecekler
+function laboratuvarDurumHtml() {
+  const laborantlar = state.sakinler.filter((s) => s.gorev === 'arastirma');
+  const puan = laborantlar.reduce((a, s) => a + sakinCiktisi(s, false).puan, 0);
+  if (!laborantlar.length) {
+    return `<span class="chip">🧪 Laboratuvar: kimse yok (herkesi atayabilirsin, +2 puan/gün; bilim adamı 2 kat)</span>`;
+  }
+  const kim = laborantlar.map((s) => `${sakinTanimi(s.id).ikon} ${kacis(sakinTanimi(s.id).ad)}`).join(', ');
+  return `<span class="chip iyi">🧪 Laboratuvar: ${kim} · bu gece +${puan} 🧪</span>`;
+}
+
 function panoCiz() {
   const sakinler = state.sakinler.map((s) => {
     const z = sakinTanimi(s.id);
@@ -456,8 +467,9 @@ function panoCiz() {
 
   modalAc(`
     <div class="panel-ust"><span class="etiket">▸ GÖREV_PANOSU // ÇEVRİMİÇİ<i class="led"></i></span><h2>Görevler ve Araştırma</h2></div>
-    <p class="aciklama">Her makinede bir operatör çalışır; <b>operatörü olmayan makine üretim yapmaz</b>. Boş makinenin paneline gidip kendin çalışabilirsin (${OYUNCU_CALISMA_MALIYETI} eylem). ★ uzmanlık yeridir: orada ek katkı verir. Görev değişikliği bu geceden geçerlidir; +1 eylem hakkı yarın başlar.</p>
+    <p class="aciklama">Her makinede bir operatör çalışır; <b>operatörü olmayan makine üretim yapmaz</b>. Boş makinenin paneline gidip kendin çalışabilirsin (${OYUNCU_CALISMA_MALIYETI} eylem). ★ uzmanlık yeridir: orada ek katkı verir. Laboratuvar sınırsız: istediğin kadar sakini araştırmaya atayabilirsin, her biri +2 puan/gün verir. Görev değişikliği bu geceden geçerlidir; +1 eylem hakkı yarın başlar.</p>
     <div class="ziyaretci-satir makineler">${makineDurumHtml()}</div>
+    <div class="ziyaretci-satir laboratuvar">${laboratuvarDurumHtml()}</div>
     <div class="sakinler">${sakinler}</div>
     <h3>Araştırma</h3>
     <div class="projeler">${projeler}</div>
