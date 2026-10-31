@@ -301,11 +301,21 @@ Yaşam Alanı'ndaki **Görev ve Araştırma Panosu**'ndan yönetilir. Sayılar `
   - **Gri Su Geri Kazanımı (8 puan):** Her gece +4 su.
 - Gece tahmini, sabah ekranı ve gece raporu boş makineleri, araştırma puanını ve batarya hareketini gösterir.
 
+### 4.14 Yorgunluk (Faz 2 / M2)
+
+Sayılar `src/state.js` → `AYAR` (`yorgunlukUyari`, `yorgunlukAyrilmaEsigi`, `yorgunlukAyrilmaPay`, `ayrilmaInsanlikCezasi`).
+
+- Makinede ya da Laboratuvar'da çalışan sakin her gece **+1**, Dinlen'deki sakin **−2** yorgunluk alır (en az 0). Çocuklar etkilenmez.
+- **3 ve üstü:** panoda sarı uyarı ("dinlenmeli").
+- **4 ve üstü:** her gece ayrılma zarı. Şans = (yorgunluk − 4 + 1) × %25 (4'te %25, 5'te %50…).
+- Ayrılan sakin (grup ise tüm grup) nüfustan düşer, görevi boşalır ve **−8 insanlık** verir.
+- Panoda her sakinin yorgunluğu "şimdi ↑ bu gece" ve risk yüzdesiyle görünür. Gece tahmini riskli sakinleri uyarır, gece raporu ayrılanları yazar, son ekranı "Tükenip giden" sayısını gösterir.
+
 ## 5. Teknik yapı
 
 - **Motor:** Phaser 3.90 (2D) · **Derleme:** Vite · **Dil:** JavaScript (ES modülleri)
 - **Arayüz:** Phaser canvas'ının üstünde HTML/CSS katmanı (HUD, paneller, kartlar). Tüm arayüz sahneyle birlikte ölçeklenir (CSS `cqw` birimleri).
-- **Görseller:** Şu an tüm görseller kodla çizilmiş yer tutucular (`GameScene.js` → `dokulariUret()`). AI görselleri gelince aynı isimlerle yüklenecek.
+- **Görseller:** `GameScene.preload()` `public/assets/` içindeki dosyaları dener (liste ve hedef yükseklikler: `src/data/assets.js`). Dosya varsa o kullanılır, yoksa `dokulariUret()` kodla çizilmiş yer tutucuyu üretir. Hangi görsellerin yüklendiği tarayıcı konsolunda `[asset]` satırında yazar.
 - **Yayın:** `main` dalına her push'ta GitHub Actions oyunu derleyip GitHub Pages'e yayınlar.
 
 ### Dosya yapısı
@@ -360,23 +370,32 @@ node tools/simulasyon.mjs
 7. Büyük üretin (en az 2–3 kat), oyunda küçültülür.
 
 ### 6.3 Teslim formatı ve dosya adları
-| Dosya adı | Ne | Format | Oyundaki yaklaşık oran |
+
+**Oyun nesneleri doğrudan oyuna girer:** dosyayı aşağıdaki adla `public/assets/` klasörüne koyun, kod değişikliği gerekmez. Boyut önemli değil; görsel oranı korunarak "oyundaki yükseklik"e ölçeklenir ve alt kenarı zemine oturur. Bu yüzden görselin **alt kenarında boşluk bırakmayın** (ayaklar/taban en altta olsun). Eksik dosya yerine kodla çizilmiş yer tutucu görünür. Yükseklikler `src/data/assets.js`'ten değiştirilebilir.
+
+| Dosya adı | Ne | Format | Oyundaki yükseklik |
 |---|---|---|---|
-| `oyuncu.png` | Ana karakter (sağa bakıyor) | Şeffaf PNG | 32×62 |
-| `panel.png` | Genel kontrol paneli | Şeffaf PNG | 70×100 |
-| `panel-enerji.png`, `panel-su.png`, `panel-sera.png`, `panel-geri.png` | Oda panelleri (isteğe bağlı) | Şeffaf PNG | 70×100 |
-| `radyo.png` | Radyo + masa | Şeffaf PNG | 80×80 |
-| `yatak.png` | Yatak | Şeffaf PNG | 140×60 |
-| `kapi.png` | Kapı | Şeffaf PNG | 60×120 |
-| `bitki.png`, `bitki-solgun.png` | Sera bitkisi, iki hâl | Şeffaf PNG | 40×56 |
-| `sakin-1.png` … `sakin-4.png` | Sığınakta dolaşan sakinler (isteğe bağlı) | Şeffaf PNG | 28×56 |
+| `oyuncu.png` | Ana karakter (sağa bakıyor) | Şeffaf PNG | 72 px |
+| `panel.png` | Genel kontrol paneli | Şeffaf PNG | 100 px |
+| `panel-enerji.png`, `panel-su.png`, `panel-sera.png`, `panel-geri.png` | Oda panelleri (isteğe bağlı; yoksa `panel.png`) | Şeffaf PNG | 100 px |
+| `radyo.png` | Radyo + masa | Şeffaf PNG | 80 px |
+| `pano.png` | Görev ve araştırma panosu (ayaklı mantar pano) | Şeffaf PNG | 110 px |
+| `yatak.png` | Yatak | Şeffaf PNG | 60 px |
+| `kapi.png` | Kapı | Şeffaf PNG | 120 px |
+| `bitki.png`, `bitki-solgun.png` | Sera bitkisi, iki hâl (solgun isteğe bağlı; gıda/denge düşünce geçer) | Şeffaf PNG | 56 px |
+| `sakin-1.png` … `sakin-4.png` | Sığınakta dolaşan sakinler (sağa bakıyor) | Şeffaf PNG | 64 px |
+
+**Aşağıdakiler henüz oyuna bağlı değil** (kod gerekiyor, PROJECT_LOG D1):
+
+| Dosya adı | Ne | Format | Oran |
+|---|---|---|---|
 | `oda-yasam.png`, `oda-enerji.png`, `oda-su.png`, `oda-sera.png`, `oda-geri.png` | Oda arka planları | PNG | 640×280 (16:9 üretip kırpılır) |
 | `manzara-iyi.png`, `manzara-kotu.png` | Pencereden görünen şehir | PNG | Geniş panorama |
 | `hikaye-1.png` … `hikaye-4.png` | Açılış hikaye ekranları | PNG | 16:9 |
 | `ziyaretci-<id>.png` | Ziyaretçi portreleri (`muhendis`, `ciftci`, `bilim`, `cocuklar`, `tamirci`, `kafile`) | PNG | Kare (1:1) |
 | `kapak.png` | Sunum kapağı | PNG | 16:9 |
 
-Görseller hazır olunca bu isimlerle kod sorumlusuna iletin.
+Oyun nesneleri için `public/assets/`'e koyup commit'lemek yeterli; diğerlerini bu isimlerle kod sorumlusuna iletin.
 
 ### 6.4 Stil blokları
 
@@ -405,6 +424,11 @@ wide cinematic 16:9 illustration, flat vector style with soft shading, clean sha
 **Karakter → `oyuncu.png`**
 ```
 A young caretaker character in a dark-blue work jumpsuit with a light green stripe across the chest, short brown hair, simple friendly proportions, full body, side view facing right, standing idle pose,
+```
+
+**Görev panosu → `pano.png`**
+```
+A free-standing cork notice board on two wooden legs, pinned paper notes and a small green task list, red push pins,
 ```
 
 **Kontrol paneli → `panel.png`**

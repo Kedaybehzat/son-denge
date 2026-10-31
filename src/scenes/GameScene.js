@@ -1,18 +1,25 @@
 // =============================================================
 //  OYUN SAHNESİ
 //  Yandan görünüş: odalar yan yana, kamera karakteri takip eder.
-//  Tüm görseller şimdilik kodla çiziliyor (yer tutucu). Çizimler
-//  hazır olunca dokulariUret() yerine this.load.image(...) kullanılır.
+//  Görseller: preload() public/assets/ içindeki dosyaları dener
+//  (liste: src/data/assets.js). Bulunamayanlar için dokulariUret()
+//  kodla çizilmiş yer tutucu üretir.
 // =============================================================
 import Phaser from 'phaser';
 import { ODALAR, ODA_GENISLIK, TAVAN_Y, ZEMIN_Y } from '../data/rooms.js';
 import { PANELLER } from '../data/panels.js';
+import { ASSETLER } from '../data/assets.js';
 import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet,
   KAYNAKLAR, MAKINELER, makineOperatoru, sakinTanimi } from '../state.js';
 import * as ui from '../ui/ui.js';
 
 const HIZ = 240;
-const ETKILESIM_MESAFE = 60;
+const ETKILESIM_MESAFE = 30; // oyuncu ile nesnenin KENARI arasındaki yatay mesafe (px)
+
+// Kodla çizilen yer tutucu dokular (gerçek asset değil). Sahne yeniden
+// başlasa da dokular kalıcı olduğu için modül düzeyinde tutulur.
+const YER_TUTUCULAR = new Set();
+const EKSIK_ASSETLER = new Set();
 const EKRAN_G = 960;
 const EKRAN_Y = 540;
 
@@ -34,6 +41,15 @@ export default class GameScene extends Phaser.Scene {
     super('Game');
   }
 
+  // public/assets/ içindeki görselleri dener; olmayanlar hata vermez
+  preload() {
+    this.load.setPath('assets/');
+    this.load.on('loaderror', (dosya) => EKSIK_ASSETLER.add(dosya.key));
+    for (const [anahtar, a] of Object.entries(ASSETLER)) {
+      if (!this.textures.exists(anahtar)) this.load.image(anahtar, a.dosya);
+    }
+  }
+
   create() {
     this.dunyaG = ODALAR.length * ODA_GENISLIK;
     this.nesneler = [];
@@ -47,6 +63,11 @@ export default class GameScene extends Phaser.Scene {
     this.lambaTitremeTimer = null;
 
     this.dokulariUret();
+    if (!this.assetRaporu) {
+      this.assetRaporu = true;
+      const yuklenen = Object.keys(ASSETLER).filter((k) => this.gercekAsset(k));
+      console.info(`[asset] yüklenen: ${yuklenen.join(', ') || 'yok'} · yer tutucu: ${[...YER_TUTUCULAR].join(', ')}`);
+    }
     this.disariCiz();
     this.evCiz();
     this.oyuncuOlustur();
@@ -126,7 +147,8 @@ export default class GameScene extends Phaser.Scene {
   //  YER TUTUCU DOKULAR (çizimler gelince değiştirilecek)
   // ---------------------------------------------------------------
   dokulariUret() {
-    if (this.textures.exists('oyuncu')) return; // restart'ta tekrar üretme
+    // Her doku yalnızca yoksa üretilir: yüklenen asset'in yerine geçmez,
+    // sahne yeniden başlayınca da tekrar üretilmez.
     const g = this.make.graphics({ x: 0, y: 0, add: false });
 
     // Oyuncu (sağa bakıyor)
@@ -136,7 +158,7 @@ export default class GameScene extends Phaser.Scene {
     g.fillStyle(0x4a3424).fillRect(5, 0, 22, 6);
     g.fillStyle(0x222222).fillRect(21, 9, 3, 4);
     g.fillStyle(0x9fd36b).fillRect(3, 30, 26, 4); // yeşil şerit: Yeşilvadi üniforması
-    g.generateTexture('oyuncu', 32, 62);
+    this.dokuUret(g, 'oyuncu', 32, 62);
     g.clear();
 
     // Kontrol paneli
@@ -147,7 +169,7 @@ export default class GameScene extends Phaser.Scene {
     g.fillStyle(0xf2c14e).fillCircle(35, 62, 5);
     g.fillStyle(0x6bd36b).fillCircle(52, 62, 5);
     g.fillStyle(0x27313a).fillRect(10, 76, 50, 16);
-    g.generateTexture('panel', 70, 100);
+    this.dokuUret(g, 'panel', 70, 100);
     g.clear();
 
     // Radyo + masa
@@ -156,7 +178,7 @@ export default class GameScene extends Phaser.Scene {
     g.fillStyle(0xe8d9b5).fillCircle(30, 20, 8);
     g.fillStyle(0x333333).fillRect(44, 14, 14, 3).fillRect(44, 20, 14, 3);
     g.lineStyle(2, 0x333333).lineBetween(56, 6, 64, 0);
-    g.generateTexture('radyo', 80, 80);
+    this.dokuUret(g, 'radyo', 80, 80);
     g.clear();
 
     // Görev ve araştırma panosu (ayaklı mantar pano)
@@ -167,7 +189,7 @@ export default class GameScene extends Phaser.Scene {
     g.fillStyle(0x9fe3c8).fillRect(46, 32, 30, 28);
     g.fillStyle(0xe85d4a).fillCircle(25, 13, 3).fillCircle(61, 11, 3).fillCircle(25, 41, 3);
     g.fillStyle(0x2f6b55).fillRect(50, 38, 22, 3).fillRect(50, 45, 16, 3).fillRect(50, 52, 20, 3);
-    g.generateTexture('pano', 90, 110);
+    this.dokuUret(g, 'pano', 90, 110);
     g.clear();
 
     // Yatak
@@ -175,21 +197,21 @@ export default class GameScene extends Phaser.Scene {
     g.fillStyle(0x6b4a2f).fillRect(132, 30, 8, 30);
     g.fillStyle(0x7fa7c9).fillRect(8, 28, 124, 14);
     g.fillStyle(0xf3efe6).fillRoundedRect(10, 20, 34, 12, 4);
-    g.generateTexture('yatak', 140, 60);
+    this.dokuUret(g, 'yatak', 140, 60);
     g.clear();
 
     // Kapı
     g.fillStyle(0x5a3d26).fillRect(0, 0, 60, 120);
     g.fillStyle(0x7a5536).fillRect(6, 6, 48, 110);
     g.fillStyle(0xd9b44a).fillCircle(46, 64, 4);
-    g.generateTexture('kapi', 60, 120);
+    this.dokuUret(g, 'kapi', 60, 120);
     g.clear();
 
     // Bitki
     g.fillStyle(0x8a5a3a).fillRect(8, 40, 24, 16);
     g.fillStyle(0xffffff).fillRect(19, 14, 3, 28);
     g.fillEllipse(12, 22, 16, 9).fillEllipse(29, 18, 16, 9).fillEllipse(14, 10, 14, 8).fillEllipse(26, 6, 12, 8);
-    g.generateTexture('bitki', 40, 56);
+    this.dokuUret(g, 'bitki', 40, 56);
     g.destroy();
 
     // Sığınak sakinleri (farklı kıyafet renkleri)
@@ -200,9 +222,11 @@ export default class GameScene extends Phaser.Scene {
       g2.fillStyle(0x3a3a3a).fillRect(5, 48, 7, 8).fillRect(16, 48, 7, 8);
       g2.fillStyle([0xf1c27d, 0xc68642, 0xe0ac69, 0x8d5524][i]).fillCircle(14, 10, 10);
       g2.fillStyle([0x2b2b2b, 0x6b4a2a, 0xd9c27a, 0x1a1a1a][i]).fillRect(4, 0, 20, 5);
-      g2.generateTexture('sakin' + i, 28, 56);
+      this.dokuUret(g2, 'sakin' + i, 28, 56);
     });
     g2.destroy();
+
+    if (this.textures.exists('isik')) return; // efekt dokuları zaten var (restart)
 
     // Lamba ışığı: yumuşak radyal parıltı
     const tuval = this.textures.createCanvas('isik', 256, 256);
@@ -240,6 +264,33 @@ export default class GameScene extends Phaser.Scene {
   // ---------------------------------------------------------------
   //  DIŞ DÜNYA: gökyüzü, güneş ve parallax şehir silueti
   // ---------------------------------------------------------------
+  // Yer tutucu dokuyu sadece o anahtarda doku yoksa üretir
+  dokuUret(g, anahtar, w, h) {
+    if (this.textures.exists(anahtar)) return;
+    g.generateTexture(anahtar, w, h);
+    YER_TUTUCULAR.add(anahtar);
+  }
+
+  // public/assets/'ten gerçekten yüklenmiş bir görsel mi?
+  gercekAsset(anahtar) {
+    return this.textures.exists(anahtar) && !YER_TUTUCULAR.has(anahtar);
+  }
+
+  // Doku yoksa assets.js'teki yedek anahtarı kullan (ör. panel-su → panel)
+  dokuAnahtari(anahtar) {
+    return this.textures.exists(anahtar) ? anahtar : (ASSETLER[anahtar]?.yedek ?? anahtar);
+  }
+
+  // Sprite'ı oranını koruyarak assets.js'teki hedef yüksekliğe ölçekler
+  olcekle(sprite, anahtar) {
+    const a = ASSETLER[anahtar];
+    if (!a || !sprite.frame?.height) return sprite;
+    const o = a.yukseklik / sprite.frame.height;
+    sprite.setScale(o);
+    sprite.temelOlcek = o;
+    return sprite;
+  }
+
   disariCiz() {
     this.gokyuzu = this.add.rectangle(0, 0, EKRAN_G, EKRAN_Y, 0x8fd3ff).setOrigin(0).setScrollFactor(0).setDepth(-10);
     this.gunes = this.add.circle(780, 90, 34, 0xfff3b0).setScrollFactor(0.05).setDepth(-9);
@@ -315,7 +366,8 @@ export default class GameScene extends Phaser.Scene {
 
       // Etkileşimli nesneler
       for (const n of oda.nesneler) {
-        const s = this.add.image(x0 + n.x, alt, n.tip === 'panel' ? 'panel' : n.tip).setOrigin(0.5, 1).setDepth(3);
+        const anahtar = n.tip === 'panel' ? this.dokuAnahtari('panel-' + n.panel) : n.tip;
+        const s = this.olcekle(this.add.image(x0 + n.x, alt, anahtar).setOrigin(0.5, 1).setDepth(3), anahtar);
         this.nesneler.push({ sprite: s, def: n });
       }
     });
@@ -366,7 +418,7 @@ export default class GameScene extends Phaser.Scene {
     } else if (tip === 'sera') {
       g.fillStyle(0x7a5a3a).fillRect(x0 + 40, alt - 30, 440, 30); // saksı sırası
       for (let i = 0; i < 7; i++) {
-        const b = this.add.image(x0 + 75 + i * 62, alt - 28, 'bitki').setOrigin(0.5, 1).setDepth(2);
+        const b = this.olcekle(this.add.image(x0 + 75 + i * 62, alt - 28, 'bitki').setOrigin(0.5, 1).setDepth(2), 'bitki');
         this.bitkiler.push(b);
       }
     } else if (tip === 'geri') {
@@ -380,13 +432,13 @@ export default class GameScene extends Phaser.Scene {
   }
 
   oyuncuOlustur() {
-    this.oyuncu = this.add.image(220, ZEMIN_Y, 'oyuncu').setOrigin(0.5, 1).setDepth(10);
+    this.oyuncu = this.olcekle(this.add.image(220, ZEMIN_Y, 'oyuncu').setOrigin(0.5, 1).setDepth(10), 'oyuncu');
     this.yurume = 0;
 
     // Kapıda biri varken kapının üstünde zıplayan işaret
     const kapi = this.nesneler.find((n) => n.def.tip === 'kapi');
     this.kapiIsaret = this.add
-      .text(kapi.sprite.x, kapi.sprite.y - kapi.sprite.height - 30, '!', {
+      .text(kapi.sprite.x, kapi.sprite.y - kapi.sprite.displayHeight - 30, '!', {
         fontFamily: 'system-ui, sans-serif', fontSize: '34px', fontStyle: 'bold', color: '#ffd23f',
         stroke: '#3a2a10', strokeThickness: 6,
       })
@@ -447,6 +499,13 @@ export default class GameScene extends Phaser.Scene {
 
   sakinGuncelle() {
     const kaynak = state.sakinler || [];
+    // Ayrılan (yorgunluktan giden) sakinlerin figürü solup kaybolur
+    for (const eski of this.sakinler.filter((x) => !kaynak.some((k) => k.uid === x.uid))) {
+      if (eski.wander) { eski.wander.remove(); eski.wander = null; }
+      this.tweens.killTweensOf(eski.sprite);
+      this.tweens.add({ targets: eski.sprite, alpha: 0, y: eski.sprite.y - 20, duration: 600, onComplete: () => eski.sprite.destroy() });
+      this.sakinler.splice(this.sakinler.indexOf(eski), 1);
+    }
     kaynak.forEach((kaynakSakin, i) => {
       const hedefX = this.sakinKonumu(kaynakSakin.gorev, i);
       const varOlan = this.sakinler.find((x) => x.uid === kaynakSakin.uid);
@@ -457,8 +516,9 @@ export default class GameScene extends Phaser.Scene {
         }
       } else {
         const idx = this.sakinler.length;
-        const sprite = this.add.image(hedefX, ZEMIN_Y - 55, 'sakin' + (idx % 4))
-          .setOrigin(0.5, 1).setDepth(5).setAlpha(0);
+        const sakinDoku = 'sakin' + (idx % 4);
+        const sprite = this.olcekle(this.add.image(hedefX, ZEMIN_Y - 55, sakinDoku)
+          .setOrigin(0.5, 1).setDepth(5).setAlpha(0), sakinDoku);
         const yeni = { uid: kaynakSakin.uid, gorev: kaynakSakin.gorev, sprite, hedefX, wander: null };
         this.tweens.add({ targets: sprite, alpha: 1, duration: 350 });
         this.tweens.add({
@@ -697,9 +757,18 @@ export default class GameScene extends Phaser.Scene {
     for (const su of this.suTanklari) su.setScale(1, Math.max(0.02, k.su / 100));
     if (this.copYigini) this.copYigini.setScale(0.3 + (k.atik / 100) * 1.0);
     const saglik = (k.gida / 100) * 0.6 + t * 0.4;
+    const gercekBitki = this.gercekAsset('bitki');
+    const solgunVar = this.gercekAsset('bitki-solgun');
     for (const b of this.bitkiler) {
-      b.setTint(renkGecis(0x8a6b3a, 0x4caf50, saglik));
-      b.setScale(1, 0.55 + 0.45 * saglik);
+      // Solgun görsel varsa sağlık düşünce ona geçilir (ölçek yeni dokuya göre)
+      if (solgunVar) {
+        const hedef = saglik < 0.45 ? 'bitki-solgun' : 'bitki';
+        if (b.texture.key !== hedef) { b.setTexture(hedef); this.olcekle(b, 'bitki'); }
+      }
+      // Yer tutucu beyaz çizildiği için renklendirilir; gerçek görsel sadece hafifçe soldurulur
+      b.setTint(gercekBitki ? renkGecis(0xb8a07a, 0xffffff, saglik) : renkGecis(0x8a6b3a, 0x4caf50, saglik));
+      const o = b.temelOlcek ?? 1;
+      b.setScale(o, o * (0.55 + 0.45 * saglik));
     }
   }
 
@@ -743,11 +812,13 @@ export default class GameScene extends Phaser.Scene {
 
     // En yakın etkileşimli nesne
     let enYakin = null;
-    let min = ETKILESIM_MESAFE;
+    // Ölçeklenmiş genişlik hesaba katılır: geniş nesnede (yatak) kenara yaklaşmak yeter
+    let min = Infinity;
     for (const n of this.nesneler) {
       n.sprite.clearTint();
       const d = Math.abs(n.sprite.x - p.x);
-      if (d < min) { min = d; enYakin = n; }
+      const kenar = Math.max(0, d - n.sprite.displayWidth / 2);
+      if (kenar < ETKILESIM_MESAFE && d < min) { min = d; enYakin = n; }
     }
 
     if (enYakin) {
@@ -764,7 +835,7 @@ export default class GameScene extends Phaser.Scene {
       }
       this.ipucu
         .setText(`[E] ${metin}`)
-        .setPosition(enYakin.sprite.x, enYakin.sprite.y - enYakin.sprite.height - 10)
+        .setPosition(enYakin.sprite.x, enYakin.sprite.y - enYakin.sprite.displayHeight - 10)
         .setVisible(true);
       if (eBasildi) this.etkilesim(enYakin.def);
     } else {
