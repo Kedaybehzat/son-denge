@@ -79,6 +79,8 @@ function oyna(stilAd, stil, kapi, r) {
     if (stilAd === 'akilli') {
       akilliAtamalariYap();
       akilliArastirmaSec();
+      // Not: yorgunluk riskindekileri dinlendirmek bu ayarlarla daha KÖTÜ sonuç veriyor
+      // (herkes 4. gece aynı anda riske giriyor, PROJECT_LOG D10). Akıllı stil riski göze alır.
     }
     // Operatörü olmayan makinelerde önce oyuncu kendisi çalışır
     for (const m of bosMakineler()) kendinCalis(m);
