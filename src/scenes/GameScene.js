@@ -7,13 +7,19 @@
 import Phaser from 'phaser';
 import { ODALAR, ODA_GENISLIK, TAVAN_Y, ZEMIN_Y } from '../data/rooms.js';
 import { PANELLER } from '../data/panels.js';
-import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet } from '../state.js';
+import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet, KAYNAKLAR } from '../state.js';
 import * as ui from '../ui/ui.js';
 
 const HIZ = 240;
 const ETKILESIM_MESAFE = 60;
 const EKRAN_G = 960;
 const EKRAN_Y = 540;
+
+// Kirli eylemlerde dumanın hangi odadan çıkacağı (dekorCiz ile uyumlu)
+const DUMAN_KONUMU = {
+  enerji: { odaIndex: 1, x: 146, y: ZEMIN_Y - 100 },      // jeneratör bacası
+  geriDonusum: { odaIndex: 4, x: 520, y: ZEMIN_Y - 70 },  // atık yakma noktası
+};
 
 // İki renk arasında geçiş: t=0 kötü renk, t=1 iyi renk
 function renkGecis(kotu, iyi, t) {
@@ -35,6 +41,9 @@ export default class GameScene extends Phaser.Scene {
     this.suTanklari = [];
     this.copYigini = null;
     this.gecisVar = false;
+    this.yurumeTozSayac = 0;
+    this.kapiTakTakTimer = null;
+    this.lambaTitremeTimer = null;
 
     this.dokulariUret();
     this.disariCiz();
@@ -46,6 +55,32 @@ export default class GameScene extends Phaser.Scene {
 
     // Atmosfer katmanı: denge düştükçe ekran kararır
     this.atmosfer = this.add.rectangle(0, 0, EKRAN_G, EKRAN_Y, 0x2a1608, 0).setOrigin(0).setScrollFactor(0).setDepth(40);
+
+    // Dış dünyada süzülen toz/kül (denge düşükken açılır)
+    this.disToz = this.add.particles(0, 0, 'toz', {
+      x: { min: 0, max: this.dunyaG },
+      y: { min: 10, max: 160 },
+      speedY: { min: 10, max: 28 },
+      speedX: { min: -10, max: 10 },
+      scale: { start: 1.2, end: 0.4 },
+      alpha: { start: 0.55, end: 0 },
+      tint: [0x8a7a66, 0x6b5a48, 0x5a4a3a],
+      lifespan: { min: 4500, max: 7000 },
+      frequency: 220,
+      quantity: 1,
+      emitting: false,
+    }).setDepth(-6).setScrollFactor(0.3);
+
+    // Oyuncunun ayağının altında ara ara çıkan toz
+    this.ayakTozu = this.add.particles(0, 0, 'toz', {
+      speed: { min: 20, max: 55 },
+      angle: { min: 200, max: 340 },
+      scale: { start: 0.65, end: 0 },
+      alpha: { start: 0.45, end: 0 },
+      tint: [0x8a7764, 0x9c8974],
+      lifespan: 450,
+      emitting: false,
+    }).setDepth(9);
 
     this.tuslar = this.input.keyboard.addKeys({
       sol: 'A', sag: 'D', solOk: 'LEFT', sagOk: 'RIGHT',
@@ -61,11 +96,29 @@ export default class GameScene extends Phaser.Scene {
       })
       .setOrigin(0.5, 1).setDepth(50).setVisible(false);
 
+    // Arayüzden gelen efekt olayları
+    this.dinleyiciler = {
+      eylem: (e) => this.efektEylem(e.detail),
+      ziyaretci: (e) => this.efektZiyaretci(e.detail),
+      gunBasligi: (e) => this.gunBasligiGoster(e.detail.gun, e.detail.olayAd, e.detail.onBitti),
+    };
+    window.addEventListener('oyun:eylemYapildi', this.dinleyiciler.eylem);
+    window.addEventListener('oyun:ziyaretciKabul', this.dinleyiciler.ziyaretci);
+    window.addEventListener('oyun:gunBasligi', this.dinleyiciler.gunBasligi);
+
     // Görseller denge değerine yumuşak geçişle tepki verir
     this.gorsel = { d: state.denge };
     this.gorselUygula();
     const iptal = abone((s) => this.gorselGuncelle(s));
-    this.events.once('shutdown', iptal);
+
+    this.events.once('shutdown', () => {
+      iptal();
+      window.removeEventListener('oyun:eylemYapildi', this.dinleyiciler.eylem);
+      window.removeEventListener('oyun:ziyaretciKabul', this.dinleyiciler.ziyaretci);
+      window.removeEventListener('oyun:gunBasligi', this.dinleyiciler.gunBasligi);
+      this.kapiTakTakDurdur();
+      if (this.lambaTitremeTimer) this.lambaTitremeTimer.remove();
+    });
   }
 
   // ---------------------------------------------------------------
@@ -149,6 +202,27 @@ export default class GameScene extends Phaser.Scene {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 256, 256);
     tuval.refresh();
+
+    // Duman parçacığı (kirli eylem bacası)
+    const tuvDuman = this.textures.createCanvas('duman', 48, 48);
+    const ctxDuman = tuvDuman.getContext();
+    const gradDuman = ctxDuman.createRadialGradient(24, 24, 0, 24, 24, 24);
+    gradDuman.addColorStop(0, 'rgba(220,210,200,0.95)');
+    gradDuman.addColorStop(0.55, 'rgba(140,130,120,0.55)');
+    gradDuman.addColorStop(1, 'rgba(80,70,65,0)');
+    ctxDuman.fillStyle = gradDuman;
+    ctxDuman.fillRect(0, 0, 48, 48);
+    tuvDuman.refresh();
+
+    // Toz parçacığı (ayak altı + dış kül)
+    const tuvToz = this.textures.createCanvas('toz', 10, 10);
+    const ctxToz = tuvToz.getContext();
+    const gradToz = ctxToz.createRadialGradient(5, 5, 0, 5, 5, 5);
+    gradToz.addColorStop(0, 'rgba(255,255,255,1)');
+    gradToz.addColorStop(1, 'rgba(255,255,255,0)');
+    ctxToz.fillStyle = gradToz;
+    ctxToz.fillRect(0, 0, 10, 10);
+    tuvToz.refresh();
   }
 
   // ---------------------------------------------------------------
@@ -318,17 +392,204 @@ export default class GameScene extends Phaser.Scene {
       let x;
       do x = Phaser.Math.Between(60, this.dunyaG - 60);
       while (yasak.some((y) => Math.abs(y - x) < 70));
-      const s = this.add.image(x, ZEMIN_Y, 'sakin' + (this.sakinler.length % 4))
+      const s = this.add.image(x, ZEMIN_Y - 55, 'sakin' + (this.sakinler.length % 4))
         .setOrigin(0.5, 1).setDepth(5).setAlpha(0);
       const adim = Phaser.Math.Between(25, 60) * (Math.random() < 0.5 ? -1 : 1);
       s.setFlipX(adim < 0);
-      this.tweens.add({ targets: s, alpha: 1, duration: 800 });
+      // Yeni sakin: belirip zıplayarak zemine iner
+      this.tweens.add({ targets: s, alpha: 1, duration: 350 });
       this.tweens.add({
-        targets: s, x: x + adim, duration: Phaser.Math.Between(2200, 4200), yoyo: true, repeat: -1,
-        hold: 800, repeatDelay: 800, ease: 'Sine.easeInOut',
-        onYoyo: () => s.setFlipX(!s.flipX), onRepeat: () => s.setFlipX(!s.flipX),
+        targets: s, y: ZEMIN_Y, duration: 720, ease: 'Bounce.easeOut',
+        onComplete: () => {
+          this.tweens.add({
+            targets: s, x: x + adim, duration: Phaser.Math.Between(2200, 4200), yoyo: true, repeat: -1,
+            hold: 800, repeatDelay: 800, ease: 'Sine.easeInOut',
+            onYoyo: () => s.setFlipX(!s.flipX), onRepeat: () => s.setFlipX(!s.flipX),
+          });
+        },
       });
       this.sakinler.push(s);
+    }
+  }
+
+  // ---------------------------------------------------------------
+  //  EFEKTLER
+  // ---------------------------------------------------------------
+  panelSpritesi(anahtar) {
+    return this.nesneler.find((n) => n.def.tip === 'panel' && n.def.panel === anahtar)?.sprite;
+  }
+
+  kapiSpritesi() {
+    return this.nesneler.find((n) => n.def.tip === 'kapi')?.sprite;
+  }
+
+  // Panel üstünden sayıların yükselerek kaybolması
+  suzülenEtkiler(sprite, etki) {
+    if (!sprite || !etki) return;
+    const girisler = Object.entries(etki).filter(([, d]) => d !== 0);
+    const ustY = sprite.y - sprite.displayHeight - 6;
+    girisler.forEach(([ad, deger], i) => {
+      const k = KAYNAKLAR[ad];
+      if (!k) return;
+      const iyi = (deger > 0) === k.yuksekIyi;
+      const renk = iyi ? '#9fd36b' : '#ff8a74';
+      const metin = `${deger > 0 ? '+' : '−'}${Math.abs(deger)} ${k.ikon}`;
+      const yazi = this.add.text(sprite.x, ustY, metin, {
+        fontFamily: '"IBM Plex Mono", monospace',
+        fontSize: '22px', fontStyle: 'bold',
+        color: renk,
+        stroke: '#0a0e07', strokeThickness: 4,
+      }).setOrigin(0.5, 1).setDepth(45).setAlpha(0);
+      this.tweens.add({
+        targets: yazi,
+        alpha: { from: 0, to: 1 }, y: ustY - 10,
+        duration: 220, delay: i * 170, ease: 'Sine.easeOut',
+        onComplete: () => {
+          this.tweens.add({
+            targets: yazi,
+            alpha: 0, y: ustY - 70,
+            duration: 900, ease: 'Sine.easeIn',
+            onComplete: () => yazi.destroy(),
+          });
+        },
+      });
+    });
+  }
+
+  // Kirli eylem: duman + kamera sarsıntısı
+  kirliEfekt(panelAnahtar) {
+    const konum = DUMAN_KONUMU[panelAnahtar];
+    if (konum) {
+      const x = konum.odaIndex * ODA_GENISLIK + konum.x;
+      const em = this.add.particles(x, konum.y, 'duman', {
+        speed: { min: 25, max: 60 },
+        angle: { min: 255, max: 285 },
+        scale: { start: 0.5, end: 1.8 },
+        alpha: { start: 0.7, end: 0 },
+        tint: [0x6b5a48, 0x7a6655, 0x4d3f33, 0x3a2f26],
+        lifespan: { min: 1600, max: 2600 },
+        frequency: 85,
+        quantity: 1,
+      }).setDepth(6);
+      this.time.delayedCall(2400, () => em.stop());
+      this.time.delayedCall(5200, () => em.destroy());
+    }
+    this.cameras.main.shake(320, 0.0045);
+  }
+
+  efektEylem({ panel, etki, kirli }) {
+    const sprite = this.panelSpritesi(panel);
+    if (sprite) this.suzülenEtkiler(sprite, etki);
+    if (kirli) this.kirliEfekt(panel);
+  }
+
+  efektZiyaretci({ kisi }) {
+    const kapi = this.kapiSpritesi();
+    if (!kapi) return;
+    const yazi = this.add.text(
+      kapi.x, kapi.y - kapi.displayHeight - 8,
+      `+${kisi} 👥`,
+      {
+        fontFamily: '"IBM Plex Mono", monospace',
+        fontSize: '26px', fontStyle: 'bold',
+        color: '#9fd36b',
+        stroke: '#0a0e07', strokeThickness: 4,
+      }
+    ).setOrigin(0.5, 1).setDepth(45);
+    this.tweens.add({
+      targets: yazi,
+      alpha: 0, y: yazi.y - 80,
+      duration: 1300, ease: 'Sine.easeIn',
+      onComplete: () => yazi.destroy(),
+    });
+  }
+
+  // Ekran ortasında "GÜN N" + olay başlığı; sonra bitince() çağrılır
+  gunBasligiGoster(gun, olayAd, bitince) {
+    const cx = EKRAN_G / 2;
+    const cy = EKRAN_Y / 2;
+    const buyuk = this.add.text(cx, cy - 20, `GÜN ${gun}`, {
+      fontFamily: '"VT323", monospace',
+      fontSize: '110px',
+      color: '#eaffd4',
+      stroke: '#0a140f', strokeThickness: 6,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(60).setAlpha(0);
+    const kucuk = this.add.text(cx, cy + 58, olayAd || '', {
+      fontFamily: '"IBM Plex Mono", monospace',
+      fontSize: '22px', fontStyle: 'bold',
+      color: '#9fd36b',
+      stroke: '#0a140f', strokeThickness: 4,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(60).setAlpha(0);
+
+    this.tweens.add({
+      targets: [buyuk, kucuk], alpha: 1, duration: 300, ease: 'Sine.easeOut',
+      onComplete: () => {
+        this.time.delayedCall(900, () => {
+          this.tweens.add({
+            targets: [buyuk, kucuk], alpha: 0, duration: 300, ease: 'Sine.easeIn',
+            onComplete: () => {
+              buyuk.destroy();
+              kucuk.destroy();
+              bitince?.();
+            },
+          });
+        });
+      },
+    });
+  }
+
+  // Kapıda biri varken kapıyı periyodik tıklatır (küçük açılı sallanma)
+  kapiTakTakBaslat() {
+    if (this.kapiTakTakTimer) return;
+    const sprite = this.kapiSpritesi();
+    if (!sprite) return;
+    this.kapiTakTakTimer = this.time.addEvent({
+      delay: 3200, loop: true,
+      callback: () => {
+        if (!sprite.active) return;
+        this.tweens.add({
+          targets: sprite,
+          angle: { from: 0, to: 2.6 },
+          duration: 70, yoyo: true, repeat: 2,
+          ease: 'Sine.easeInOut',
+          onComplete: () => { sprite.setAngle(0); },
+        });
+      },
+    });
+  }
+
+  kapiTakTakDurdur() {
+    if (this.kapiTakTakTimer) {
+      this.kapiTakTakTimer.remove();
+      this.kapiTakTakTimer = null;
+    }
+    const sprite = this.kapiSpritesi();
+    if (sprite) sprite.setAngle(0);
+  }
+
+  // Enerji azsa tavan lambalarını ara ara titret
+  lambaTitremeBaslat() {
+    if (this.lambaTitremeTimer) return;
+    this.lambaTitremeTimer = this.time.addEvent({
+      delay: 1500, loop: true,
+      callback: () => {
+        if (!this.lambalar.length) return;
+        const l = Phaser.Utils.Array.GetRandom(this.lambalar);
+        const asil = l.alpha;
+        this.tweens.add({
+          targets: l,
+          alpha: Math.max(0, asil * 0.1),
+          duration: 70, yoyo: true, repeat: 1, ease: 'Quad.easeInOut',
+          onComplete: () => l.setAlpha(asil),
+        });
+      },
+    });
+  }
+
+  lambaTitremeDurdur() {
+    if (this.lambaTitremeTimer) {
+      this.lambaTitremeTimer.remove();
+      this.lambaTitremeTimer = null;
     }
   }
 
@@ -355,10 +616,26 @@ export default class GameScene extends Phaser.Scene {
     this.sehirBoya(renkGecis(0x5a4436, 0xa9bccf, t), renkGecis(0x3e2f27, 0x7d93ad, t));
     this.atmosfer.setAlpha((1 - t) * 0.42);
 
-    this.kapiIsaret.setVisible(!!state.ziyaretci && !state.bitti);
+    const ziyaretciVar = !!state.ziyaretci && !state.bitti;
+    this.kapiIsaret.setVisible(ziyaretciVar);
+    if (ziyaretciVar) this.kapiTakTakBaslat();
+    else this.kapiTakTakDurdur();
     this.sakinGuncelle(state.nufus);
 
     for (const l of this.lambalar) l.setAlpha(0.04 + (k.enerji / 100) * 0.32);
+    // Enerji azsa lambaları titret, bol varsa durdur
+    if (k.enerji < 25 && !state.bitti) this.lambaTitremeBaslat();
+    else this.lambaTitremeDurdur();
+
+    // Denge düşükse dışarıda süzülen kül, yükselince kaybolur
+    if (this.disToz) {
+      const toz = this.disToz;
+      if (this.gorsel.d < 40 && !state.bitti) {
+        if (!toz.emitting) toz.start();
+      } else if (toz.emitting) {
+        toz.stop();
+      }
+    }
     for (const su of this.suTanklari) su.setScale(1, Math.max(0.02, k.su / 100));
     if (this.copYigini) this.copYigini.setScale(0.3 + (k.atik / 100) * 1.0);
     const saglik = (k.gida / 100) * 0.6 + t * 0.4;
@@ -395,8 +672,15 @@ export default class GameScene extends Phaser.Scene {
       p.setFlipX(yon < 0);
       this.yurume += dt;
       p.y = ZEMIN_Y - Math.abs(Math.sin(this.yurume * 0.014)) * 5;
+      // Her ~220ms'de bir ayak altında küçük bir toz pufu
+      this.yurumeTozSayac += dt;
+      if (this.yurumeTozSayac > 220) {
+        this.yurumeTozSayac = 0;
+        this.ayakTozu.emitParticleAt(p.x - yon * 8, ZEMIN_Y - 2, 2);
+      }
     } else {
       p.y = ZEMIN_Y;
+      this.yurumeTozSayac = 0;
     }
 
     // En yakın etkileşimli nesne
@@ -423,7 +707,7 @@ export default class GameScene extends Phaser.Scene {
   etkilesim(def) {
     switch (def.tip) {
       case 'panel':
-        ui.panelAc(PANELLER[def.panel]);
+        ui.panelAc(PANELLER[def.panel], def.panel);
         break;
       case 'radyo':
         ui.olayGoster(state.olay);
@@ -468,13 +752,19 @@ export default class GameScene extends Phaser.Scene {
     kam.once('camerafadeoutcomplete', () => {
       if (sonuc.tip === 'devam') {
         kam.fadeIn(900, 10, 8, 20);
-        this.gecisVar = false;
-        ui.gunBaslangici(sonuc);
+        // Önce büyük gün başlığı, sonra gece raporu
+        this.gunBasligiGoster(state.gun, state.olay.baslik, () => {
+          this.gecisVar = false;
+          ui.gunBaslangici(sonuc);
+        });
       } else {
         ui.sonGoster(sonuc, () => {
           sifirla();
           this.scene.restart();
-          ui.olayGoster(state.olay);
+          // Yeni sahnenin create() tamamlanmasını bekleyip 1. gün başlığını göster
+          setTimeout(() => {
+            ui.gunBasligi(state.gun, state.olay.baslik, () => ui.olayGoster(state.olay));
+          }, 80);
         });
       }
     });

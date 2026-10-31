@@ -13,7 +13,17 @@ const kart = modal.querySelector('.kart');
 let acik = false;
 let kapatilabilir = true;
 let aktifPanel = null;
+let aktifPanelAnahtar = null;
 let sonMesaj = '';
+
+// Sahne ile arayüz arasında basit olay köprüsü
+function yayinla(ad, ayrinti = {}) {
+  window.dispatchEvent(new CustomEvent('oyun:' + ad, { detail: ayrinti }));
+}
+
+export function gunBasligi(gun, olayAd, bitince) {
+  yayinla('gunBasligi', { gun, olayAd, onBitti: bitince });
+}
 
 export const acikMi = () => acik;
 
@@ -58,6 +68,7 @@ export function modalKapat() {
   modal.classList.add('gizli');
   acik = false;
   aktifPanel = null;
+  aktifPanelAnahtar = null;
   sonMesaj = '';
 }
 
@@ -121,8 +132,9 @@ function hudGuncelle(s) {
 // ---------------------------------------------------------------
 //  KONTROL PANELİ
 // ---------------------------------------------------------------
-export function panelAc(def) {
+export function panelAc(def, anahtar = null) {
   aktifPanel = def;
+  aktifPanelAnahtar = anahtar;
   sonMesaj = '';
   panelCiz();
 }
@@ -169,7 +181,10 @@ function panelCiz() {
       const e = def.eylemler[Number(b.dataset.i)];
       if (eylemYapabilirMi(e)) {
         sonMesaj = e.mesaj || 'Tamamlandı.';
-        eylemYap(e); // abonelik panelCiz'i tekrar çağırır
+        const basarili = eylemYap(e); // abonelik panelCiz'i tekrar çağırır
+        if (basarili && aktifPanelAnahtar) {
+          yayinla('eylemYapildi', { panel: aktifPanelAnahtar, etki: e.etki, kirli: !!e.kirli });
+        }
       }
     });
   });
@@ -250,7 +265,12 @@ export function ziyaretciGoster(z, kabul, ret) {
         <button data-kabul>İçeri al</button>
       </span>
     </div>`, { sinif: 'kapi' });
-  kart.querySelector('[data-kabul]').addEventListener('click', () => { modalKapat(); kabul(); });
+  kart.querySelector('[data-kabul]').addEventListener('click', () => {
+    const kisi = z.kisi;
+    modalKapat();
+    kabul();
+    yayinla('ziyaretciKabul', { kisi });
+  });
   kart.querySelector('[data-ret]').addEventListener('click', () => { modalKapat(); ret(); });
 }
 
