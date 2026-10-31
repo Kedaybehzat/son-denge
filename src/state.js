@@ -31,6 +31,20 @@ export const AYAR = {
   yorgunlukAyrilmaEsigi: 4,// bu puandan itibaren ayrılma şansı
   yorgunlukAyrilmaPay: 0.25, // şans = (yorgunluk - esik + 1) * pay
   ayrilmaInsanlikCezasi: 8,
+  // Hafif siyaset (GDD bölüm 11): memnuniyet yalnızca sürdürülebilirlik kararlarına bağlı
+  baslangicMemnuniyet: 60,
+  itirazEsigi: 35,          // altında itiraz kartı çıkabilir
+  guvenOylamasiEsigi: 10,   // üst üste guvenOylamasiGece gece bu ve altında kalırsa: güven oylaması (son)
+  guvenOylamasiGece: 2,
+  memnuniyet: {
+    kitlikEsigi: 20, kitlik: -6,       // enerji/su/gıda bu değerin altındaysa (her biri)
+    yorgun: -2, yorgunEnFazla: -6,     // yorgunluğu uyarı eşiğinde olan her çalışan için (toplam sınırlı)
+    kirli: -3,                         // o gün kirli bir seçim yapıldıysa (bir kez)
+    dengeYuksek: 70, dengeYuksekDeger: +5,
+    dengeDusuk: 40, dengeDusukDeger: -4,
+    hazirlik: +3,                      // yarının olayına hazırlanıldıysa
+    kesifBasari: +5,                   // keşif başarıyla dönerse
+  },
 };
 
 const BASLANGIC = { enerji: 50, su: 50, gida: 50, atik: 35, karbon: 35 };
@@ -92,6 +106,8 @@ export function sifirla() {
   state.kart = null;            // bekleyen karar kartı (sabah çıkar)
   state.gosterilenKartlar = [];
   state.kartGeceEtki = {};      // karar kartından bu geceye eklenen etki
+  state.memnuniyet = AYAR.baslangicMemnuniyet; // sakinlerin yönetime güveni (görünür)
+  state.guvenDusukGece = 0;     // memnuniyetin üst üste kaç gece eşiğin altında kaldığı
   state.sefer = null;           // { yer, uid, kalan } aktif keşif seferi
   state.kesfedilenler = [];     // bu oyunda gidilmiş keşif noktaları
   for (const k of KURUCULAR) state.sakinler.push({ uid: state.sakinler.length + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
@@ -165,6 +181,7 @@ export function hazirlan() {
 function kartKosuluVar(k) {
   return k.kosul.every((c) => {
     if (c.gunMin != null) return state.gun >= c.gunMin;
+    if (c.memnuniyetAlti != null) return state.memnuniyet < c.memnuniyetAlti;
     const v = state.kaynak[c.kaynak];
     if (c.alti != null && !(v < c.alti)) return false;
     if (c.ust != null && !(v > c.ust)) return false;
@@ -194,6 +211,8 @@ export function kartSec(sec) {
   etkiUygula(sec.etki);
   state.kartGeceEtki = topla(state.kartGeceEtki, sec.geceEtki);
   if (sec.insanlik) state.insanlik = sinirla(state.insanlik + sec.insanlik);
+  if (sec.memnuniyet) state.memnuniyet = sinirla(state.memnuniyet + sec.memnuniyet);
+  if (sec.yorgunlukAzalt) for (const sk of state.sakinler) sk.yorgunluk = Math.max(0, (sk.yorgunluk || 0) - sec.yorgunlukAzalt);
   if (sec.arastirma) {
     state.arastirma.aktif = sec.arastirma.id;
     const biten = puanEkle(sec.arastirma.puan);
@@ -260,6 +279,7 @@ function seferSabahi() {
   if (basari) {
     etkiUygula(n.odul.kaynak);
     if (n.odul.insanlik) state.insanlik = sinirla(state.insanlik + n.odul.insanlik);
+    state.memnuniyet = sinirla(state.memnuniyet + AYAR.memnuniyet.kesifBasari);
     if (n.odul.arastirma) arastirmaBitti = puanEkle(n.odul.arastirma.puan, n.odul.arastirma.id);
   }
   // Eski görevine döner (makinesi başkasına verildiyse dinlenir)
@@ -547,6 +567,27 @@ function bilgiSec() {
   return BILGILER[anahtar];
 }
 
+// ---------------------------------------------------------------
+//  MEMNUNİYET (GDD bölüm 11, hafif siyaset)
+// ---------------------------------------------------------------
+// Gece sonunda memnuniyeti günceller; nedenleri rapor için döndürür
+function memnuniyetGecesi() {
+  const M = AYAR.memnuniyet;
+  const nedenler = [];
+  const ekle = (neden, deger) => { if (deger) nedenler.push({ neden, deger }); };
+  const kitlik = { enerji: 'Karanlık', su: 'Su kıtlığı', gida: 'Gıda kıtlığı' };
+  for (const [ad, neden] of Object.entries(kitlik)) if (state.kaynak[ad] < M.kitlikEsigi) ekle(neden, M.kitlik);
+  const yorgun = state.sakinler.filter((sk) => sk.gorev && (sk.yorgunluk || 0) >= AYAR.yorgunlukUyari).length;
+  if (yorgun) ekle(`${yorgun} kişi tükenmiş`, Math.max(M.yorgunEnFazla, M.yorgun * yorgun));
+  if (state.bugunBilgi.some((b) => b.kirli)) ekle('Kirli bir seçim yapıldı', M.kirli);
+  if (state.denge >= M.dengeYuksek) ekle('Sığınak iyi durumda', M.dengeYuksekDeger);
+  else if (state.denge < M.dengeDusuk) ekle('Sığınak kötüye gidiyor', M.dengeDusukDeger);
+  if (state.hazirlik) ekle('Yarına hazırlıklıyız', M.hazirlik);
+  const once = state.memnuniyet;
+  state.memnuniyet = sinirla(state.memnuniyet + nedenler.reduce((t, n) => t + n.deger, 0));
+  return { nedenler, degisim: state.memnuniyet - once };
+}
+
 function sonucBelirle() {
   const ayakta = state.denge >= AYAR.dengeEsigi;
   const acik = state.insanlik >= AYAR.insanlikEsigi;
@@ -616,12 +657,15 @@ export function gunuBitir() {
   for (const ad of Object.keys(once)) rapor[ad] = state.kaynak[ad] - once[ad];
   const ayrilanlar = yorgunlukGecesi();
   if (ayrilanlar.length) state.denge = dengeHesapla();
-  const ek = { arastirmaPuani: gece.puan, arastirmaBitti, bataryaKullanim: gece.bataryaKullanim, bataryaSarj: gece.bataryaSarj, ayrilanlar };
+  const memnuniyet = memnuniyetGecesi();
+  const ek = { arastirmaPuani: gece.puan, arastirmaBitti, bataryaKullanim: gece.bataryaKullanim, bataryaSarj: gece.bataryaSarj, ayrilanlar, memnuniyet };
   const bilgi = bilgiSec();
   state.bugunBilgi = [];
 
   let tip = 'devam';
-  if (state.denge <= AYAR.cokusEsigi || state.gun >= AYAR.maxGun) tip = sonucBelirle();
+  state.guvenDusukGece = state.memnuniyet <= AYAR.guvenOylamasiEsigi ? state.guvenDusukGece + 1 : 0;
+  if (state.guvenDusukGece >= AYAR.guvenOylamasiGece) tip = 'guvenKaybi'; // güven oylaması
+  else if (state.denge <= AYAR.cokusEsigi || state.gun >= AYAR.maxGun) tip = sonucBelirle();
 
   if (tip !== 'devam') {
     state.bitti = true;

@@ -3,13 +3,16 @@
 //  Koşulu sağlanan kart sabah, radyodan sonra çıkar. Her kart bir
 //  oyunda bir kez, günde en fazla bir kart. Sıra = öncelik.
 //
-//  kosul      : hepsi sağlanmalı. { kaynak, alti | ust } ya da { gunMin }
+//  kosul      : hepsi sağlanmalı. { kaynak, alti | ust }, { gunMin } ya da { memnuniyetAlti }
+//  sozcu      : { id, metin } -> bu sakin içerideyse kart onun ağzından anlatılır
 //  secenekler :
 //    ad, metin      : buton yazısı ve kısa açıklama
 //    etki           : hemen uygulanan değişim
 //    geceEtki       : bu gecenin hesabına eklenen değişim
 //    maliyet        : eylem hakkı (varsayılan 0)
 //    insanlik       : gizli insanlık puanına eklenir
+//    memnuniyet     : sakinlerin memnuniyetine eklenir (GDD bölüm 11)
+//    yorgunlukAzalt : tüm sakinlerin yorgunluğundan düşülür
 //    arastirma      : { id, puan } -> o projeyi aktif yapar ve puan ekler
 //                     (proje zaten açıksa seçenek gizlenir)
 //    kirli, panel   : kirli seçenek (kırmızı); panel = dumanın çıktığı makine
@@ -19,6 +22,22 @@
 // =============================================================
 
 export const KARTLAR = [
+  {
+    // Hafif siyaset (GDD bölüm 11): eleştiri kötü karakter değildir, baskıcı seçenek yoktur
+    id: 'itiraz',
+    baslik: 'Sakinlerin itirazı',
+    metin: 'Sakinler toplandı. Kesintilerden, yorgunluktan ve verilen kararlardan şikâyetçiler. Bir sözcü seni dinlemeye çağırıyor.',
+    sozcu: { id: 'tamirci', metin: 'Kemal sakinleri topladı: "Daha hızlı çözümler lazım. İnsanlar yorgun, ışıklar sönüyor." Haklı olduğu yerler var. Ne yapacaksın?' },
+    kosul: [{ memnuniyetAlti: 35 }],
+    secenekler: [
+      { ad: 'Toplantı yap, itirazları tek tek dinle', maliyet: 1, memnuniyet: +15,
+        sonuc: 'Herkes söz aldı. Bazı kararlar değişmedi ama neden alındıkları artık anlaşılıyor.' },
+      { ad: 'Uzlaş: herkese bir gece dinlenme sözü ver', yorgunlukAzalt: 2, memnuniyet: +10, geceEtki: { enerji: -6, gida: -4 },
+        sonuc: 'Makineler bu gece yavaş çalışacak ama sakinler nefes aldı.' },
+      { ad: 'Kararlarımın arkasındayım', memnuniyet: -8,
+        sonuc: 'Toplantı sessizce dağıldı. Güven bir kez sarsılınca geri kazanmak zor; bu böyle sürerse yönetim oylanabilir.' },
+    ],
+  },
   {
     id: 'karanlik',
     baslik: 'Karanlıkta kalan koloni',
@@ -83,7 +102,7 @@ export const KARTLAR = [
         sonuc: 'Herkes bir fidan dikti. Küçük ama somut bir adım.', bilgi: 'agac' },
       { ad: 'Batarya araştırmasına öncelik ver', arastirma: { id: 'batarya', puan: 3 },
         sonuc: 'Depolama olmadan temiz enerji gece yetmiyor. Laboratuvar bataryaya odaklandı.', bilgi: 'batarya' },
-      { ad: 'Biraz daha süre iste', insanlik: -5,
+      { ad: 'Biraz daha süre iste', memnuniyet: -10,
         sonuc: 'Sakinler ikna olmadı. Verilen sözlerin ertelenmesi güveni aşındırır.', bilgi: 'fosil' },
     ],
   },

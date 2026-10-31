@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import GameScene from './scenes/GameScene.js';
+import GameScene, { CIZIM_OLCEGI } from './scenes/GameScene.js';
 import { sifirla, state } from './state.js';
 import * as ui from './ui/ui.js';
 import './style.css';
@@ -11,8 +11,9 @@ ui.hudKur();
 window.oyun = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'oyun',
-  width: 960,
-  height: 540,
+  // Dünya 960×540 koordinatlı; tuval CIZIM_OLCEGI kat büyük, kamera zoom'la çizer (netlik)
+  width: 960 * CIZIM_OLCEGI,
+  height: 540 * CIZIM_OLCEGI,
   backgroundColor: '#0a0814',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   scene: [GameScene],

@@ -23,8 +23,37 @@ const YER_TUTUCULAR = new Set();
 const EKSIK_ASSETLER = new Set();
 // Görsellerin şeffaf olmayan içerik kutusu (üst/alt satır), doku anahtarına göre önbellek
 const ICERIK_KUTULARI = new Map();
-const EKRAN_G = 960;
+const EKRAN_G = 960;   // oyun dünyası koordinatlarında ekran boyutu (değişmez)
 const EKRAN_Y = 540;
+// Çizim ölçeği: oyun 1920×1080 tuvale kamera zoom'uyla çizilir. Koordinatlar
+// 960×540 kalır, görseller ve yazılar 2 kat net görünür (main.js de bunu kullanır).
+export const CIZIM_OLCEGI = 2;
+// Zoom'da ekrana sabit/paralaks katmanların kayması: (tuval - tuval/zoom) / 2
+const SABIT_X = (EKRAN_G * CIZIM_OLCEGI - EKRAN_G) / 2;
+const SABIT_Y = (EKRAN_Y * CIZIM_OLCEGI - EKRAN_Y) / 2;
+// Yüklenen büyük görseller oyundaki boyutlarının bu katına yüksek kaliteyle küçültülür
+// (WebGL'in 15-25 kat küçültmede yaptığı tırtıklanmayı önler)
+const DOKU_PAYI = 1.5;
+const KUCULTULEN = new Set();
+
+// Görseli adım adım yarıya indirerek yüksek kaliteyle küçültür (canvas döndürür)
+function yuksekKaliteKucult(img, w, h) {
+  let kaynak = img, sw = img.width, sh = img.height;
+  const ciz = (cw, ch) => {
+    const c = document.createElement('canvas');
+    c.width = cw; c.height = ch;
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(kaynak, 0, 0, cw, ch);
+    return c;
+  };
+  while (sw / 2 >= w && sh / 2 >= h) {
+    kaynak = ciz(Math.round(sw / 2), Math.round(sh / 2));
+    sw = kaynak.width; sh = kaynak.height;
+  }
+  return ciz(w, h);
+}
 
 // Kirli eylemlerde dumanın hangi odadan çıkacağı (dekorCiz ile uyumlu)
 const DUMAN_KONUMU = {
@@ -59,6 +88,9 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    // Yazılar da çizim ölçeğinde render edilsin (zoom'da bulanık olmasın)
+    const yaziUret = this.add.text.bind(this.add);
+    this.add.text = (...a) => yaziUret(...a).setResolution(CIZIM_OLCEGI);
     this.dunyaG = ODALAR.length * ODA_GENISLIK;
     this.nesneler = [];
     this.lambalar = [];
@@ -71,6 +103,7 @@ export default class GameScene extends Phaser.Scene {
     this.lambaTitremeTimer = null;
 
     this.dokulariUret();
+    this.assetleriKucult();
     if (!this.assetRaporu) {
       this.assetRaporu = true;
       const yuklenen = Object.keys(ASSETLER).filter((k) => this.gercekAsset(k));
@@ -81,11 +114,12 @@ export default class GameScene extends Phaser.Scene {
     this.oyuncuOlustur();
     this.animasyonlariYukle();
 
+    this.cameras.main.setZoom(CIZIM_OLCEGI);
     this.cameras.main.setBounds(0, 0, this.dunyaG, EKRAN_Y);
     this.cameras.main.startFollow(this.oyuncu, true, 0.12, 0.12);
 
     // Atmosfer katmanı: denge düştükçe ekran kararır
-    this.atmosfer = this.add.rectangle(0, 0, EKRAN_G, EKRAN_Y, 0x2a1608, 0).setOrigin(0).setScrollFactor(0).setDepth(40);
+    this.atmosfer = this.ekranaSabitle(this.add.rectangle(0, 0, EKRAN_G, EKRAN_Y, 0x2a1608, 0).setOrigin(0).setDepth(40), 0);
 
     // Dış dünyada süzülen toz/kül (denge düşükken açılır)
     this.disToz = this.add.particles(0, 0, 'toz', {
@@ -100,7 +134,8 @@ export default class GameScene extends Phaser.Scene {
       frequency: 220,
       quantity: 1,
       emitting: false,
-    }).setDepth(-6).setScrollFactor(0.3);
+    }).setDepth(-6);
+    this.ekranaSabitle(this.disToz, 0.3);
 
     // Oyuncunun ayağının altında ara ara çıkan toz
     this.ayakTozu = this.add.particles(0, 0, 'toz', {
@@ -273,6 +308,50 @@ export default class GameScene extends Phaser.Scene {
   // ---------------------------------------------------------------
   //  DIŞ DÜNYA: gökyüzü, güneş ve parallax şehir silueti
   // ---------------------------------------------------------------
+  // Ekrana sabit (f=0) ya da paralaks (0<f<1) katmanı ayarlar. Kamera zoom'u
+  // ekran merkezinden yaptığı için katman (1-f) oranında kaydırılır; böylece
+  // 960×540 koordinatlarıyla yazılmış katmanlar zoom öncesiyle aynı yerde görünür.
+  ekranaSabitle(nesne, f) {
+    nesne.setScrollFactor(f);
+    nesne.x += SABIT_X * (1 - f);
+    nesne.y += SABIT_Y * (1 - f);
+    return nesne;
+  }
+
+  // Büyük görseli oyundaki boyutunun DOKU_PAYI katına yüksek kaliteyle küçültür
+  // ve dokuyu bununla değiştirir. hedefYukseklik: görünen içeriğin oyundaki boyu.
+  dokuKucult(anahtar, hedefYukseklik, tumGorsel = false) {
+    if (KUCULTULEN.has(anahtar) || !this.textures.exists(anahtar) || YER_TUTUCULAR.has(anahtar)) return;
+    KUCULTULEN.add(anahtar);
+    const img = this.textures.get(anahtar).getSourceImage();
+    const kutu = tumGorsel ? { ust: 0, alt: img.height, h: img.height } : this.icerikKutusu(anahtar);
+    const oran = (hedefYukseklik * CIZIM_OLCEGI * DOKU_PAYI) / Math.max(1, kutu.alt - kutu.ust);
+    if (oran >= 1) return; // zaten küçük
+    const w = Math.max(1, Math.round(img.width * oran));
+    const h = Math.max(1, Math.round(img.height * oran));
+    const tuval = yuksekKaliteKucult(img, w, h);
+    this.textures.remove(anahtar);
+    this.textures.addCanvas(anahtar, tuval);
+    ICERIK_KUTULARI.delete(anahtar); // yeni boyutta yeniden ölçülsün
+  }
+
+  // Animasyon karesini verilen oranla küçültür (tüm kareler aynı oranla)
+  dokuKucultOran(anahtar, oran) {
+    if (KUCULTULEN.has(anahtar) || !this.textures.exists(anahtar)) return;
+    KUCULTULEN.add(anahtar);
+    if (oran >= 1) return;
+    const img = this.textures.get(anahtar).getSourceImage();
+    const tuval = yuksekKaliteKucult(img, Math.max(1, Math.round(img.width * oran)), Math.max(1, Math.round(img.height * oran)));
+    this.textures.remove(anahtar);
+    this.textures.addCanvas(anahtar, tuval);
+    ICERIK_KUTULARI.delete(anahtar);
+  }
+
+  // Yüklenen tüm assetleri küçült (oyun başında bir kez; restart'ta atlanır)
+  assetleriKucult() {
+    for (const [anahtar, a] of Object.entries(ASSETLER)) this.dokuKucult(anahtar, a.yukseklik, !!a.arka);
+  }
+
   // Yer tutucu dokuyu sadece o anahtarda doku yoksa üretir
   dokuUret(g, anahtar, w, h) {
     if (this.textures.exists(anahtar)) return;
@@ -368,6 +447,10 @@ export default class GameScene extends Phaser.Scene {
         const kareler = Array.from({ length: a.kare }, (_, i) => animKareAnahtari(ad, i + 1));
         const var_ = kareler.filter((k) => this.textures.exists(k)).length;
         if (var_ === a.kare) {
+          // Kareler ortak kutuya göre küçültülür (karelerin oranı korunur)
+          const kutu = this.animKutusu(ad);
+          ICERIK_KUTULARI.delete('anim-kutu:' + ad);
+          for (const k of kareler) this.dokuKucultOran(k, (ASSETLER[a.sahip].yukseklik * CIZIM_OLCEGI * DOKU_PAYI) / Math.max(1, kutu.alt - kutu.ust));
           this.anims.create({ key: ad, frames: kareler.map((key) => ({ key })), frameRate: a.fps, repeat: a.dongu ? -1 : 0 });
           kurulan.push(ad);
         } else if (var_ > 0) {
@@ -412,12 +495,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   disariCiz() {
-    this.gokyuzu = this.add.rectangle(0, 0, EKRAN_G, EKRAN_Y, 0x8fd3ff).setOrigin(0).setScrollFactor(0).setDepth(-10);
-    this.gunes = this.add.circle(780, 90, 34, 0xfff3b0).setScrollFactor(0.05).setDepth(-9);
+    this.gokyuzu = this.ekranaSabitle(this.add.rectangle(0, 0, EKRAN_G, EKRAN_Y, 0x8fd3ff).setOrigin(0).setDepth(-10), 0);
+    this.gunes = this.ekranaSabitle(this.add.circle(780, 90, 34, 0xfff3b0).setDepth(-9), 0.05);
 
     // Uzak şehir (yavaş kayar) ve yakın binalar (biraz daha hızlı)
-    this.uzakSehir = this.add.graphics().setScrollFactor(0.2).setDepth(-8);
-    this.yakinSehir = this.add.graphics().setScrollFactor(0.45).setDepth(-7);
+    this.uzakSehir = this.ekranaSabitle(this.add.graphics().setDepth(-8), 0.2);
+    this.yakinSehir = this.ekranaSabitle(this.add.graphics().setDepth(-7), 0.45);
     this.sehirSekilleri = { uzak: [], yakin: [] };
     const uret = (liste, genislik, minH, maxH) => {
       let x = -50;
@@ -436,7 +519,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.gercekAsset('manzara-iyi')) {
       const genislik = this.dunyaG * 0.2 + EKRAN_G;
       const katman = (anahtar, derinlik) => {
-        const k = this.add.tileSprite(0, 0, genislik, ZEMIN_Y, anahtar).setOrigin(0).setScrollFactor(0.2).setDepth(derinlik);
+        const k = this.ekranaSabitle(this.add.tileSprite(0, 0, genislik, ZEMIN_Y, anahtar).setOrigin(0).setDepth(derinlik), 0.2);
         const o = ZEMIN_Y / this.textures.get(anahtar).getSourceImage().height;
         k.setTileScale(o, o);
         return k;
@@ -791,13 +874,15 @@ export default class GameScene extends Phaser.Scene {
       fontSize: '110px',
       color: '#eaffd4',
       stroke: '#0a140f', strokeThickness: 6,
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(60).setAlpha(0);
+    }).setOrigin(0.5).setDepth(60).setAlpha(0);
+    this.ekranaSabitle(buyuk, 0);
     const kucuk = this.add.text(cx, cy + 58, olayAd || '', {
       fontFamily: '"IBM Plex Mono", monospace',
       fontSize: '22px', fontStyle: 'bold',
       color: '#9fd36b',
       stroke: '#0a140f', strokeThickness: 4,
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(60).setAlpha(0);
+    }).setOrigin(0.5).setDepth(60).setAlpha(0);
+    this.ekranaSabitle(kucuk, 0);
 
     this.tweens.add({
       targets: [buyuk, kucuk], alpha: 1, duration: 300, ease: 'Sine.easeOut',

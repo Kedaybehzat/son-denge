@@ -107,7 +107,7 @@ function oyna(stilAd, stil, kapi, r) {
   }
 }
 
-const SONLAR = ['gercekUtopya', 'yalnizUtopya', 'kapimizAcikti', 'cokus'];
+const SONLAR = ['gercekUtopya', 'yalnizUtopya', 'kapimizAcikti', 'cokus', 'guvenKaybi'];
 console.log(`Her satır ${N} oyun. Sonların yüzdesi:\n`);
 console.log('stil      kapı         ' + SONLAR.map((s) => s.padEnd(14)).join('') + 'ort.denge  erken bitiş  ort.arş');
 for (const [sAd, stil] of Object.entries(STILLER)) {
