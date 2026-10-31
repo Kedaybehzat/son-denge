@@ -22,6 +22,7 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Hazırlıklı olaylar (tahmin, hazırlık) | Veri: `events.js` (`uyari`, `hazirlik`, `HAZIRLIK_MALIYETI`); kurallar: `state.js` → `state.tahmin`, `olayEtkisi()`, `hazirlan()`, `gunuBitir()` (tahmin → olay); arayüz: `ui.js` → `tahminHtml()`, `olayHtml()`, `hazirlikBagla()` |
 | Eğitici karar kartları | Veri: `src/data/cards.js` → `KARTLAR`; kurallar: `state.js` → `kartKontrol()` (gunuBitir sonunda), `kartSec()`, `kartSecenekleri()`, `state.kartGeceEtki` (geceHesapla); arayüz: `ui.js` → `kararKartiGoster()`, `sabahGoster()` |
 | Keşif (sefer, dönüş) | Veri: `src/data/exploration.js` → `KESIF_NOKTALARI`; kurallar: `state.js` → `kesfeGonder()`, `kesifSansi()`, `seferSabahi()` (gunuBitir sabahı), `state.sefer`; arayüz: `ui.js` → `kesifHtml()` (pano), `seferHtml()` (gece raporu); sahne: `sakinGuncelle()` keşiftekini gizler |
+| Memnuniyet, itiraz kartı, güven oylaması | `state.js` → `AYAR.memnuniyet*`, `memnuniyetGecesi()`, `state.guvenDusukGece`, `gunuBitir()` (`guvenKaybi` sonu); kart: `cards.js` → `itiraz`; arayüz: `ui.js` → HUD `[data-memnuniyet]`, `memnuniyetHtml()`, `SONLAR.guvenKaybi` |
 | Araştırma ve batarya | `src/state.js` → `arastirmaSec()`, `masadaArastir()`, `puanEkle()`, `geceHesapla()`; veri: `src/data/research.js` |
 | Görev ve Araştırma Panosu arayüzü | `ui.js` → `panoAc()`, `panoCiz()`; nesne: `rooms.js` (`tip: 'pano'`), doku: `GameScene.js` → `dokulariUret()` |
 | Panel eylemi yapma kuralları | `src/state.js` → `eylemYapabilirMi()`, `eylemYap()` |
@@ -36,6 +37,7 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Animasyonlar (kare yükleme, oynatma) | Tanım: `src/data/animations.js` → `ANIMASYONLAR`; yükleme: `GameScene.js` → `preload()` (1. kare), `animasyonlariYukle()`; oynatma: `animOynat()`, `animDurdur()`, `makineAnimGuncelle()`, `sakinAnimGuncelle()`, `update()` (oyuncu), `efektZiyaretci()` (kapı); dosyalar: `public/assets/anim/` |
 | Arka planlar (oda, manzara) | `GameScene.js` → `evCiz()` (oda-*), `disariCiz()` + `gorselUygula()` (manzara-*, iyi↔kötü geçiş) |
 | Portre ve hikaye görselleri (HTML) | `ui.js` → `portreRozet()`, `portreBuyuk()`, `girisHikayesi()`; yollar: `assets.js` → `portreDosyasi()`, `hikayeDosyasi()` |
+| Çizim netliği (2× tuval + zoom, asset küçültme) | `GameScene.js` → `CIZIM_OLCEGI`, `SABIT_X/Y`, `ekranaSabitle()`, `yuksekKaliteKucult()`, `dokuKucult()`, `dokuKucultOran()`, `assetleriKucult()`; tuval boyu: `src/main.js` |
 | Görsel içerik kutusu (şeffaf boşluk hariç ölçek) | `GameScene.js` → `icerikKutusu()`, `animKutusu()`, `olcekle()`, `gorunurY()` |
 | Görsel yükleme (public/assets) ve yer tutucular | Liste + hedef yükseklik: `src/data/assets.js` → `ASSETLER`; yükleme: `GameScene.js` → `preload()`; yer tutucu: `dokulariUret()` / `dokuUret()`; ölçek: `olcekle()`, `dokuAnahtari()`, `gercekAsset()`; dosyalar: `public/assets/` |
 | Dışarısı, şehir silueti | `GameScene.js` → `disariCiz()`, `sehirBoya()` |
@@ -87,6 +89,7 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | D6 | Simülasyon artık görev atama + araştırma seçimini kullanıyor; akıllı stilde ortalama 1.67 araştırma açılıyor. Faz 1 sayıları hâlâ tarayıcıda insan tarafından playtest edilmedi | `tools/simulasyon.mjs` | 2026-10-31 |
 | D10 | Yorgunluk ayarlarıyla dinlendirme stratejisi kötü: herkes 0'dan başlayıp 4. gece aynı anda riske giriyor; riskteki herkesi dinlendiren akıllı stil iyi sonu %82 → %20 düşürüyor. Öneri: kurucuları farklı yorgunlukla başlatmak ya da dinlenmeyi −3 / eşiği 5 yapmak (karar bekliyor) | `AYAR.yorgunluk*`, `KURUCULAR` | 2026-11-01 |
 | D12 | Hazırlıklı olaylarla zararlı olaylar ~1,6 kat sertleştirildi (hazırlık bir eylem değerinde olsun diye). Toplam zorluk arttı: akıllı+herkesi al iyi son %83 → %61 (hazırlanarak; hazırlıksız %62). 1,3 katta hazırlık bazen kötü seçim çıkıyordu. Dengeleme D10 ile birlikte yapılmalı | `events.js`, `AYAR` | 2026-11-01 |
+| D13 | Sakin görselleri (`sakin-1..4`) sıraya göre dağıtılıyor, isimli karakterlerle eşleşmiyor: ilk sakin Selin (genç kadın) sahnede `sakin-1` (asalı yaşlı işçi) olarak görünüyor. Çözüm: kurucu/ziyaretçiye özel sprite (`sakin-<id>.png`) ya da sakin-N'leri kurucuların tarifine göre üretmek | `GameScene.js` → `sakinGuncelle()`, `assets.js` | 2026-11-01 |
 
 ---
 
@@ -107,19 +110,20 @@ Kaynak: `src/data/assets.js` (`ASSETLER`). Kod değişikliği gerekmez.
 
 | Dosya | Ne | Yükseklik | Prompt | Durum | Eklendi |
 |---|---|---|---|---|---|
-| `oyuncu.png` | Ana karakter, sağa bakıyor | 72 px | 6.5 Karakter | ✅ (256×768, 01.11) | 31.10 |
+| `oyuncu.png` | Ana karakter, sağa bakıyor | 72 px | 6.5 Karakter | ✅ (512×768, 01.11 güncellendi) | 31.10 |
 | `panel.png` | Genel kontrol paneli (tüm odalarda) | 100 px | 6.5 Kontrol paneli | ✅ (918×1334, 01.11) | 31.10 |
-| `panel-enerji.png` | Enerji odası paneli | 100 px | 6.5 varyasyon | 💤 | 31.10 |
-| `panel-su.png` | Su arıtma paneli | 100 px | 6.5 varyasyon | 💤 | 31.10 |
-| `panel-sera.png` | Sera paneli | 100 px | 6.5 varyasyon | 💤 | 31.10 |
-| `panel-geri.png` | Geri dönüşüm paneli | 100 px | 6.5 varyasyon | 💤 | 31.10 |
-| `radyo.png` | Radyo + küçük masa | 80 px | 6.5 Radyo | ⏳ | 31.10 |
-| `pano.png` | Görev ve araştırma panosu (ayaklı mantar pano) | 110 px | 6.5 Görev panosu | ⏳ | 31.10 |
-| `yatak.png` | Yatak (günü bitirir) | 60 px | 6.5 Yatak | ⏳ | 31.10 |
-| `kapi.png` | Sığınak kapısı | 120 px | 6.5 Kapı | ⏳ | 31.10 |
-| `bitki.png` | Sera bitkisi, sağlıklı | 56 px | 6.5 Bitki | ⏳ | 31.10 |
+| `panel-enerji.png` | Enerji odası paneli | 100 px | 6.5 varyasyon | ✅ (1040×1512, 01.11) | 31.10 |
+| `panel-su.png` | Su arıtma paneli | 100 px | 6.5 varyasyon | ✅ (1040×1512, 01.11) | 31.10 |
+| `panel-sera.png` | Sera paneli | 100 px | 6.5 varyasyon | ✅ (1040×1512, 01.11) | 31.10 |
+| `panel-geri.png` | Geri dönüşüm paneli | 100 px | 6.5 varyasyon | ✅ (1040×1512, 01.11) | 31.10 |
+| `radyo.png` | Radyo + küçük masa | 80 px | 6.5 Radyo | ✅ (1254×1254, 01.11) | 31.10 |
+| `pano.png` | Görev ve araştırma panosu (ayaklı mantar pano) | 110 px | 6.5 Görev panosu | ✅ (1081×1455, 01.11) | 31.10 |
+| `yatak.png` | Yatak (günü bitirir) | 60 px | 6.5 Yatak | ✅ (1862×845, 01.11) | 31.10 |
+| `kapi.png` | Sığınak kapısı | 120 px | 6.5 Kapı | ✅ (933×1686, 01.11) | 31.10 |
+| `bitki.png` | Sera bitkisi, sağlıklı | 56 px | 6.5 Bitki | ✅ (1024×1536, 01.11) | 31.10 |
 | `bitki-solgun.png` | Sera bitkisi, solgun (gıda/denge düşünce) | 56 px | 6.5 Bitki | 💤 | 31.10 |
-| `sakin-1.png` … `sakin-4.png` | Sığınakta dolaşan sakinler (4 farklı kişi) | 64 px | 6.5 Sakinler | ⏳ | 31.10 |
+| `sakin-1.png` | Sakin 1: asalı yaşlı işçi | 64 px | 6.5 Sakinler | ✅ (1024×1536, 01.11) | 31.10 |
+| `sakin-2.png` … `sakin-4.png` | Diğer sakinler (6.5: genç kadın atkılı, önlüklü orta yaşlı adam, şapkalı genç kız) | 64 px | 6.5 Sakinler | ⏳ | 31.10 |
 | `oda-yasam.png` | Yaşam Alanı arka planı (duvarın üstüne biner; **pencereyi şeffaf bırakın**, dışarısı görünsün) | 640×280'e gerilir | 6.6 | ⏳ | 31.10 |
 | `oda-enerji.png` | Enerji Odası arka planı | 640×280 | 6.6 | ⏳ | 31.10 |
 | `oda-su.png` | Su Arıtma arka planı | 640×280 | 6.6 | ⏳ | 31.10 |
@@ -184,6 +188,72 @@ Oyunda `GameScene.js` → `dekorCiz()` / `evCiz()` içinde kodla çiziliyor. Gö
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz3-hafif-siyaset` → `main`
+
+- **Prompt:** Push, merge; geliştirmeye devam.
+- **Yapılan değişiklik:** Hafif siyaset, isimlendirilen 10 asset, HUD taşma düzeltmesi ve çizim netliği commit'lenip PR ile `main`'e merge edildi.
+
+| Dosya | Açıklama |
+|---|---|
+| `PROJECT_LOG.md` | Bu kayıt |
+
+- **Debt:** Yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz3-hafif-siyaset`
+
+- **Prompt:** Yüklediğimiz görseller oyunda çok pikselli görünüyor, kaynak kalite düşük değil.
+- **Yapılan değişiklik:** İki neden giderildi: (1) 1000–1800 px görseller WebGL'de 15–25 kat tek adımda küçültülüyordu (tırtıklanma) → yüklenince oyundaki boylarının ~3 katına adım adım yüksek kaliteyle küçültülüyor (ör. kapı 933×1686 → 200×361); (2) oyun 960×540 çizilip ekrana büyütülüyordu → tuval 1920×1080, kamera zoom 2, yazılar 2× çözünürlük. Oyun koordinatları değişmedi; ekrana sabit/paralaks katmanlar zoom kaymasına göre düzeltildi. 1920×1080 headless ekran görüntüsünde yerleşim öncekiyle aynı, görseller net; gün başlığı normal şekilde açılıp kayboluyor.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/scenes/GameScene.js` | `CIZIM_OLCEGI`, kamera zoom; `ekranaSabitle()` (gökyüzü, güneş, şehir, manzara, atmosfer, dış toz, gün başlığı); `yuksekKaliteKucult()`, `dokuKucult()`, `dokuKucultOran()` (animasyon kareleri ortak oranla), `assetleriKucult()`; `this.add.text` 2× çözünürlük |
+| `src/main.js` | Tuval 960×540 → 1920×1080 (`CIZIM_OLCEGI`) |
+| `CLAUDE.md` | Bölüm 5: görüntü kalitesi notu |
+
+- **Debt:** Yok. Not: gelecekte ekrana sabit katman eklenecekse `setScrollFactor` yerine `ekranaSabitle()` kullanılmalı.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz3-hafif-siyaset`
+
+- **Prompt:** Attığım asset'leri isimlendirir misin?
+- **Yapılan değişiklik:** `public/assets/`'e Türkçe adlarla konan 13 dosya oyun adlarına çevrildi; 3 bayt-bayt aynı kopya silindi. Hepsinin arka planı şeffaf (köşe alfa 0, tarayıcıda ölçüldü). Sahnede ekran görüntüsüyle doğrulandı. Aynı kontrolde HUD'ın sağa taştığı (denge göstergesi kesik; memnuniyet göstergesi eklenince) görüldü ve düzeltildi. Ayrıca ekip `oyuncu.png`'yi 512×768 sürümle güncellemiş.
+
+| Eski ad | Yeni ad |
+|---|---|
+| Güneş enerjisi kontrol konsolu.png | `panel-enerji.png` |
+| Su arıtma kontrol konsolu-4.png (+ aynısı, silindi) | `panel-su.png` |
+| Sera kontrol konsolu-2.png (+ aynısı, silindi) | `panel-sera.png` |
+| Geri dönüşüm kontrol konsolu-3.png (+ aynısı, silindi) | `panel-geri.png` |
+| Yıpranmış ahşap tek kişilik yatak-5.png | `yatak.png` |
+| Terrakota radyolu küçük yan sehpa-6.png | `radyo.png` |
+| Ayaklı mantar görev panosu-7.png | `pano.png` |
+| Takviyeli eko sığınak kapısı-8.png | `kapi.png` |
+| Terrakota saksıda yapraklı sebze fidesi-9.png | `bitki.png` |
+| Asalı yaşlı işçi-10.png | `sakin-1.png` |
+
+| Dosya | Açıklama |
+|---|---|
+| `public/assets/*.png` | Yukarıdaki yeniden adlandırmalar |
+| `src/style.css` | HUD aralıkları daraltıldı (taşma düzeltmesi) |
+| `PROJECT_LOG.md` | Asset Listesi A güncellendi (12/23 görsel), D13 |
+
+- **Asset durumu:** 12/23 görsel, 1/13 animasyon. Eksik: `bitki-solgun`, `sakin-2..4`, `oda-*` (5), `manzara-*` (2); B tablosundaki portreler/hikaye.
+- **Debt:** Yeni D13 (sakin görselleri isimli karakterlerle eşleşmiyor).
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz3-hafif-siyaset`
+
+- **Prompt:** (PR #4 merge sonrası) geliştirmeye devam.
+- **Yapılan değişiklik:** GDD bölüm 11 hafif siyaset: görünür memnuniyet (yalnızca sürdürülebilirlik kararlarına bağlı), düşük memnuniyette itiraz kartı (Kemal içerideyse onun ağzından), üst üste 2 gece dipte kalırsa "Güven oylaması" sonu. İlk ayarla güven kaybı rastgele/kirli oyunlarda %77–100 çıkıyordu; cezalar yumuşatılıp oylama "üst üste 2 gece" koşuluna bağlandı → akıllı %0, rastgele %3–6, kirli %31–49. Headless test: HUD 🙂 60, rapor "Karanlık −6, Kirli −3", uyarı, Kemal'li itiraz kartı.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/state.js` | `AYAR` memnuniyet ayarları; `state.memnuniyet/guvenDusukGece`; `memnuniyetGecesi()`; `guvenKaybi` sonu; kart seçeneklerinde `memnuniyet`, `yorgunlukAzalt`; kart koşulu `memnuniyetAlti`; keşif başarısı +5 |
+| `src/data/cards.js` | `itiraz` kartı (en öncelikli, `sozcu: tamirci`); "Süre iste" insanlık yerine memnuniyet −10 |
+| `src/ui/ui.js` | HUD memnuniyet göstergesi; gece raporunda `memnuniyetHtml()` + uyarılar; kartta sözcü metni ve yeni chip'ler ("bu gece" en sonda); `guvenKaybi` son metni; son ekranında memnuniyet |
+| `tools/simulasyon.mjs` | `guvenKaybi` sütunu |
+| `CLAUDE.md` | 4.8 beşinci son, 4.11 tablo (güven kaybı sütunu), 4.18 yeni bölüm |
+
+- **Debt:** Yok (sayılar [DENGE TASLAĞI]). GDD Faz 3 tamamlandı; GDD'den yapılmayan tek büyük madde grid inşa + oda komşulukları. Asset gerektiren yeni nesne yok. Commit atılmadı.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `faz3-kesif` → `main`
 

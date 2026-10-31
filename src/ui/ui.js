@@ -128,6 +128,11 @@ export function hudKur() {
         <div class="bar"><i data-ar-bar></i></div>
         <b data-ar-puan></b>
       </div>
+      <div class="kaynak hud-memnuniyet" data-memnuniyet title="Sakinlerin memnuniyeti (yönetime güven)">
+        <span class="ikon">🙂</span>
+        <div class="bar"><i data-mem-bar></i></div>
+        <b data-mem></b>
+      </div>
       <div class="kaynak hud-batarya" data-batarya title="Batarya deposu">
         <span class="ikon">🔋</span>
         <div class="bar"><i data-bat-bar></i></div>
@@ -174,6 +179,15 @@ function hudGuncelle(s) {
   } else {
     arBox.style.display = 'none';
   }
+
+  // Memnuniyet göstergesi (GDD bölüm 11)
+  const mem = s.memnuniyet ?? AYAR.baslangicMemnuniyet;
+  const memBar = hud.querySelector('[data-mem-bar]');
+  memBar.style.width = mem + '%';
+  memBar.className = mem >= 50 ? 'iyi' : mem >= AYAR.itirazEsigi ? 'orta' : 'kotu';
+  hud.querySelector('[data-mem]').textContent = mem;
+  hud.querySelector('[data-memnuniyet] .ikon').textContent = mem >= 50 ? '🙂' : mem >= AYAR.itirazEsigi ? '😐' : '😠';
+  hud.querySelector('[data-memnuniyet]').title = `Memnuniyet ${mem}/100. Üst üste ${AYAR.guvenOylamasiGece} gece ${AYAR.guvenOylamasiEsigi} veya altında kalırsa güven oylaması yapılır.`;
 
   // Batarya göstergesi: ancak Batarya Deposu araştırması bittiyse
   const batBox = hud.querySelector('[data-batarya]');
@@ -360,7 +374,7 @@ function bilgiHtml(b) {
 }
 
 // Gün geçişi iki adım: önce gece raporu + bilgi kartı, sonra sabah radyosu
-export function gunBaslangici({ rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj, ayrilanlar = [], sefer = null }) {
+export function gunBaslangici({ rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj, ayrilanlar = [], sefer = null, memnuniyet = null }) {
   const gitti = gidenZiyaretci
     ? `<p class="uyari">🚪 ${kacis(gidenZiyaretci.ad)} kapıda beklemekten vazgeçip gitti.</p>`
     : '';
@@ -372,11 +386,24 @@ export function gunBaslangici({ rapor, bilgi, gidenZiyaretci, arastirmaPuani, ar
     ${bataryaSarj ? `<div class="rapor"><span>Batarya:</span><span class="chip iyi">🔋 ${bataryaSarj} fazla enerji depolandı</span></div>` : ''}
     ${arastirmaBitti ? `<p class="mesaj">&gt; ${ARASTIRMALAR[arastirmaBitti].ikon} ${kacis(ARASTIRMALAR[arastirmaBitti].ad)} tamamlandı! ${kacis(ARASTIRMALAR[arastirmaBitti].aciklama)}</p>` : ''}
     ${ayrilanlar.map((z) => `<p class="uyari">😮‍💨 ${kacis(z.ad)} tükenmişti ve gece sessizce sığınaktan ayrıldı.</p>`).join('')}
+    ${memnuniyetHtml(memnuniyet)}
     ${gitti}
     ${seferHtml(sefer)}
     ${sefer?.basari && sefer.bilgi ? '' : bilgiHtml(bilgi)}
     <div class="alt sag"><button data-sabah data-varsayilan>Sabah oldu</button></div>`, { kapatma: false, sinif: 'gece' });
   kart.querySelector('[data-sabah]').addEventListener('click', sabahGoster);
+}
+
+// Gecelik memnuniyet değişimi ve nedenleri
+function memnuniyetHtml(m) {
+  if (!m || !m.nedenler.length) return '';
+  const chipler = m.nedenler.map((n) => `<span class="chip ${n.deger > 0 ? 'iyi' : 'kotu'}">${kacis(n.neden)} ${n.deger > 0 ? '+' : '−'}${Math.abs(n.deger)}</span>`).join('');
+  const uyari = state.guvenDusukGece > 0
+    ? `<p class="uyari">⚠ Sakinler güven oylaması istiyor! Memnuniyet yarın gece de ${AYAR.guvenOylamasiEsigi} veya altında kalırsa yönetim el değiştirecek.</p>`
+    : state.memnuniyet < AYAR.itirazEsigi
+      ? `<p class="uyari">😠 Memnuniyet ${state.memnuniyet}. Üst üste ${AYAR.guvenOylamasiGece} gece ${AYAR.guvenOylamasiEsigi} veya altında kalırsa sakinler yönetimi oylayacak.</p>`
+      : '';
+  return `<div class="rapor"><span>Memnuniyet (${m.degisim >= 0 ? '+' : ''}${m.degisim} → ${state.memnuniyet}):</span>${chipler}</div>${uyari}`;
 }
 
 // Sabah dönen keşif seferinin sonucu (gece raporunda)
@@ -424,9 +451,11 @@ export function kararKartiGoster() {
   const satirlar = secenekler.map((sec, i) => {
     const chipler = [
       etkiChipleri(sec.etki),
-      sec.geceEtki ? `<span class="gece-etiket">bu gece:</span>${etkiChipleri(sec.geceEtki)}` : '',
       sec.arastirma ? `<span class="chip iyi">🧪 +${sec.arastirma.puan} ${kacis(ARASTIRMALAR[sec.arastirma.id].ad)}</span>` : '',
-      sec.insanlik ? `<span class="chip kotu">Sakinlerin güveni azalır</span>` : '',
+      sec.insanlik ? `<span class="chip ${sec.insanlik > 0 ? 'iyi' : 'kotu'}">Vicdan ${sec.insanlik > 0 ? '+' : '−'}</span>` : '',
+      sec.memnuniyet ? `<span class="chip ${sec.memnuniyet > 0 ? 'iyi' : 'kotu'}">🙂 Memnuniyet ${sec.memnuniyet > 0 ? '+' : '−'}${Math.abs(sec.memnuniyet)}</span>` : '',
+      sec.yorgunlukAzalt ? `<span class="chip iyi">😮‍💨 Herkesin yorgunluğu −${sec.yorgunlukAzalt}</span>` : '',
+      sec.geceEtki ? `<span class="gece-etiket">bu gece:</span>${etkiChipleri(sec.geceEtki)}` : '',
     ].join('');
     return `
       <button class="eylem ${sec.kirli ? 'kirli' : ''}" data-sec="${i}" ${kartSecebilirMi(sec) ? '' : 'disabled'}>
@@ -440,7 +469,7 @@ export function kararKartiGoster() {
   }).join('');
   modalAc(`
     <div class="panel-ust"><span class="etiket">▸ KARAR KARTI<i class="led uyari"></i></span><h2>${kacis(k.baslik)}</h2></div>
-    <p>${kacis(k.metin)}</p>
+    <p>${kacis(k.sozcu && state.sakinler.some((x) => x.id === k.sozcu.id) ? k.sozcu.metin : k.metin)}</p>
     <div class="eylemler">${satirlar}</div>
     <p class="aciklama">"Bu gece" yazan değişimler bu gecenin hesabına eklenir. Kalan eylem: ${state.eylem}</p>`,
     { kapatma: false, sinif: 'panel karar', tema: '#e0b23a' });
@@ -806,6 +835,11 @@ const SONLAR = {
     baslik: 'Kapımız açıktı',
     metin: 'Kimseyi kaderine terk etmedin, ama kaynaklar bu kadar insana yetmedi. Yeşilvadi zor durumda, yine de kimse yalnız değil. İyi niyet tek başına yetmiyor: dayanışma ancak sürdürülebilir bir sistemle ayakta kalır.',
   },
+  guvenKaybi: {
+    sinif: 'yarali',
+    baslik: 'Güven oylaması',
+    metin: 'Sakinler toplandı ve yönetimi başkasına devretmeye karar verdi. Kimse kötü niyetli değildi; sadece yorgun, aç ve dinlenmemiş hissediyorlardı. Sürdürülebilir kararlar ancak insanlar onlara inandığında ve sesleri duyulduğunda ayakta kalır.',
+  },
   cokus: {
     sinif: 'cokus',
     baslik: 'Işıklar söndü',
@@ -826,6 +860,7 @@ export function sonGoster({ tip, bilgi }, tekrar) {
         <div><span>Sığınakta</span><b>${state.nufus}</b><small>kişi</small></div>
         <div><span>Geri çevrilen</span><b>${state.reddedilen}</b><small>kişi</small></div>
         ${state.ayrilan ? `<div><span>Tükenip giden</span><b>${state.ayrilan}</b><small>kişi</small></div>` : ''}
+        <div><span>Memnuniyet</span><b>${state.memnuniyet}</b><small>/ 100</small></div>
       </div>
       ${bilgiHtml(bilgi)}
       <button data-tekrar data-varsayilan>Tekrar oyna</button>

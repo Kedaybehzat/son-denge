@@ -201,13 +201,15 @@ Zararlı olaylar hazırlık mekaniğiyle ~1,6 kat sertleştirildi (eski: sıcak 
 
 **Hassasiyet notu:** Ziyaretçiler hastalık taşıyıcısı gibi gösterilmiyor. Karar kaynak ile vicdan arasında. Bu bilinçli bir tercih; iklim göçmenlerini damgalayan bir anlatıdan kaçınıyoruz.
 
-### 4.8 Sonlar (denge × insanlık)
+### 4.8 Sonlar (denge × insanlık, + güven oylaması)
 | | İnsanlık ≥ 50 | İnsanlık < 50 |
 |---|---|---|
 | **Denge ≥ 60** | **Yeşilvadi nefes alıyor:** Kaynaklar dengede, kapı açık. "Ütopya ancak paylaşıldığında gerçek oluyor." | **Yalnız bir ütopya:** Sığınak ayakta ama dışarıdakiler terk edildi. "Sadece içeridekiler için kurulan bir dünya ne kadar ütopya sayılır?" |
 | **Denge < 60** | **Kapımız açıktı:** Kimse terk edilmedi ama kaynaklar yetmedi. "Dayanışma ancak sürdürülebilir bir sistemle ayakta kalır." | **Işıklar söndü:** Kaynaklar tükendi, kapı kapalı kaldı. "Çöküş her gün verilen küçük kararlarla geldi." |
 
-Son ekranında denge, insanlık, nüfus ve geri çevrilen kişi sayısı ile bir bilgi kartı gösterilir.
+**5. son, Güven oylaması (nadir):** Memnuniyet üst üste 2 gece 10 veya altında kalırsa sakinler yönetimi devreder: "Sürdürülebilir kararlar ancak insanlar onlara inandığında ve sesleri duyulduğunda ayakta kalır." (bölüm 4.18)
+
+Son ekranında denge, insanlık, nüfus, geri çevrilen kişi sayısı, memnuniyet ile bir bilgi kartı gösterilir.
 
 ### 4.9 "Biliyor muydun?" kartları
 Her gece bir kart gösterilir. Öncelik sırası: o gün yapılan **kirli** seçim → o gün yapılan diğer seçimler (kapı kararı dahil) → genel bilgiler. Bir oyunda aynı kart iki kez çıkmaz. **Sunumdan önce rakamları kaynaklarından tekrar kontrol edin.**
@@ -242,19 +244,19 @@ Denge düştükçe dünya kodla değişiyor:
 ### 4.11 Denge simülasyonu
 `tools/simulasyon.mjs` oyunu farklı oyun tarzlarıyla 4000'er kez oynatıyor. Akıllı stilde boş makinelerde oyuncu kendisi çalışır, uzmanlık yerine atama varsayılan davranış, aktif araştırma batarya → grisu sırasıyla açılır. "Ort.arş": 5 gün sonunda açılmış ortalama araştırma sayısı (en çok 2).
 
-| Oyun tarzı | Kapı | Gerçek ütopya | Yalnız ütopya | Kapımız açıktı | Çöküş | Ort.arş |
-|---|---|---|---|---|---|---|
-| Akıllı | Herkesi al | %72 | %0 | %28 | %0 | 1.53 |
-| Akıllı | Kimseyi alma | %0 | %100 | %0 | %0 | 0.00 |
-| Akıllı | Yarısını al | %14 | %72 | %5 | %9 | 0.75 |
-| Rastgele | Herkesi al | %2 | %0 | %98 | %0 | 1.61 |
-| Rastgele | Kimseyi alma | %0 | %13 | %0 | %87 | 0.00 |
-| Rastgele | Yarısını al | %1 | %6 | %18 | %75 | 0.79 |
-| Kirli | Herkesi al | %0 | %0 | %100 | %0 | 1.68 |
-| Kirli | Kimseyi alma | %0 | %0 | %0 | %100 | 0.00 |
-| Kirli | Yarısını al | %0 | %0 | %16 | %84 | 0.84 |
+| Oyun tarzı | Kapı | Gerçek ütopya | Yalnız ütopya | Kapımız açıktı | Çöküş | Güven kaybı | Ort.arş |
+|---|---|---|---|---|---|---|---|
+| Akıllı | Herkesi al | %72 | %0 | %28 | %0 | %0 | 1.53 |
+| Akıllı | Kimseyi alma | %0 | %100 | %0 | %0 | %0 | 0.00 |
+| Akıllı | Yarısını al | %14 | %72 | %5 | %9 | %0 | 0.75 |
+| Rastgele | Herkesi al | %2 | %0 | %93 | %0 | %6 | 1.61 |
+| Rastgele | Kimseyi alma | %0 | %13 | %0 | %84 | %3 | 0.00 |
+| Rastgele | Yarısını al | %0 | %6 | %20 | %69 | %4 | 0.78 |
+| Kirli | Herkesi al | %0 | %0 | %51 | %0 | %49 | 1.70 |
+| Kirli | Kimseyi alma | %0 | %0 | %0 | %69 | %31 | 0.00 |
+| Kirli | Yarısını al | %0 | %0 | %14 | %46 | %40 | 0.86 |
 
-(1 Kasım, yorgunluk + hazırlıklı olaylar + karar kartları sonrası. Akıllı stil her zararlı olaya hazırlanır ve kartta dengeyi en çok artıranı seçer; `SIM_HAZIRLIK=0 node tools/simulasyon.mjs` hazırlıksız karşılaştırma verir. Akıllı + herkesi al iyi son oranı yorgunluk ve sert olaylarla %91'den %61'e düştü, karar kartlarıyla %72'ye çıktı; dengeleme PROJECT_LOG D10/D12.)
+(1 Kasım, yorgunluk + hazırlıklı olaylar + karar kartları + memnuniyet sonrası. Güven kaybı: akıllı oyuncuda hiç, rastgelede nadir (%3–6), kirli oyunda sık. Akıllı stil her zararlı olaya hazırlanır ve kartta dengeyi en çok artıranı seçer; `SIM_HAZIRLIK=0 node tools/simulasyon.mjs` hazırlıksız karşılaştırma verir. Akıllı + herkesi al iyi son oranı yorgunluk ve sert olaylarla %91'den %61'e düştü, karar kartlarıyla %72'ye çıktı; dengeleme PROJECT_LOG D10/D12.)
 
 **Yorum:** En iyi son yalnızca hem iyi kaynak yönetimi hem de açık kapıyla mümkün. Kirli oynayan hiçbir koşulda ayakta kalamıyor. Bu, oyunun mesajını mekanikle kanıtlıyor; sunumda kullanılabilir. Araştırma yalnızca kapı açıkken açılıyor: Dr. Leyla gelirse laboratuvara giriyor, kuruculardan laba giden yok. Yani kapıyı kapatan oyuncu Faz 1 teknolojilerine erişemiyor; bu, "paylaşım = ilerleme" mesajını mekanik olarak güçlendiriyor.
 
@@ -363,11 +365,26 @@ Veri: `src/data/exploration.js` (`KESIF_NOKTALARI`). Kurallar: `src/state.js` �
 
 Simülasyon keşfi kullanmıyor (isteğe bağlı mekanik). Sayılar [DENGE TASLAĞI].
 
+### 4.18 Memnuniyet ve hafif siyaset (GDD bölüm 11)
+
+Sayılar `src/state.js` → `AYAR` (`baslangicMemnuniyet`, `itirazEsigi`, `guvenOylamasiEsigi`, `guvenOylamasiGece`, `memnuniyet`). HUD'da 🙂/😐/😠 göstergesi. Gizli insanlık puanının yerine geçmez.
+
+- **Memnuniyet (0–100, başlangıç 60)** yalnızca sürdürülebilirlik kararlarına bağlı; her gece güncellenir ve gece raporunda nedenleriyle görünür:
+  - Enerji/su/gıda 20'nin altındaysa her biri −6 (karanlık, su/gıda kıtlığı)
+  - Yorgunluğu 3+ olan her çalışan −2 (en fazla −6)
+  - O gün kirli bir seçim yapıldıysa −3
+  - Denge ≥ 70 ise +5, < 40 ise −4
+  - Yarının olayına hazırlanıldıysa +3; keşif başarıyla dönerse +5
+- **İtiraz kartı:** Memnuniyet 35'in altına inince "Sakinlerin itirazı" kartı çıkar (Kemal içerideyse onun ağzından; eleştirmen kötü karakter değildir). Toplantı (1 eylem, +15) · Uzlaş (herkesin yorgunluğu −2, +10, bu gece −6 enerji −4 gıda) · Kararlarımın arkasındayım (−8). Baskıcı seçenek yoktur.
+- **Güven oylaması:** Memnuniyet **üst üste 2 gece** 10 veya altında kalırsa oyun "Güven oylaması" sonuyla biter. İlk gecede raporda açık uyarı çıkar.
+- "Yenilenebilir enerji sözü" kartındaki "Süre iste" artık memnuniyeti düşürür (−10).
+
 ## 5. Teknik yapı
 
 - **Motor:** Phaser 3.90 (2D) · **Derleme:** Vite · **Dil:** JavaScript (ES modülleri)
 - **Arayüz:** Phaser canvas'ının üstünde HTML/CSS katmanı (HUD, paneller, kartlar). Tüm arayüz sahneyle birlikte ölçeklenir (CSS `cqw` birimleri).
 - **Görseller:** `GameScene.preload()` `public/assets/` içindeki dosyaları dener (liste ve hedef yükseklikler: `src/data/assets.js`). Dosya varsa o kullanılır, yoksa `dokulariUret()` kodla çizilmiş yer tutucuyu üretir. Hangi görsellerin yüklendiği tarayıcı konsolunda `[asset]` satırında yazar.
+- **Görüntü kalitesi:** Oyun dünyası 960×540 koordinatlıdır ama 1920×1080 tuvale kamera zoom'uyla (`CIZIM_OLCEGI = 2`) çizilir; yazılar da 2× çözünürlükte. Büyük görseller yüklenince oyundaki boylarının ~3 katına (`DOKU_PAYI`) adım adım yüksek kaliteyle küçültülür; WebGL'in büyük küçültmede yaptığı "pikselli" görüntü böylece oluşmaz. Ekrana sabit/paralaks katmanlar `ekranaSabitle()` ile eklenmelidir (zoom kaymasını düzeltir).
 - **Yayın:** `main` dalına her push'ta GitHub Actions oyunu derleyip GitHub Pages'e yayınlar.
 
 ### Dosya yapısı
