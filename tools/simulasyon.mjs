@@ -4,7 +4,7 @@
 //  dağılımını gösterir. state.js / data dosyalarında sayı değiştirince
 //  çalıştırın:   node tools/simulasyon.mjs
 // =============================================================
-import { state, sifirla, eylemYap, gunuBitir, ziyaretciKabul, ziyaretciReddet, hazirlan,
+import { state, sifirla, eylemYap, gunuBitir, ziyaretciKabul, ziyaretciReddet, hazirlan, kartSec, kartSecenekleri, kartSecebilirMi,
   dengeHesapla, nufusTuketimi, AYAR, rastgeleAyarla, bosMakineler, kendinCalis,
   masadaArastirabilirMi, masadaArastir, arastirmaSec, arastirmaAcik, gorevAta,
   makineOperatoru, sakinTanimi, MAKINELER } from '../src/state.js';
@@ -76,6 +76,15 @@ function oyna(stilAd, stil, kapi, r) {
   sifirla();
   for (;;) {
     if (state.ziyaretci) (kapi(r) ? ziyaretciKabul : ziyaretciReddet)();
+    // Karar kartı: akıllı dengeyi en çok artıranı, kirli kirli olanı, rastgele rastgele seçer
+    if (state.kart) {
+      const ss = kartSecenekleri().filter(kartSecebilirMi);
+      const deger = (x) => tahmin({ ...(x.etki || {}), ...Object.fromEntries(Object.entries(x.geceEtki || {}).map(([k, v]) => [k, (x.etki?.[k] || 0) + v])) });
+      let sec = ss[Math.floor(r() * ss.length)];
+      if (stilAd === 'akilli') sec = ss.reduce((a, b) => (deger(b) > deger(a) ? b : a));
+      if (stilAd === 'kirli') sec = ss.find((x) => x.kirli) || sec;
+      if (sec) kartSec(sec);
+    }
     if (stilAd === 'akilli') {
       akilliAtamalariYap();
       akilliArastirmaSec();

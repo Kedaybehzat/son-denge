@@ -21,6 +21,8 @@ const ETKILESIM_MESAFE = 30; // oyuncu ile nesnenin KENARI arasındaki yatay mes
 // başlasa da dokular kalıcı olduğu için modül düzeyinde tutulur.
 const YER_TUTUCULAR = new Set();
 const EKSIK_ASSETLER = new Set();
+// Görsellerin şeffaf olmayan içerik kutusu (üst/alt satır), doku anahtarına göre önbellek
+const ICERIK_KUTULARI = new Map();
 const EKRAN_G = 960;
 const EKRAN_Y = 540;
 
@@ -289,13 +291,60 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // Sprite'ı oranını koruyarak assets.js'teki hedef yüksekliğe ölçekler
-  olcekle(sprite, anahtar) {
+  // Görselin şeffaf olmayan kısmının üst ve alt satırı. Asset/karelerde üstte ya da
+  // altta boşluk olsa da karakter aynı boyda görünsün diye ölçek buna göre yapılır.
+  icerikKutusu(dokuAnahtari) {
+    if (ICERIK_KUTULARI.has(dokuAnahtari)) return ICERIK_KUTULARI.get(dokuAnahtari);
+    const img = this.textures.get(dokuAnahtari).getSourceImage();
+    const w = img.width, h = img.height;
+    let kutu = { ust: 0, alt: h, h };
+    if (!YER_TUTUCULAR.has(dokuAnahtari) && w && h) {
+      try {
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(img, 0, 0);
+        const d = ctx.getImageData(0, 0, w, h).data;
+        let ust = -1, alt = -1;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            if (d[(y * w + x) * 4 + 3] > 16) { if (ust < 0) ust = y; alt = y; break; }
+          }
+        }
+        if (ust >= 0) kutu = { ust, alt: alt + 1, h };
+      } catch { /* okunamazsa tüm kare kullanılır */ }
+    }
+    ICERIK_KUTULARI.set(dokuAnahtari, kutu);
+    return kutu;
+  }
+
+  // Animasyonun tüm karelerinin ortak içerik kutusu (kareler arası titreme olmasın)
+  animKutusu(ad) {
+    const anahtar = 'anim-kutu:' + ad;
+    if (ICERIK_KUTULARI.has(anahtar)) return ICERIK_KUTULARI.get(anahtar);
+    const kutular = Array.from({ length: ANIMASYONLAR[ad].kare }, (_, i) => this.icerikKutusu(animKareAnahtari(ad, i + 1)));
+    const kutu = { ust: Math.min(...kutular.map((k) => k.ust)), alt: Math.max(...kutular.map((k) => k.alt)), h: kutular[0].h };
+    ICERIK_KUTULARI.set(anahtar, kutu);
+    return kutu;
+  }
+
+  // Sprite'ı oranını koruyarak assets.js'teki hedef yüksekliğe ölçekler: görünen
+  // içerik hedef yükseklikte olur, içeriğin alt kenarı sprite'ın y'sine (zemine) oturur
+  olcekle(sprite, anahtar, kutu = null) {
     const a = ASSETLER[anahtar];
     if (!a || !sprite.frame?.height) return sprite;
-    const o = a.yukseklik / sprite.frame.height;
+    const k = kutu || this.icerikKutusu(sprite.texture.key);
+    const o = a.yukseklik / Math.max(1, k.alt - k.ust);
     sprite.setScale(o);
+    sprite.setOrigin(sprite.originX, k.alt / k.h);
     sprite.temelOlcek = o;
+    sprite.gorunurYukseklik = a.yukseklik;
     return sprite;
+  }
+
+  // İpucu/işaret konumu için görünen yükseklik (şeffaf boşluk hariç)
+  gorunurY(sprite) {
+    return sprite.gorunurYukseklik ?? sprite.displayHeight;
   }
 
   // ---------------------------------------------------------------
@@ -339,7 +388,7 @@ export default class GameScene extends Phaser.Scene {
     if (!this.anims.exists(ad)) return false;
     if (sprite.anims.isPlaying && sprite.anims.currentAnim?.key === ad) return true;
     sprite.play(ad);
-    this.olcekle(sprite, ANIMASYONLAR[ad].sahip);
+    this.olcekle(sprite, ANIMASYONLAR[ad].sahip, this.animKutusu(ad));
     return true;
   }
 
@@ -533,7 +582,7 @@ export default class GameScene extends Phaser.Scene {
     // Kapıda biri varken kapının üstünde zıplayan işaret
     const kapi = this.nesneler.find((n) => n.def.tip === 'kapi');
     this.kapiIsaret = this.add
-      .text(kapi.sprite.x, kapi.sprite.y - kapi.sprite.displayHeight - 30, '!', {
+      .text(kapi.sprite.x, kapi.sprite.y - this.gorunurY(kapi.sprite) - 30, '!', {
         fontFamily: 'system-ui, sans-serif', fontSize: '34px', fontStyle: 'bold', color: '#ffd23f',
         stroke: '#3a2a10', strokeThickness: 6,
       })
@@ -651,7 +700,7 @@ export default class GameScene extends Phaser.Scene {
   suzülenEtkiler(sprite, etki) {
     if (!sprite || !etki) return;
     const girisler = Object.entries(etki).filter(([, d]) => d !== 0);
-    const ustY = sprite.y - sprite.displayHeight - 6;
+    const ustY = sprite.y - this.gorunurY(sprite) - 6;
     girisler.forEach(([ad, deger], i) => {
       const k = KAYNAKLAR[ad];
       if (!k) return;
@@ -714,7 +763,7 @@ export default class GameScene extends Phaser.Scene {
       kapi.once('animationcomplete', () => this.time.delayedCall(700, () => this.animDurdur(kapi, 'kapi')));
     }
     const yazi = this.add.text(
-      kapi.x, kapi.y - kapi.displayHeight - 8,
+      kapi.x, kapi.y - this.gorunurY(kapi) - 8,
       `+${kisi} 👥`,
       {
         fontFamily: '"IBM Plex Mono", monospace',
@@ -959,7 +1008,7 @@ export default class GameScene extends Phaser.Scene {
       }
       this.ipucu
         .setText(`[E] ${metin}`)
-        .setPosition(enYakin.sprite.x, enYakin.sprite.y - enYakin.sprite.displayHeight - 10)
+        .setPosition(enYakin.sprite.x, enYakin.sprite.y - this.gorunurY(enYakin.sprite) - 10)
         .setVisible(true);
       if (eBasildi) this.etkilesim(enYakin.def);
     } else {

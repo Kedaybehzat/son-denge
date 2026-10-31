@@ -244,17 +244,17 @@ Denge düştükçe dünya kodla değişiyor:
 
 | Oyun tarzı | Kapı | Gerçek ütopya | Yalnız ütopya | Kapımız açıktı | Çöküş | Ort.arş |
 |---|---|---|---|---|---|---|
-| Akıllı | Herkesi al | %61 | %0 | %39 | %0 | 1.55 |
-| Akıllı | Kimseyi alma | %0 | %96 | %0 | %4 | 0.00 |
-| Akıllı | Yarısını al | %12 | %69 | %6 | %14 | 0.74 |
-| Rastgele | Herkesi al | %1 | %0 | %99 | %0 | 1.53 |
-| Rastgele | Kimseyi alma | %0 | %10 | %0 | %90 | 0.00 |
-| Rastgele | Yarısını al | %0 | %4 | %18 | %78 | 0.74 |
-| Kirli | Herkesi al | %0 | %0 | %100 | %0 | 1.54 |
+| Akıllı | Herkesi al | %72 | %0 | %28 | %0 | 1.53 |
+| Akıllı | Kimseyi alma | %0 | %100 | %0 | %0 | 0.00 |
+| Akıllı | Yarısını al | %14 | %72 | %5 | %9 | 0.75 |
+| Rastgele | Herkesi al | %2 | %0 | %98 | %0 | 1.61 |
+| Rastgele | Kimseyi alma | %0 | %13 | %0 | %87 | 0.00 |
+| Rastgele | Yarısını al | %1 | %6 | %18 | %75 | 0.79 |
+| Kirli | Herkesi al | %0 | %0 | %100 | %0 | 1.68 |
 | Kirli | Kimseyi alma | %0 | %0 | %0 | %100 | 0.00 |
-| Kirli | Yarısını al | %0 | %0 | %19 | %81 | 0.73 |
+| Kirli | Yarısını al | %0 | %0 | %16 | %84 | 0.84 |
 
-(1 Kasım, yorgunluk + hazırlıklı olaylar sonrası. Akıllı stil her zararlı olaya hazırlanır; `SIM_HAZIRLIK=0 node tools/simulasyon.mjs` hazırlıksız karşılaştırma verir. Akıllı + herkesi al iyi son oranı yorgunluk ve sert olaylarla %91'den %61'e düştü; dengeleme PROJECT_LOG D10/D12.)
+(1 Kasım, yorgunluk + hazırlıklı olaylar + karar kartları sonrası. Akıllı stil her zararlı olaya hazırlanır ve kartta dengeyi en çok artıranı seçer; `SIM_HAZIRLIK=0 node tools/simulasyon.mjs` hazırlıksız karşılaştırma verir. Akıllı + herkesi al iyi son oranı yorgunluk ve sert olaylarla %91'den %61'e düştü, karar kartlarıyla %72'ye çıktı; dengeleme PROJECT_LOG D10/D12.)
 
 **Yorum:** En iyi son yalnızca hem iyi kaynak yönetimi hem de açık kapıyla mümkün. Kirli oynayan hiçbir koşulda ayakta kalamıyor. Bu, oyunun mesajını mekanikle kanıtlıyor; sunumda kullanılabilir. Araştırma yalnızca kapı açıkken açılıyor: Dr. Leyla gelirse laboratuvara giriyor, kuruculardan laba giden yok. Yani kapıyı kapatan oyuncu Faz 1 teknolojilerine erişemiyor; bu, "paylaşım = ilerleme" mesajını mekanik olarak güçlendiriyor.
 
@@ -330,6 +330,23 @@ Veri: `src/data/events.js` (`uyari`, `hazirlik: { ad, carpan }`, `HAZIRLIK_MALIY
 - Hazırlanılan gün radyo "Dün hazırlandığın için etkisi azaldı" der; gece tahmini ve rapor azalmış değerleri gösterir. Hazırlanınca o gece `erkenuyari` bilgi kartı çıkar (24 saatlik uyarı zararı ~%30 azaltır, Küresel Uyum Komisyonu 2019).
 - Batarya Deposu enerji olaylarına karşı ikinci bir yoldur (GDD: tek bir doğru cevap olmasın).
 
+### 4.16 Eğitici karar kartları (GDD bölüm 10)
+
+Veri: `src/data/cards.js` (`KARTLAR`). Kurallar: `src/state.js` → `kartKontrol()`, `kartSec()`. Arayüz: sabah ekranı → "Kararı gör" → kart (seçim yapılmadan kapanmaz) → sonuç + "Biliyor muydun?".
+
+- Koşulu sağlanan kart sabah çıkar; her kart bir oyunda bir kez, günde en fazla bir kart (listedeki sıra önceliktir).
+- Seçenekler: hemen etki, "bu gece" etkisi, eylem bedeli, araştırma puanı, insanlık. Kirli seçenek kırmızı ve sahnede duman çıkarır. Açılmış araştırmaya dair seçenek gizlenir.
+
+| Kart | Koşul | Seçenekler |
+|---|---|---|
+| Karanlıkta kalan koloni | Enerji < 30 | Dizel (+30 enerji, +16 karbon, kirli) · Güneş bakımı (+20 enerji, 1 eylem) · Tasarruf planı (bu gece +10 enerji) |
+| Su paylaşımı | Su < 30 | Seraya öncelik (+10 gıda, −8 su) · Evsel tasarruf (bu gece +10 su) · Gri su araştırması (+3 puan) |
+| Geri dönüşüm protestosu | Atık > 65 | Ayrıştır (−20 atık, 1 eylem) · Yak (−35 atık, +8 enerji, +15 karbon, kirli) · Onar (−10 atık, +5 enerji) |
+| Kompost tartışması | Atık > 50 ve gıda < 40 | Kompost (+12 gıda, −12 atık) · Açık yığın (−8 atık, bu gece +6 karbon, kirli) |
+| Yenilenebilir enerji sözü | Karbon > 55 | Fidan dikimi (−15 karbon, −6 su, 1 eylem) · Batarya araştırması (+3 puan) · Süre iste (−5 insanlık) |
+
+Kartların bilgi kartları mevcut `facts.js` anahtarlarını kullanır (yeni kaynaksız iddia yok). Sayılar [DENGE TASLAĞI].
+
 ## 5. Teknik yapı
 
 - **Motor:** Phaser 3.90 (2D) · **Derleme:** Vite · **Dil:** JavaScript (ES modülleri)
@@ -394,7 +411,7 @@ node tools/asset-durum.mjs   # hangi görseller hazır
 
 ### 6.3 Teslim formatı ve dosya adları
 
-**Oyun nesneleri doğrudan oyuna girer:** dosyayı aşağıdaki adla `public/assets/` klasörüne koyun, kod değişikliği gerekmez. Boyut önemli değil; görsel oranı korunarak "oyundaki yükseklik"e ölçeklenir ve alt kenarı zemine oturur. Bu yüzden görselin **alt kenarında boşluk bırakmayın** (ayaklar/taban en altta olsun). Eksik dosya yerine kodla çizilmiş yer tutucu görünür. Yükseklikler `src/data/assets.js`'ten değiştirilebilir.
+**Oyun nesneleri doğrudan oyuna girer:** dosyayı aşağıdaki adla `public/assets/` klasörüne koyun, kod değişikliği gerekmez. Boyut önemli değil; görselin **şeffaf olmayan kısmı** otomatik ölçülür, oranı korunarak "oyundaki yükseklik"e ölçeklenir ve en alt dolu satırı (ayaklar/taban) zemine oturur. Üstte/altta şeffaf boşluk kalması sorun değil; arka plan mutlaka **şeffaf** olmalı (beyaz arka plan da "dolu" sayılır). Eksik dosya yerine kodla çizilmiş yer tutucu görünür. Yükseklikler `src/data/assets.js`'ten değiştirilebilir.
 
 | Dosya adı | Ne | Format | Oyundaki yükseklik |
 |---|---|---|---|
@@ -419,7 +436,7 @@ node tools/asset-durum.mjs   # hangi görseller hazır
 | `kurucu-<id>.png` | Kurucu portreleri (`selin`, `burak`, `nur`, `can`) | PNG | 1:1, Görev Panosu |
 | `kapak.png` | Sunum kapağı (oyunda kullanılmaz) | PNG | 16:9 |
 
-**Animasyonlar:** Kareler `public/assets/anim/<animasyon>-<kare>.png` adıyla konur (ör. `oyuncu-yuru-1.png` … `oyuncu-yuru-6.png`). Bir animasyonun **tüm kareleri** gelmeden animasyon oynamaz, nesne sabit görselle kalır. Kareler aynı boyutta olmalı ve karakter her karede aynı yerde/ölçekte durmalı. Hangi animasyonun kaç kare istediği: `PROJECT_LOG.md` → Asset Listesi → D. Üretim ipuçları: 6.11.
+**Animasyonlar:** Kareler `public/assets/anim/<animasyon>-<kare>.png` adıyla konur (ör. `oyuncu-yuru-1.png` … `oyuncu-yuru-6.png`). Bir animasyonun **tüm kareleri** gelmeden animasyon oynamaz, nesne sabit görselle kalır. Kareler aynı boyutta olmalı ve karakter her karede aynı yerde/ölçekte durmalı. Animasyon, tüm karelerin ortak dolu alanına göre ölçeklenir; bu yüzden sabit görselle aynı boyda görünür. Hangi animasyonun kaç kare istediği: `PROJECT_LOG.md` → Asset Listesi → D. Üretim ipuçları: 6.11.
 
 Oyun nesneleri için `public/assets/`'e koyup commit'lemek yeterli; diğerlerini bu isimlerle kod sorumlusuna iletin. **Güncel ve tam liste (durumlarıyla): `PROJECT_LOG.md` → Asset Listesi.**
 

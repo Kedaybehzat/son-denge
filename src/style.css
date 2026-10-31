@@ -1151,3 +1151,4 @@ button.gorev.dolu { opacity: 0.6; }
 .tahmin .etki-satir { margin-top: 0.4cqw; }
 .tahmin .etki-satir > span:first-child { color: var(--terminal-dim); font-size: 0.85cqw; letter-spacing: 0.12em; text-transform: uppercase; }
 .tahmin button.eylem { margin-top: 0.6cqw; width: 100%; }
+.gece-etiket { color: var(--terminal-dim); font-size: 0.8cqw; letter-spacing: 0.12em; text-transform: uppercase; margin-left: 0.3cqw; }

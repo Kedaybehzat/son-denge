@@ -5,10 +5,11 @@
 // =============================================================
 import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, ziyaretciNetEtki, geceTahmini, AYAR, KAYNAKLAR,
   sakinTanimi, sakinCiktisi, gorevAta, arastirmaSec, arastirmaAcik, masadaArastir, masadaArastirabilirMi,
-  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi } from '../state.js';
+  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec } from '../state.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, OYUNCU_CALISMA_MALIYETI } from '../data/research.js';
 import { HIKAYE } from '../data/story.js';
 import { HAZIRLIK_MALIYETI } from '../data/events.js';
+import { BILGILER } from '../data/facts.js';
 import { KURUCULAR } from '../data/visitors.js';
 import { portreDosyasi, hikayeDosyasi } from '../data/assets.js';
 
@@ -384,8 +385,54 @@ function sabahGoster() {
     ${olayHtml(state.olay)}
     ${kapi}
     ${bosMakineler().length ? `<p class="kapi-uyari">⚙ Boş makine: ${bosMakineler().map((m) => kacis(MAKINELER[m].ad)).join(', ')}. Görev Panosu'ndan birini gönder ya da kendin çalış.</p>` : ''}
-    <div class="alt sag"><button data-kapat data-varsayilan>Güne başla</button></div>`, { sinif: 'sabah' });
+    ${state.kart ? `<p class="kapi-uyari">🗳 Sakinler bir konuda kararını bekliyor.</p>` : ''}
+    <div class="alt sag">${state.kart
+      ? '<button data-kartac data-varsayilan>Kararı gör</button>'
+      : '<button data-kapat data-varsayilan>Güne başla</button>'}</div>`, { sinif: 'sabah', kapatma: !state.kart });
   hazirlikBagla(sabahGoster);
+  kart.querySelector('[data-kartac]')?.addEventListener('click', kararKartiGoster);
+}
+
+// ---------------------------------------------------------------
+//  EĞİTİCİ KARAR KARTI (seçim yapılmadan kapanmaz)
+// ---------------------------------------------------------------
+export function kararKartiGoster() {
+  const k = state.kart;
+  if (!k) return modalKapat();
+  const secenekler = kartSecenekleri(k);
+  const satirlar = secenekler.map((sec, i) => {
+    const chipler = [
+      etkiChipleri(sec.etki),
+      sec.geceEtki ? `<span class="gece-etiket">bu gece:</span>${etkiChipleri(sec.geceEtki)}` : '',
+      sec.arastirma ? `<span class="chip iyi">🧪 +${sec.arastirma.puan} ${kacis(ARASTIRMALAR[sec.arastirma.id].ad)}</span>` : '',
+      sec.insanlik ? `<span class="chip kotu">Sakinlerin güveni azalır</span>` : '',
+    ].join('');
+    return `
+      <button class="eylem ${sec.kirli ? 'kirli' : ''}" data-sec="${i}" ${kartSecebilirMi(sec) ? '' : 'disabled'}>
+        <span class="no">${i + 1}</span>
+        <span class="govde">
+          <span class="ad">${kacis(sec.ad)}${sec.kirli ? ' <em>⚠ kirletir</em>' : ''}</span>
+          <span class="chipler">${chipler || '<span class="chip">Etkisi yok</span>'}</span>
+        </span>
+        <span class="maliyet">${sec.maliyet ? `${sec.maliyet} eylem` : 'ücretsiz'}</span>
+      </button>`;
+  }).join('');
+  modalAc(`
+    <div class="panel-ust"><span class="etiket">▸ KARAR KARTI<i class="led uyari"></i></span><h2>${kacis(k.baslik)}</h2></div>
+    <p>${kacis(k.metin)}</p>
+    <div class="eylemler">${satirlar}</div>
+    <p class="aciklama">"Bu gece" yazan değişimler bu gecenin hesabına eklenir. Kalan eylem: ${state.eylem}</p>`,
+    { kapatma: false, sinif: 'panel karar', tema: '#e0b23a' });
+  kart.querySelectorAll('[data-sec]').forEach((b) => b.addEventListener('click', () => {
+    const sec = kartSec(secenekler[Number(b.dataset.sec)]);
+    if (!sec) return;
+    if (sec.kirli) yayinla('eylemYapildi', { panel: sec.panel || null, etki: sec.etki || {}, kirli: true });
+    modalAc(`
+      <div class="panel-ust"><span class="etiket">▸ KARAR VERİLDİ<i class="led"></i></span><h2>${kacis(k.baslik)}</h2></div>
+      <p class="mesaj">&gt; ${kacis(sec.sonuc)}</p>
+      ${bilgiHtml(BILGILER[sec.bilgi])}
+      <div class="alt sag"><button data-kapat data-varsayilan>Güne başla</button></div>`, { sinif: 'panel karar', tema: '#e0b23a' });
+  }));
 }
 
 // ---------------------------------------------------------------
