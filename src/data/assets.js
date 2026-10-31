@@ -28,4 +28,23 @@ export const ASSETLER = {
   sakin1:              { dosya: 'sakin-2.png', yukseklik: 64 },
   sakin2:              { dosya: 'sakin-3.png', yukseklik: 64 },
   sakin3:              { dosya: 'sakin-4.png', yukseklik: 64 },
+
+  // Arka planlar (sahneye yayılır; yer tutucusu yok, yoksa kodla çizilen duvar/şehir kalır)
+  //  oda-*: 640×280'e gerilir, duvarın üstüne biner. Pencereyi ŞEFFAF bırakırsanız dışarısı görünür.
+  //  manzara-*: pencereden/çatı üstünden görünen şehir, yatayda tekrar eder; denge düştükçe iyi → kötü geçer.
+  'oda-yasam':         { dosya: 'oda-yasam.png', yukseklik: 280, arka: true },
+  'oda-enerji':        { dosya: 'oda-enerji.png', yukseklik: 280, arka: true },
+  'oda-su':            { dosya: 'oda-su.png', yukseklik: 280, arka: true },
+  'oda-sera':          { dosya: 'oda-sera.png', yukseklik: 280, arka: true },
+  'oda-geri':          { dosya: 'oda-geri.png', yukseklik: 280, arka: true },
+  'manzara-iyi':       { dosya: 'manzara-iyi.png', yukseklik: 470, arka: true },
+  'manzara-kotu':      { dosya: 'manzara-kotu.png', yukseklik: 470, arka: true },
 };
+
+// HTML arayüzünde kullanılan görseller (Phaser'a yüklenmez; <img>, yoksa emoji/düz ekran)
+//  ziyaretci-<id>.png  : kapı kartı + Görev Panosu
+//  kurucu-<id>.png     : Görev Panosu
+//  hikaye-<1..4>.png   : açılış hikaye ekranları
+export const ARAYUZ_ASSET_KLASORU = 'assets/';
+export const portreDosyasi = (onek, id) => `${ARAYUZ_ASSET_KLASORU}${onek}-${id}.png`;
+export const hikayeDosyasi = (n) => `${ARAYUZ_ASSET_KLASORU}hikaye-${n}.png`;

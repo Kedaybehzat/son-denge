@@ -9,8 +9,9 @@ import Phaser from 'phaser';
 import { ODALAR, ODA_GENISLIK, TAVAN_Y, ZEMIN_Y } from '../data/rooms.js';
 import { PANELLER } from '../data/panels.js';
 import { ASSETLER } from '../data/assets.js';
+import { ANIMASYONLAR, animKareAnahtari, animKareDosyasi } from '../data/animations.js';
 import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet,
-  KAYNAKLAR, MAKINELER, makineOperatoru, sakinTanimi } from '../state.js';
+  KAYNAKLAR, MAKINELER, makineOperatoru, makineCalisiyorMu, sakinTanimi } from '../state.js';
 import * as ui from '../ui/ui.js';
 
 const HIZ = 240;
@@ -48,6 +49,11 @@ export default class GameScene extends Phaser.Scene {
     for (const [anahtar, a] of Object.entries(ASSETLER)) {
       if (!this.textures.exists(anahtar)) this.load.image(anahtar, a.dosya);
     }
+    // Animasyonlar: önce sadece 1. kare denenir (eksik animasyon = tek hata satırı)
+    for (const ad of Object.keys(ANIMASYONLAR)) {
+      const k = animKareAnahtari(ad, 1);
+      if (!this.textures.exists(k)) this.load.image(k, animKareDosyasi(ad, 1));
+    }
   }
 
   create() {
@@ -71,6 +77,7 @@ export default class GameScene extends Phaser.Scene {
     this.disariCiz();
     this.evCiz();
     this.oyuncuOlustur();
+    this.animasyonlariYukle();
 
     this.cameras.main.setBounds(0, 0, this.dunyaG, EKRAN_Y);
     this.cameras.main.startFollow(this.oyuncu, true, 0.12, 0.12);
@@ -291,6 +298,70 @@ export default class GameScene extends Phaser.Scene {
     return sprite;
   }
 
+  // ---------------------------------------------------------------
+  //  ANİMASYONLAR (src/data/animations.js)
+  // ---------------------------------------------------------------
+  // 1. karesi gelen animasyonların kalan karelerini yükler, tamamı olanları kurar
+  animasyonlariYukle() {
+    let bekleyen = false;
+    for (const [ad, a] of Object.entries(ANIMASYONLAR)) {
+      if (this.anims.exists(ad) || !this.textures.exists(animKareAnahtari(ad, 1))) continue;
+      for (let n = 2; n <= a.kare; n++) {
+        const k = animKareAnahtari(ad, n);
+        if (!this.textures.exists(k)) { this.load.image(k, animKareDosyasi(ad, n)); bekleyen = true; }
+      }
+    }
+    const kur = () => {
+      const kurulan = [];
+      const eksik = [];
+      for (const [ad, a] of Object.entries(ANIMASYONLAR)) {
+        if (this.anims.exists(ad)) { kurulan.push(ad); continue; }
+        const kareler = Array.from({ length: a.kare }, (_, i) => animKareAnahtari(ad, i + 1));
+        const var_ = kareler.filter((k) => this.textures.exists(k)).length;
+        if (var_ === a.kare) {
+          this.anims.create({ key: ad, frames: kareler.map((key) => ({ key })), frameRate: a.fps, repeat: a.dongu ? -1 : 0 });
+          kurulan.push(ad);
+        } else if (var_ > 0) {
+          eksik.push(`${ad} (${var_}/${a.kare})`);
+        }
+      }
+      if (!this.animRaporu) {
+        this.animRaporu = true;
+        console.info(`[anim] kurulan: ${kurulan.join(', ') || 'yok'}${eksik.length ? ` · eksik kareli: ${eksik.join(', ')}` : ''}`);
+      }
+      if (this.sys.isActive()) this.makineAnimGuncelle();
+    };
+    if (bekleyen) { this.load.once('complete', kur); this.load.start(); } else kur();
+  }
+
+  // Animasyon varsa oynatır (zaten oynuyorsa dokunmaz), yoksa false döner
+  animOynat(sprite, ad) {
+    if (!this.anims.exists(ad)) return false;
+    if (sprite.anims.isPlaying && sprite.anims.currentAnim?.key === ad) return true;
+    sprite.play(ad);
+    this.olcekle(sprite, ANIMASYONLAR[ad].sahip);
+    return true;
+  }
+
+  // Animasyonu durdurup sabit görsele döner
+  animDurdur(sprite, statik, sahip = statik) {
+    if (sprite.anims?.isPlaying) sprite.stop();
+    if (sprite.texture.key !== statik) {
+      sprite.setTexture(statik);
+      this.olcekle(sprite, sahip);
+    }
+  }
+
+  // Operatörü olan makinenin paneli "çalışıyor" animasyonu oynatır, boş olan durur
+  makineAnimGuncelle() {
+    for (const n of this.nesneler || []) {
+      if (n.def.tip !== 'panel' || !MAKINELER[n.def.panel]) continue;
+      if (!(makineCalisiyorMu(n.def.panel) && this.animOynat(n.sprite, 'panel-calis'))) {
+        this.animDurdur(n.sprite, n.statik, 'panel');
+      }
+    }
+  }
+
   disariCiz() {
     this.gokyuzu = this.add.rectangle(0, 0, EKRAN_G, EKRAN_Y, 0x8fd3ff).setOrigin(0).setScrollFactor(0).setDepth(-10);
     this.gunes = this.add.circle(780, 90, 34, 0xfff3b0).setScrollFactor(0.05).setDepth(-9);
@@ -310,6 +381,24 @@ export default class GameScene extends Phaser.Scene {
     };
     uret(this.sehirSekilleri.uzak, this.dunyaG * 0.2 + EKRAN_G, 300, 420);
     uret(this.sehirSekilleri.yakin, this.dunyaG * 0.45 + EKRAN_G, 260, 380);
+
+    // Manzara görseli varsa kodla çizilen şehrin yerine geçer (yatayda tekrar eder)
+    this.manzara = null;
+    if (this.gercekAsset('manzara-iyi')) {
+      const genislik = this.dunyaG * 0.2 + EKRAN_G;
+      const katman = (anahtar, derinlik) => {
+        const k = this.add.tileSprite(0, 0, genislik, ZEMIN_Y, anahtar).setOrigin(0).setScrollFactor(0.2).setDepth(derinlik);
+        const o = ZEMIN_Y / this.textures.get(anahtar).getSourceImage().height;
+        k.setTileScale(o, o);
+        return k;
+      };
+      this.manzara = {
+        iyi: katman('manzara-iyi', -8),
+        kotu: this.gercekAsset('manzara-kotu') ? katman('manzara-kotu', -7.5) : null,
+      };
+      this.uzakSehir.setVisible(false);
+      this.yakinSehir.setVisible(false);
+    }
   }
 
   sehirBoya(uzakRenk, yakinRenk) {
@@ -351,6 +440,11 @@ export default class GameScene extends Phaser.Scene {
       // Süpürgelik
       g.fillStyle(0x000000, 0.12).fillRect(x0, alt - 16, ODA_GENISLIK, 16);
 
+      // Oda arka planı görseli varsa kodla çizilen duvarın üstüne biner
+      if (this.gercekAsset('oda-' + oda.tip)) {
+        this.add.image(x0, ust, 'oda-' + oda.tip).setOrigin(0).setDisplaySize(ODA_GENISLIK, alt - ust).setDepth(0.5);
+      }
+
       // Oda adı
       this.add.text(x0 + 22, ust + 12, oda.ad.toUpperCase(), {
         fontFamily: 'system-ui, sans-serif', fontSize: '13px', color: '#3a3328', fontStyle: 'bold',
@@ -367,8 +461,8 @@ export default class GameScene extends Phaser.Scene {
       // Etkileşimli nesneler
       for (const n of oda.nesneler) {
         const anahtar = n.tip === 'panel' ? this.dokuAnahtari('panel-' + n.panel) : n.tip;
-        const s = this.olcekle(this.add.image(x0 + n.x, alt, anahtar).setOrigin(0.5, 1).setDepth(3), anahtar);
-        this.nesneler.push({ sprite: s, def: n });
+        const s = this.olcekle(this.add.sprite(x0 + n.x, alt, anahtar).setOrigin(0.5, 1).setDepth(3), anahtar);
+        this.nesneler.push({ sprite: s, def: n, statik: anahtar });
       }
     });
 
@@ -432,7 +526,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   oyuncuOlustur() {
-    this.oyuncu = this.olcekle(this.add.image(220, ZEMIN_Y, 'oyuncu').setOrigin(0.5, 1).setDepth(10), 'oyuncu');
+    this.oyuncu = this.olcekle(this.add.sprite(220, ZEMIN_Y, 'oyuncu').setOrigin(0.5, 1).setDepth(10), 'oyuncu');
+    this.oyuncuMesgulBitis = 0; // 'oyuncu-calis' bir kez oynarken bekle/yürü araya girmesin
     this.yurume = 0;
 
     // Kapıda biri varken kapının üstünde zıplayan işaret
@@ -497,6 +592,17 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
+  // Sakin hareket ediyorsa yürü, duruyorsa bekle animasyonu (varsa)
+  sakinAnimGuncelle() {
+    for (const s of this.sakinler || []) {
+      if (!s.sprite.active) continue;
+      const hareket = Math.abs(s.sprite.x - (s.oncekiX ?? s.sprite.x)) > 0.05;
+      s.oncekiX = s.sprite.x;
+      const ad = `sakin-${(s.tip ?? 0) + 1}-${hareket ? 'yuru' : 'bekle'}`;
+      if (!this.animOynat(s.sprite, ad)) this.animDurdur(s.sprite, 'sakin' + (s.tip ?? 0));
+    }
+  }
+
   sakinGuncelle() {
     const kaynak = state.sakinler || [];
     // Ayrılan (yorgunluktan giden) sakinlerin figürü solup kaybolur
@@ -517,9 +623,9 @@ export default class GameScene extends Phaser.Scene {
       } else {
         const idx = this.sakinler.length;
         const sakinDoku = 'sakin' + (idx % 4);
-        const sprite = this.olcekle(this.add.image(hedefX, ZEMIN_Y - 55, sakinDoku)
+        const sprite = this.olcekle(this.add.sprite(hedefX, ZEMIN_Y - 55, sakinDoku)
           .setOrigin(0.5, 1).setDepth(5).setAlpha(0), sakinDoku);
-        const yeni = { uid: kaynakSakin.uid, gorev: kaynakSakin.gorev, sprite, hedefX, wander: null };
+        const yeni = { uid: kaynakSakin.uid, gorev: kaynakSakin.gorev, sprite, hedefX, wander: null, tip: idx % 4, oncekiX: hedefX };
         this.tweens.add({ targets: sprite, alpha: 1, duration: 350 });
         this.tweens.add({
           targets: sprite, y: ZEMIN_Y, duration: 720, ease: 'Bounce.easeOut',
@@ -604,6 +710,9 @@ export default class GameScene extends Phaser.Scene {
   efektZiyaretci({ kisi }) {
     const kapi = this.kapiSpritesi();
     if (!kapi) return;
+    if (this.animOynat(kapi, 'kapi-ac')) {
+      kapi.once('animationcomplete', () => this.time.delayedCall(700, () => this.animDurdur(kapi, 'kapi')));
+    }
     const yazi = this.add.text(
       kapi.x, kapi.y - kapi.displayHeight - 8,
       `+${kisi} 👥`,
@@ -715,6 +824,7 @@ export default class GameScene extends Phaser.Scene {
   //  ÜTOPYA <-> DİSTOPYA GÖRSEL DÖNÜŞÜMÜ
   // ---------------------------------------------------------------
   gorselGuncelle(s) {
+    this.makineAnimGuncelle();
     this.tweens.killTweensOf(this.gorsel);
     this.tweens.add({
       targets: this.gorsel, d: s.denge, duration: 1200, ease: 'Sine.easeInOut',
@@ -732,6 +842,11 @@ export default class GameScene extends Phaser.Scene {
     this.gunes.fillColor = renkGecis(0xff9a4a, 0xfff3b0, t);
     this.gunes.setAlpha(0.35 + 0.65 * t);
     this.sehirBoya(renkGecis(0x5a4436, 0xa9bccf, t), renkGecis(0x3e2f27, 0x7d93ad, t));
+    if (this.manzara) {
+      // Kötü manzara varsa denge düştükçe belirir; yoksa iyi manzara karartılır
+      if (this.manzara.kotu) this.manzara.kotu.setAlpha(1 - t);
+      else this.manzara.iyi.setTint(renkGecis(0x8a6a50, 0xffffff, t));
+    }
     this.atmosfer.setAlpha((1 - t) * 0.42);
 
     const ziyaretciVar = !!state.ziyaretci && !state.bitti;
@@ -783,6 +898,7 @@ export default class GameScene extends Phaser.Scene {
 
     const eBasildi = this.etkilesimIstegi;
     this.etkilesimIstegi = false; // her karede tüketilir (panel açıkken basılan E birikmez)
+    this.sakinAnimGuncelle(); // pencere açıkken de sakinler yürümeye devam eder
     if (ui.acikMi() || this.gecisVar || state.bitti) {
       this.ipucu.setVisible(false);
       return;
@@ -795,10 +911,17 @@ export default class GameScene extends Phaser.Scene {
 
     const p = this.oyuncu;
     p.x = Phaser.Math.Clamp(p.x + (yon * HIZ * dt) / 1000, 40, this.dunyaG - 40);
+    const mesgul = simdi < this.oyuncuMesgulBitis && yon === 0;
     if (yon !== 0) {
       p.setFlipX(yon < 0);
       this.yurume += dt;
-      p.y = ZEMIN_Y - Math.abs(Math.sin(this.yurume * 0.014)) * 5;
+      // Yürüme animasyonu varsa onu oynat; yoksa sabit görsel + kodla zıplama
+      if (this.animOynat(p, 'oyuncu-yuru')) {
+        p.y = ZEMIN_Y;
+      } else {
+        this.animDurdur(p, 'oyuncu');
+        p.y = ZEMIN_Y - Math.abs(Math.sin(this.yurume * 0.014)) * 5;
+      }
       // Her ~220ms'de bir ayak altında küçük bir toz pufu
       this.yurumeTozSayac += dt;
       if (this.yurumeTozSayac > 220) {
@@ -808,6 +931,7 @@ export default class GameScene extends Phaser.Scene {
     } else {
       p.y = ZEMIN_Y;
       this.yurumeTozSayac = 0;
+      if (!mesgul && !this.animOynat(p, 'oyuncu-bekle')) this.animDurdur(p, 'oyuncu');
     }
 
     // En yakın etkileşimli nesne
@@ -846,6 +970,9 @@ export default class GameScene extends Phaser.Scene {
   etkilesim(def) {
     switch (def.tip) {
       case 'panel':
+        if (this.animOynat(this.oyuncu, 'oyuncu-calis')) {
+          this.oyuncuMesgulBitis = performance.now() + (ANIMASYONLAR['oyuncu-calis'].kare / ANIMASYONLAR['oyuncu-calis'].fps) * 1000;
+        }
         ui.panelAc(PANELLER[def.panel], def.panel);
         break;
       case 'radyo':

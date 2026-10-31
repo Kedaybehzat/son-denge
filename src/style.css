@@ -1119,3 +1119,21 @@ button.gorev.dolu { opacity: 0.6; }
 .gorevler { grid-template-columns: repeat(auto-fill, minmax(9cqw, 1fr)); }
 .ziyaretci-satir.makine.bos .chip { animation: none; }
 .chip.yorgunluk.uyari-chip { border-color: #e0b23a; color: #f2c14e; }
+
+/* ---------- Portreler ve hikaye görselleri (public/assets, yoksa emoji/düz ekran) ---------- */
+.ikon-rozet.portre { position: relative; overflow: hidden; display: inline-grid; place-items: center; vertical-align: middle; }
+.sakin-ad .ikon-rozet.portre { width: 2.6cqw; height: 2.6cqw; border-radius: 50%; border: 0.1cqw solid var(--terminal-cizgi); }
+.ikon-rozet.portre img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ikon-rozet.portre img + .ikon-yedek { visibility: hidden; }
+.portre-buyuk {
+  float: right;
+  width: 13cqw; aspect-ratio: 1; object-fit: cover;
+  margin: 0 0 0.8cqw 1.2cqw;
+  border-radius: 0.6cqw;
+  border: 0.12cqw solid color-mix(in oklab, var(--tema) 50%, transparent);
+}
+.hikaye-ekrani .hikaye-gorsel {
+  display: block; width: 100%;
+  aspect-ratio: 16 / 9; max-height: 24cqw; object-fit: cover;
+  border-radius: 0.6cqw; margin-bottom: 1cqw;
+}

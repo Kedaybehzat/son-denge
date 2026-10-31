@@ -8,6 +8,8 @@ import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, ziyaretciNetEt
   MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi } from '../state.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, OYUNCU_CALISMA_MALIYETI } from '../data/research.js';
 import { HIKAYE } from '../data/story.js';
+import { KURUCULAR } from '../data/visitors.js';
+import { portreDosyasi, hikayeDosyasi } from '../data/assets.js';
 
 const hud = document.getElementById('hud');
 const modal = document.getElementById('modal');
@@ -35,6 +37,13 @@ export const acikMi = () => acik;
 //  Yardımcılar
 // ---------------------------------------------------------------
 const kacis = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+// Görsel varsa gösterilir, yoksa (yüklenemezse) kaldırılır ve emoji yedeği görünür
+const portreOneki = (id) => (KURUCULAR.some((k) => k.id === id) ? 'kurucu' : 'ziyaretci');
+const portreRozet = (id, ikon) =>
+  `<span class="ikon-rozet portre"><img src="${portreDosyasi(portreOneki(id), id)}" alt="" onerror="this.remove()"><span class="ikon-yedek">${ikon}</span></span>`;
+const portreBuyuk = (id) =>
+  `<img class="portre-buyuk" src="${portreDosyasi(portreOneki(id), id)}" alt="" onerror="this.remove()">`;
+
 const paragraf = (s) => kacis(s).split('\n\n').map((p) => `<p>${p}</p>`).join('');
 
 function etkiChipleri(etki) {
@@ -338,7 +347,8 @@ function sabahGoster() {
 export function ziyaretciGoster(z, kabul, ret) {
   const katkiVar = z.anlik || z.gunlukKatki || z.eylemArtisi;
   modalAc(`
-    <div class="panel-ust"><span class="etiket">▸ KAPIDA BİRİ VAR<i class="led uyari"></i></span><h2><span class="ikon-rozet">${z.ikon}</span>${kacis(z.ad)}</h2></div>
+    <div class="panel-ust"><span class="etiket">▸ KAPIDA BİRİ VAR<i class="led uyari"></i></span><h2>${portreRozet(z.id, z.ikon)}${kacis(z.ad)}</h2></div>
+    ${portreBuyuk(z.id)}
     <p class="kisi-sayisi">👥 ${z.kisi} kişi</p>
     <p>${kacis(z.metin)}</p>
     <div class="ziyaretci-satir"><span>Getirdikleri:</span><span class="chip ${katkiVar ? 'iyi' : ''}">${kacis(z.katkiMetni)}</span></div>
@@ -455,7 +465,7 @@ function panoCiz() {
         }).join('');
     return `
       <div class="sakin-satir">
-        <div class="sakin-ad"><span class="ikon-rozet">${z.ikon}</span><b>${kacis(z.ad)}</b>
+        <div class="sakin-ad">${portreRozet(s.id, z.ikon)}<b>${kacis(z.ad)}</b>
           ${yorgunlukChip(s)}
           ${z.kosullu ? `<span class="chip ${cikti.kosul ? 'kotu' : ''}">${cikti.kosul ? '⚠ ' : ''}${kacis(z.kosullu)}</span>` : ''}</div>
         <div class="gorevler">${butonlar}</div>
@@ -562,6 +572,7 @@ export function girisHikayesi(bitti, i = 0) {
   const noktalar = HIKAYE.map((_, j) => `<i class="${j <= i ? 'dolu' : ''}"></i>`).join('');
   modalAc(`
     <div class="hikaye-ekrani">
+      <img class="hikaye-gorsel" src="${hikayeDosyasi(i + 1)}" alt="" onerror="this.remove()">
       <span class="hikaye-ust">${kacis(h.ust)}</span>
       <h1>${kacis(h.baslik)}</h1>
       ${paragraf(h.metin)}

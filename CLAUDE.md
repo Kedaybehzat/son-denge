@@ -40,6 +40,12 @@ Bu dosyayı bir yapay zeka asistanına veriyorsan, asistan şunları bilmeli:
    - Hiçbir dosya değişmediyse kaydı "Değişiklik yok" diye kısa tut.
 3. **Project Map**'i güncelle: yeni/silinen/taşınan dosya ya da fonksiyon varsa tabloya ve ağaca işle.
 4. **Bilinen borçlar** tablosunu güncelle: yeni borcu ekle, kapanan borcu sil ve logda "kapandı: D#" diye belirt.
+5. **Asset listesi:** Görsel gerektiren yeni bir şey eklendiyse (sprite, dekor, oda, portre, ekran, UI görseli; kodla çizilen yer tutucu da dahil) `PROJECT_LOG.md` → **Asset Listesi** bölümüne satır ekle (liste her zaman güncel tutulur): dosya adı, ne olduğu, yükseklik/boyut, prompt referansı, durum, eklenme tarihi.
+   - **İsimlendirme:** küçük harf, Türkçe karakter yok, kelimeler `-` ile (`panel-su.png`, `sakin-1.png`, `ziyaretci-<id>.png`, `kurucu-<id>.png`, `dekor-<ad>.png`, `oda-<oda>.png`). Ziyaretçi/kurucu için koddaki `id` kullanılır.
+   - **Animasyon** eklendiyse `src/data/animations.js` → `ANIMASYONLAR`'a ekle (kare sayısı, fps, döngü, sahip, ne zaman) ve Asset Listesi **D** tablosuna yaz. Kare dosyaları: `anim/<animasyon>-<kare>.png`, kareler 1'den başlar.
+   - Doğrudan sahnede çizilen nesne ise `src/data/assets.js` → `ASSETLER`'e de ekle (yer tutucusu `dokulariUret()`'te kalsın) ve A tablosuna yaz; değilse B ya da C tablosuna.
+   - `CLAUDE.md` bölüm 6'ya görsel promptunu ekle (yoksa listede "yok, yazılacak" yaz).
+   - Asset geldiğinde ya da kaldırıldığında `node tools/asset-durum.mjs` çalıştır ve Durum sütununu güncelle.
 
 ---
 
@@ -333,7 +339,10 @@ Sayılar `src/state.js` → `AYAR` (`yorgunlukUyari`, `yorgunlukAyrilmaEsigi`, `
 | `src/ui/ui.js` | HUD, paneller, radyo, kapı kartı, gece raporu, hikaye, son ekranı |
 | `src/style.css` | Arayüz stili |
 | `tools/simulasyon.mjs` | Denge simülasyonu |
-| `PROJECT_LOG.md` | Asistan için proje haritası, değişiklik logu ve teknik borç listesi |
+| `PROJECT_LOG.md` | Asistan için proje haritası, teknik borç listesi, **güncel asset listesi** ve değişiklik logu |
+| `src/data/assets.js` | Oyuna bağlı görseller: dosya adı, hedef yükseklik, yedek |
+| `tools/asset-durum.mjs` | Hangi görselin ve animasyon karesinin `public/assets/`'te hazır olduğunu gösterir |
+| `src/data/animations.js` | Animasyonlar: kare sayısı, fps, döngü, ne zaman oynadığı |
 
 ### Çalıştırma
 ```bash
@@ -342,6 +351,7 @@ npm run dev          # http://localhost:5173
 npm run build        # dist/ klasörü (yayın için)
 npm run build:tek    # dist-tek/index.html (her şey tek dosyada)
 node tools/simulasyon.mjs
+node tools/asset-durum.mjs   # hangi görseller hazır
 ```
 
 ### Sık yapılan değişiklikler
@@ -385,17 +395,20 @@ node tools/simulasyon.mjs
 | `bitki.png`, `bitki-solgun.png` | Sera bitkisi, iki hâl (solgun isteğe bağlı; gıda/denge düşünce geçer) | Şeffaf PNG | 56 px |
 | `sakin-1.png` … `sakin-4.png` | Sığınakta dolaşan sakinler (sağa bakıyor) | Şeffaf PNG | 64 px |
 
-**Aşağıdakiler henüz oyuna bağlı değil** (kod gerekiyor, PROJECT_LOG D1):
+**Arka planlar ve arayüz görselleri** (bunlar da `public/assets/`'e konunca oyuna girer; yoksa kodla çizilen duvar/şehir, emoji ya da düz ekran kalır):
 
-| Dosya adı | Ne | Format | Oran |
+| Dosya adı | Ne | Format | Oran / not |
 |---|---|---|---|
-| `oda-yasam.png`, `oda-enerji.png`, `oda-su.png`, `oda-sera.png`, `oda-geri.png` | Oda arka planları | PNG | 640×280 (16:9 üretip kırpılır) |
-| `manzara-iyi.png`, `manzara-kotu.png` | Pencereden görünen şehir | PNG | Geniş panorama |
-| `hikaye-1.png` … `hikaye-4.png` | Açılış hikaye ekranları | PNG | 16:9 |
-| `ziyaretci-<id>.png` | Ziyaretçi portreleri (`muhendis`, `ciftci`, `bilim`, `cocuklar`, `tamirci`, `kafile`) | PNG | Kare (1:1) |
-| `kapak.png` | Sunum kapağı | PNG | 16:9 |
+| `oda-yasam.png`, `oda-enerji.png`, `oda-su.png`, `oda-sera.png`, `oda-geri.png` | Oda arka planları | PNG | 640×280'e gerilir (16:9 üretip kırpın). **Pencereyi şeffaf bırakın**, dışarısı görünsün |
+| `manzara-iyi.png`, `manzara-kotu.png` | Şehir panoraması, iki hâl | PNG | Geniş, 470 px yüksekliğe ölçeklenir, yatayda tekrar eder (sol/sağ kenar birleşebilir olsun). Kötü hâl denge düştükçe belirir |
+| `hikaye-1.png` … `hikaye-4.png` | Açılış hikaye ekranları | PNG | 16:9, kartın üstünde bant olarak |
+| `ziyaretci-<id>.png` | Ziyaretçi portreleri (`muhendis`, `ciftci`, `bilim`, `cocuklar`, `tamirci`, `kafile`) | PNG | 1:1, kapı kartı + pano |
+| `kurucu-<id>.png` | Kurucu portreleri (`selin`, `burak`, `nur`, `can`) | PNG | 1:1, Görev Panosu |
+| `kapak.png` | Sunum kapağı (oyunda kullanılmaz) | PNG | 16:9 |
 
-Oyun nesneleri için `public/assets/`'e koyup commit'lemek yeterli; diğerlerini bu isimlerle kod sorumlusuna iletin.
+**Animasyonlar:** Kareler `public/assets/anim/<animasyon>-<kare>.png` adıyla konur (ör. `oyuncu-yuru-1.png` … `oyuncu-yuru-6.png`). Bir animasyonun **tüm kareleri** gelmeden animasyon oynamaz, nesne sabit görselle kalır. Kareler aynı boyutta olmalı ve karakter her karede aynı yerde/ölçekte durmalı. Hangi animasyonun kaç kare istediği: `PROJECT_LOG.md` → Asset Listesi → D. Üretim ipuçları: 6.11.
+
+Oyun nesneleri için `public/assets/`'e koyup commit'lemek yeterli; diğerlerini bu isimlerle kod sorumlusuna iletin. **Güncel ve tam liste (durumlarıyla): `PROJECT_LOG.md` → Asset Listesi.**
 
 ### 6.4 Stil blokları
 
@@ -470,6 +483,7 @@ A shelter resident in simple patched work clothes, full body, side view facing r
 ```
 
 ### 6.6 Oda arka planları (stil bloğu B + aşağıdaki detay)
+Üretimden sonra pencere camı kısmını silip **şeffaf** bırakın: oyunda pencereden dışarıdaki şehir (ve ütopya/distopya değişimi) görünür. Silinmezse pencere boyalı görünür, oyun yine çalışır.
 - **Yaşam Alanı → `oda-yasam.png`:** `cozy living area, a shelf with books, a framed photo, a rug`
 - **Enerji → `oda-enerji.png`:** `energy room, battery racks on the back wall, cables along the ceiling`
 - **Su Arıtma → `oda-su.png`:** `water treatment room, pipes and valves on the back wall, tiled walls`
@@ -530,6 +544,20 @@ A broad-shouldered man in his forties with a thick beard and a friendly smile, r
 A family of four from a flooded coastal town: a mother, a father, a teenage son and a grandmother, close together, salt-stained clothes, a coiled rope and a small fishing net over the father's shoulder, a faint sea horizon blended into the background,
 ```
 
+**Kurucular → `kurucu-selin.png`, `kurucu-burak.png`, `kurucu-nur.png`, `kurucu-can.png`** (sığınağın ilk sakinleri; yolculuk yorgunu değil, bakımlı iş kıyafetleri: stil bloğu C'deki `dusty travel-worn clothes` yerine `clean patched work clothes` yazın)
+```
+Selin: a woman in her late twenties, energy technician, short black hair, safety goggles pushed up on her forehead, a dark-blue work jumpsuit with a light green stripe,
+```
+```
+Burak: a man in his thirties, water systems operator, neat beard, rolled-up sleeves, a blue rubber apron, a wrench in his chest pocket,
+```
+```
+Nur: a woman in her fifties, greenhouse keeper, grey-streaked hair under a headscarf, soil on her hands, a green gardening apron with seed packets in the pocket,
+```
+```
+Can: a young man in his early twenties, recycling workshop worker, curly hair, work gloves, a canvas vest covered with small repaired patches,
+```
+
 **Portre ipuçları:**
 - Çocuklar aşırı dramatik çıkarsa sona `soft, gentle, family-friendly illustration` ekleyin.
 - Kişi sayısı yanlış çıkarsa başa `exactly four people:` gibi sayı yazın.
@@ -538,6 +566,18 @@ A family of four from a flooded coastal town: a mother, a father, a teenage son 
 ```
 Key art for a climate video game: a small glowing eco-bunker in the foreground, half of the background is a green utopian city, the other half is a smoggy collapsed city, dramatic split composition,
 ```
+
+### 6.11 Animasyon karesi üretme ipuçları
+
+- **Önce sabit görseli üretin** (ör. `oyuncu.png`), sonra onu referans yükleyip kareleri isteyin: `same character as the reference image, same art style, same size and proportions`.
+- **Kareleri tek görselde yan yana isteyin**, sonra eşit parçalara kesin. Tek tek üretilen karelerde karakter kayar:
+  ```
+  sprite sheet of exactly 6 frames in a single horizontal row, walking cycle, side view facing right, same character in every frame, evenly spaced, equal frame width, feet on the same baseline, plain solid white background, no text
+  ```
+  Bekleme için `idle breathing animation, subtle movement, 4 frames`; çalışma için `pressing buttons on a console, 4 frames`; kapı için `heavy door opening from closed to fully open, 4 frames`; panel için `the same console with screen lights blinking in a loop, only the lights change, 3 frames`.
+- Kesince her kare **aynı genişlik ve yükseklikte** olsun; alt kenardaki boşluğu tüm karelerden aynı miktar kırpın.
+- Arka planı silin (6.2 kuralı), `<animasyon>-1.png`, `-2.png` … diye kaydedin.
+- Kontrol: `node tools/asset-durum.mjs` eksik kare numaralarını gösterir; tarayıcı konsolundaki `[anim]` satırı kurulan animasyonları yazar.
 
 ---
 
