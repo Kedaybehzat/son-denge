@@ -19,6 +19,7 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Sakin görseli seçimi (özel `sakin-<id>` / genel `sakin-N`) | `assets.js` → `SAKIN_OZEL_YUKSEKLIK` ve otomatik `sakin-<id>` girdileri; `GameScene.js` → `sakinGuncelle()` (`ozelDoku`), `sakinAnimGuncelle()` |
 | Sakinler, görev atama, trait koşulları | `src/state.js` → `sakinCiktisi()`, `kosulAktif()`, `gorevAta()`, `varsayilanGorev()`, `katkiGuncelle()`; veri: `visitors.js` (`uzman`, `kosul`, `ekTuketim`, `guclu`, `kosullu`, `KURUCULAR`) |
 | Makineler, operatör, boş makine, kendin çalış | `src/state.js` → `MAKINELER`, `makineOperatoru()`, `bosMakineler()`, `kendinCalis()`; üretim: `panels.js` → `makine.uretim`; arayüz: `ui.js` → `makinePanelHtml()`, `makineDurumHtml()` |
+| Uzman olmayan verim ve enerji azlığında makine kapanışı | `src/state.js` → `AYAR.uzmanOlmayanVerim`, `AYAR.makineKapatmaEsikleri`, `kapaliMakineler()`, `makineKapali()`; uygulama: `sakinCiktisi()`, `sakinlerToplami()`, `calisiyor()` |
 | Yorgunluk ve ayrılma (Faz 2 / M2) | `src/state.js` → `yarinkiYorgunluk()`, `ayrilmaSansi()`, `yorgunlukGecesi()` (gunuBitir içinde), `AYAR.yorgunluk*`; arayüz: `ui.js` → `yorgunlukChip()`; sahne: `GameScene.js` → `sakinGuncelle()` (ayrılan figür solar) |
 | Hazırlıklı olaylar (tahmin, hazırlık) | Veri: `events.js` (`uyari`, `hazirlik`, `HAZIRLIK_MALIYETI`); kurallar: `state.js` → `state.tahmin`, `olayEtkisi()`, `hazirlan()`, `gunuBitir()` (tahmin → olay); arayüz: `ui.js` → `tahminHtml()`, `olayHtml()`, `hazirlikBagla()` |
 | Eğitici karar kartları | Veri: `src/data/cards.js` → `KARTLAR`; kurallar: `state.js` → `kartKontrol()` (gunuBitir sonunda), `kartSec()`, `kartSecenekleri()`, `state.kartGeceEtki` (geceHesapla); arayüz: `ui.js` → `kararKartiGoster()`, `sabahGoster()` |
@@ -91,7 +92,7 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | # | Borç | Yer | Eklenme |
 |---|---|---|---|
 | D2 | Otomatik test yok; doğrulama yalnızca simülasyon ve elle oynama | `tools/simulasyon.mjs` | 2026-10-31 |
-| D3 | "Biliyor muydun?" rakamları kaynaklarından kontrol edilmedi (yeni: `batarya`, `grisu`, `erkenuyari`) | `src/data/facts.js` | 2026-10-31 |
+| D3 | "Biliyor muydun?" rakamları kaynaklarından kontrol edilmedi (kaynak etiketleri 2026-11-01'de 1. el'e çekildi; sayıların doğruluğu hâlâ sunum öncesi doğrulanmalı) | `src/data/facts.js` | 2026-10-31 |
 | D6 | Simülasyon artık görev atama + araştırma seçimini kullanıyor; akıllı stilde ortalama 1.67 araştırma açılıyor. Faz 1 sayıları hâlâ tarayıcıda insan tarafından playtest edilmedi | `tools/simulasyon.mjs` | 2026-10-31 |
 | D10 | Yorgunluk ayarlarıyla dinlendirme stratejisi kötü: herkes 0'dan başlayıp 4. gece aynı anda riske giriyor; riskteki herkesi dinlendiren akıllı stil iyi sonu %82 → %20 düşürüyor. Öneri: kurucuları farklı yorgunlukla başlatmak ya da dinlenmeyi −3 / eşiği 5 yapmak (karar bekliyor) | `AYAR.yorgunluk*`, `KURUCULAR` | 2026-11-01 |
 | D12 | Hazırlıklı olaylarla zararlı olaylar ~1,6 kat sertleştirildi (hazırlık bir eylem değerinde olsun diye). Toplam zorluk arttı: akıllı+herkesi al iyi son %83 → %61 (hazırlanarak; hazırlıksız %62). 1,3 katta hazırlık bazen kötü seçim çıkıyordu. Dengeleme D10 ile birlikte yapılmalı | `events.js`, `AYAR` | 2026-11-01 |
@@ -209,6 +210,24 @@ Oyunda `GameScene.js` → `dekorCiz()` / `evCiz()` içinde kodla çiziliyor. Gö
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Ayberk Alkan (ayberk2002alkangizli@gmail.com) · `kalan-mekanikler` branch
+
+- **Prompt:** Kalan mekanikleri (M3, M5, M4) ayrı commit, yeni branch üzerinde yap.
+- **Yapılan değişiklik:** Üç mekanik ayrı commit olarak `kalan-mekanikler` branch'ine (main `e26cdd1`'den) eklendi.
+  - **M3** (`3142b94`) — Uzman olmayan sakin makineyi `AYAR.uzmanOlmayanVerim = 0.75` ile çarpar. Uzman '*' ve uzmanlık yerindeki tam. Oyuncu kendisi çalışırsa tam (bilinçli). Simülasyon: akıllı+hepsiniAl %91 → %58, akıllı+kimseyiAlma %95 → yalnız ütopya.
+  - **M5** (`de825af`) — Enerji < 25 iken Geri Dönüşüm, < 10 iken Sera da o gece kapanır (`AYAR.makineKapatmaEsikleri`, veri odaklı). Kapalı makinenin operatörü dinleniyor sayılır (yorgunluk azalır, üretim ve uzmanlık katkısı yok). Oyuncu kendisi çalıştığı kapalı makine de üretmez. Yeni yardımcılar: `kapaliMakineler()`, `makineKapali()`. Kemal'in özel `kosul.enerjiAlti: 25` koşulu kaldırıldı (artık genel kural). Pano makine şeridi "⚡ KAPALI" durumunu gösteriyor; açıklama metninde yeni verim yüzdesi ve enerji eşikleri yazıyor.
+  - **M4** (`8c4bfbc`) — `gunes` → NREL, `hiyerarsi` → US EPA Waste Management Hierarchy, `sibirya` → WHO 2016 Yamal şarbon raporu. "Genel bilgi" / "Sıfır Atık yaklaşımı" gibi belirsiz etiketler kaldırıldı. Metinler değişmedi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/state.js` | `AYAR.uzmanOlmayanVerim`, `AYAR.makineKapatmaEsikleri`; `kapaliMakineler()`, `makineKapali()`; `sakinCiktisi` uzman olmayan çarpanı + kapalı makine kontrolü; `sakinlerToplami` oyuncu kapalı makinede üretmez; `calisiyor()` kapalı makinedeki operatörü dinlenmiş sayar (yorgunluk azalır) |
+| `src/data/visitors.js` | Kemal'in `kosul.enerjiAlti: 25, carpan: 0` kaldırıldı, `kosullu` metni genel kurala referans veriyor |
+| `src/ui/ui.js` | `makineDurumHtml` kapalı durumu gösteriyor; pano açıklaması güncel; `kapaliMakineler`, `makineKapali` import |
+| `src/data/facts.js` | `gunes`, `hiyerarsi`, `sibirya` kaynakları |
+| `PROJECT_LOG.md` | Bu kayıt |
+
+- **Debt:** D3 **kısmen** iyileşti (kaynak etiketleri 1. el, rakamlar hâlâ doğrulanmadı). D10 (yorgunluk ayarları) hâlâ açık; M3/M5 doğrudan etkilemedi. D11, D2, D6 açık.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `sakin-gorselleri` → `main`
 
