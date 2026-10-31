@@ -22,6 +22,25 @@ Bu dosyayı bir yapay zeka asistanına veriyorsan, asistan şunları bilmeli:
 - Kodda birleştirme sorumlusu Ayberk. Kod değişikliklerini doğrudan repoya değil, ona iletin ya da pull request açın.
 - Görseller AI ile üretilecek. Görsel promptları bölüm 6'da. Stil tutarlılığı en önemli kural.
 
+## 0.1 Asistan çalışma kuralları (her prompt için zorunlu)
+
+**Prompta başlarken:**
+1. Önce `PROJECT_LOG.md` → **Project Map** bölümünü oku.
+2. İsteğin ilgili olduğu dosya ve fonksiyonları haritadan bul ve **yalnızca onlara git**. Bütün projeyi tarama, tüm dosyaları okuma.
+3. Harita yetersizse ya da yanlışsa hedefli arama (grep) yap, sonra haritayı düzelt.
+
+**Prompt bitince (dosya değiştiyse ya da yalnızca soru cevaplandıysa bile):**
+1. Promptu atan kullanıcıyı `git config user.name` ve `git config user.email` ile belirle.
+2. `PROJECT_LOG.md` → **Değişiklik Logu** bölümüne en üste yeni kayıt ekle:
+   - **Tarih** (YYYY-AA-GG, gerekirse saat) · **Kullanıcı** (ad ve e-posta)
+   - **Prompt:** isteğin kısa özeti
+   - **Yapılan değişiklik:** tek cümlelik özet
+   - **Dosya / Açıklama tablosu:** değişen her dosya ve o dosyada ne değiştiği
+   - **Debt:** bu değişiklikle doğan ya da kapanan teknik borç, kestirilen köşeler, yarım kalan işler ("yok" da yazılabilir)
+   - Hiçbir dosya değişmediyse kaydı "Değişiklik yok" diye kısa tut.
+3. **Project Map**'i güncelle: yeni/silinen/taşınan dosya ya da fonksiyon varsa tabloya ve ağaca işle.
+4. **Bilinen borçlar** tablosunu güncelle: yeni borcu ekle, kapanan borcu sil ve logda "kapandı: D#" diye belirt.
+
 ---
 
 ## 1. Hackathon bilgileri
@@ -275,6 +294,7 @@ Denge düştükçe dünya kodla değişiyor:
 | `src/ui/ui.js` | HUD, paneller, radyo, kapı kartı, gece raporu, hikaye, son ekranı |
 | `src/style.css` | Arayüz stili |
 | `tools/simulasyon.mjs` | Denge simülasyonu |
+| `PROJECT_LOG.md` | Asistan için proje haritası, değişiklik logu ve teknik borç listesi |
 
 ### Çalıştırma
 ```bash
