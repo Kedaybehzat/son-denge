@@ -31,6 +31,9 @@ export const AYAR = {
   yorgunlukAyrilmaEsigi: 4,// bu puandan itibaren ayrılma şansı
   yorgunlukAyrilmaPay: 0.25, // şans = (yorgunluk - esik + 1) * pay
   ayrilmaInsanlikCezasi: 8,
+  // Uzman olmayan sakin makineyi daha az verimli kullanır (makine üretimine çarpan).
+  // Uzman '*' (her yerde) ve uzmanlık yerindeki sakin tam verim alır.
+  uzmanOlmayanVerim: 0.75,
   // Hafif siyaset (GDD bölüm 11): memnuniyet yalnızca sürdürülebilirlik kararlarına bağlı
   baslangicMemnuniyet: 60,
   itirazEsigi: 35,          // altında itiraz kartı çıkabilir
@@ -334,10 +337,18 @@ export function sakinCiktisi(s, kosullar = true) {
   const sonuc = { etki: { ...(z.ekTuketim || {}) }, puan: 0, eylem: 0, kosul: false };
   if (!s.gorev || s.gorev === 'bosta') return sonuc;
   let etki = {};
-  if (MAKINELER[s.gorev]) etki = { ...MAKINELER[s.gorev].uretim };
-  else if (s.gorev === 'arastirma') sonuc.puan = GOREVLER.arastirma.puan * (z.uzman === 'arastirma' ? 2 : 1);
+  const uzmanBurada = z.uzman === s.gorev || z.uzman === '*';
+  if (MAKINELER[s.gorev]) {
+    etki = { ...MAKINELER[s.gorev].uretim };
+    // Uzman olmayan sakin makineyi daha az verimli kullanır
+    if (!uzmanBurada) {
+      for (const ad of Object.keys(etki)) etki[ad] = Math.round(etki[ad] * AYAR.uzmanOlmayanVerim);
+    }
+  } else if (s.gorev === 'arastirma') {
+    sonuc.puan = GOREVLER.arastirma.puan * (z.uzman === 'arastirma' ? 2 : 1);
+  }
   // Uzmanlık yerinde (ya da '*' her yerde) kişisel katkı eklenir; keşifteyken yok
-  if (s.gorev !== 'kesif' && (z.uzman === s.gorev || z.uzman === '*')) {
+  if (s.gorev !== 'kesif' && uzmanBurada) {
     etki = topla(etki, z.gunlukKatki);
     sonuc.eylem = z.eylemArtisi || 0;
   }
