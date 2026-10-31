@@ -28,7 +28,12 @@ export const ANIMASYONLAR = {
   'sakin-4-yuru':  { kare: 4, fps: 8, dongu: true, sahip: 'sakin3', ne: 'Sakin 4 yürürken' },
 
   'kapi-ac':     { kare: 4, fps: 10, dongu: false, sahip: 'kapi',  ne: 'Ziyaretçi içeri alınınca kapı açılır (bir kez)' },
-  'panel-calis': { kare: 3, fps: 6,  dongu: true,  sahip: 'panel', ne: 'Makinenin operatörü varken (ya da oyuncu çalışırken) ekran/ışıklar yanıp söner' },
+  'panel-calis': { kare: 3, fps: 6,  dongu: true,  sahip: 'panel', ne: 'Genel panel (panel.png) kullanan makinede operatör varken ekran/ışıklar yanıp söner' },
+  // Odaya özel paneller kendi animasyonunu kullanır (yoksa sabit kalır, üstündeki ışık durumu gösterir)
+  'panel-enerji-calis': { kare: 3, fps: 6, dongu: true, sahip: 'panel-enerji', ne: 'Enerji paneli çalışırken (ekran/ışıklar)' },
+  'panel-su-calis':     { kare: 3, fps: 6, dongu: true, sahip: 'panel-su', ne: 'Su arıtma paneli çalışırken' },
+  'panel-sera-calis':   { kare: 3, fps: 6, dongu: true, sahip: 'panel-sera', ne: 'Sera paneli çalışırken' },
+  'panel-geri-calis':   { kare: 3, fps: 6, dongu: true, sahip: 'panel-geriDonusum', ne: 'Geri dönüşüm paneli çalışırken' },
 };
 
 export const ANIM_KLASOR = 'anim/';

@@ -17,7 +17,15 @@ for (const [anahtar, a] of Object.entries(ASSETLER)) {
 console.log(`\n${var_} / ${Object.keys(ASSETLER).length} oyuna bağlı görsel hazır.`);
 
 // assets.js'te olmayan ama klasöre konmuş dosyalar (yanlış ad olabilir)
-const bilinen = new Set(Object.values(ASSETLER).map((a) => a.dosya));
+const { ZIYARETCILER, KURUCULAR } = await import('../src/data/visitors.js');
+// Arayüz görselleri (Phaser'a yüklenmez): portreler, hikaye ekranları, kapak
+const arayuz = [
+  ...ZIYARETCILER.map((z) => `ziyaretci-${z.id}.png`), ...KURUCULAR.map((k) => `kurucu-${k.id}.png`),
+  'hikaye-1.png', 'hikaye-2.png', 'hikaye-3.png', 'hikaye-4.png', 'kapak.png',
+];
+console.log('\nArayüz görselleri (portre, hikaye, kapak):');
+for (const f of arayuz) console.log(`${fs.existsSync(new URL(f, klasor)) ? '✅' : '⏳'} ${f}`);
+const bilinen = new Set([...Object.values(ASSETLER).map((a) => a.dosya), ...arayuz]);
 const fazla = fs.readdirSync(klasor).filter((f) => !f.startsWith('.') && f !== 'anim' && !bilinen.has(f));
 if (fazla.length) console.log(`⚠ Tanınmayan dosyalar (adı yanlış ya da henüz koda bağlı değil): ${fazla.join(', ')}`);
 

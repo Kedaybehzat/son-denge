@@ -12,7 +12,8 @@ import { HAZIRLIK_MALIYETI } from '../data/events.js';
 import { BILGILER } from '../data/facts.js';
 import { KESIF_NOKTALARI } from '../data/exploration.js';
 import { KURUCULAR } from '../data/visitors.js';
-import { portreDosyasi, hikayeDosyasi } from '../data/assets.js';
+import { portreDosyasi, hikayeDosyasi, ARAYUZ_ASSET_KLASORU } from '../data/assets.js';
+import { assetVar } from '../assetListesi.js';
 
 const hud = document.getElementById('hud');
 const modal = document.getElementById('modal');
@@ -43,10 +44,14 @@ export const acikMi = () => acik;
 const kacis = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 // Görsel varsa gösterilir, yoksa (yüklenemezse) kaldırılır ve emoji yedeği görünür
 const portreOneki = (id) => (KURUCULAR.some((k) => k.id === id) ? 'kurucu' : 'ziyaretci');
+// Dosya public/assets'te yoksa <img> hiç eklenmez (404 olmaz)
+const varsaImg = (yol, sinif = '') => {
+  const ad = yol.slice(ARAYUZ_ASSET_KLASORU.length);
+  return assetVar(ad) ? `<img ${sinif ? `class="${sinif}" ` : ''}src="${yol}" alt="" onerror="this.remove()">` : '';
+};
 const portreRozet = (id, ikon) =>
-  `<span class="ikon-rozet portre"><img src="${portreDosyasi(portreOneki(id), id)}" alt="" onerror="this.remove()"><span class="ikon-yedek">${ikon}</span></span>`;
-const portreBuyuk = (id) =>
-  `<img class="portre-buyuk" src="${portreDosyasi(portreOneki(id), id)}" alt="" onerror="this.remove()">`;
+  `<span class="ikon-rozet portre">${varsaImg(portreDosyasi(portreOneki(id), id))}<span class="ikon-yedek">${ikon}</span></span>`;
+const portreBuyuk = (id) => varsaImg(portreDosyasi(portreOneki(id), id), 'portre-buyuk');
 
 const paragraf = (s) => kacis(s).split('\n\n').map((p) => `<p>${p}</p>`).join('');
 
@@ -499,7 +504,7 @@ export function ziyaretciGoster(z, kabul, ret) {
     <div class="ziyaretci-satir"><span>Her gece ek tüketim:</span>${etkiChipleri(nufusTuketimi(z.kisi))}</div>
     ${z.guclu ? `<div class="ziyaretci-satir"><span>Güçlü yön:</span><span class="chip iyi">${kacis(z.guclu)}</span></div>` : ''}
     ${z.kosullu ? `<div class="ziyaretci-satir"><span>Koşullu bedel:</span><span class="chip kotu">${kacis(z.kosullu)}</span></div>` : ''}
-    <div class="ziyaretci-satir"><span>Olası görevler:</span><span class="chip">${z.calisir === false ? 'Çalışmaz' : 'Üretim · Bakım · Araştırma'}</span></div>
+    <div class="ziyaretci-satir"><span>Olası görevler:</span><span class="chip">${z.calisir === false ? 'Çalışmaz' : 'Makine · Laboratuvar · Keşif'}</span></div>
     <div class="ziyaretci-satir net"><span>Her gece NET etki:</span>${etkiChipleri(ziyaretciNetEtki(z)) || '<span class="chip">Etkisiz</span>'}</div>
     <p class="aciklama">Sığınakta şu an ${state.nufus} kişi var. Karar vermeden günü bitirirsen beklemekten vazgeçip gider.</p>
     <div class="alt">
@@ -777,7 +782,7 @@ export function girisHikayesi(bitti, i = 0) {
   const noktalar = HIKAYE.map((_, j) => `<i class="${j <= i ? 'dolu' : ''}"></i>`).join('');
   modalAc(`
     <div class="hikaye-ekrani">
-      <img class="hikaye-gorsel" src="${hikayeDosyasi(i + 1)}" alt="" onerror="this.remove()">
+      ${varsaImg(hikayeDosyasi(i + 1), 'hikaye-gorsel')}
       <span class="hikaye-ust">${kacis(h.ust)}</span>
       <h1>${kacis(h.baslik)}</h1>
       ${paragraf(h.metin)}
