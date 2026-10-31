@@ -24,7 +24,7 @@ export const BILGILER = {
   },
   gunes: {
     metin: 'Güneş panellerinin üzerindeki toz ve kir verimi belirgin şekilde düşürür. Çölleşen ve tozlu bölgelerde düzenli temizlik bu yüzden kritik.',
-    kaynak: 'Genel bilgi',
+    kaynak: 'NREL (ABD Ulusal Yenilenebilir Enerji Laboratuvarı)',
   },
   ruzgar: {
     metin: 'Rüzgar ve güneş santralleri çalışırken neredeyse hiç sera gazı salmaz. Ömürleri boyunca saldıkları gazın büyük kısmı üretim ve kurulum aşamasından gelir.',
@@ -56,7 +56,7 @@ export const BILGILER = {
   },
   hiyerarsi: {
     metin: 'Sıfır atık yaklaşımında sıra şöyledir: önce azalt, sonra yeniden kullan ve onar, en son geri dönüştür. Onarılan bir eşya, yeniden üretilen bir eşyadan çok daha az kaynak harcar.',
-    kaynak: 'Sıfır Atık yaklaşımı',
+    kaynak: 'US EPA · Waste Management Hierarchy',
   },
   yakma: {
     metin: 'Atık yakmak bir miktar enerji üretse de karbondioksit ve hava kirliliğine yol açar. Atık hiyerarşisinde yakma, azaltma ve geri dönüşümden sonra gelir.',
@@ -73,7 +73,7 @@ export const BILGILER = {
   },
   sibirya: {
     metin: '2016\'da Sibirya\'da sıcak hava dalgası permafrostu çözünce, onlarca yıl önce ölmüş bir rengeyiğinden şarbon bakterisi yayıldı ve bir salgına yol açtı.',
-    kaynak: 'Yamal 2016 salgını haberleri (BBC, Reuters)',
+    kaynak: 'WHO · 2016 Yamal şarbon raporu',
   },
   gidaisraf: {
     metin: 'Dünyada üretilen gıdanın yaklaşık üçte biri kayboluyor ya da israf ediliyor. Gıda israfı, küresel sera gazı salımlarının yaklaşık %8–10\'undan sorumlu.',
