@@ -26,14 +26,14 @@ export const AYAR = {
   dengeEsigi: 60,          // sonlar: denge bu ve üstü = "ayakta"
   insanlikEsigi: 50,       // sonlar: insanlık bu ve üstü = "kapı açık"
   baslangicInsanlik: 50,
-  // Yorgunluk: her gece çalışırsa +1, dinlenirse -2. 3+ uyarı, 4+ ayrılma riski.
-  yorgunlukUyari: 3,       // bu puandan itibaren pano'da uyarı
-  yorgunlukAyrilmaEsigi: 4,// bu puandan itibaren ayrılma şansı
-  yorgunlukAyrilmaPay: 0.25, // şans = (yorgunluk - esik + 1) * pay
+  // Yorgunluk: her gece çalışırsa +1, dinlenirse -2. 4+ uyarı, 5+ ayrılma riski.
+  yorgunlukUyari: 4,       // bu puandan itibaren pano'da uyarı
+  yorgunlukAyrilmaEsigi: 5,// bu puandan itibaren ayrılma şansı
+  yorgunlukAyrilmaPay: 0.20, // şans = (yorgunluk - esik + 1) * pay
   ayrilmaInsanlikCezasi: 8,
   // Uzman olmayan sakin makineyi daha az verimli kullanır (makine üretimine çarpan).
   // Uzman '*' (her yerde) ve uzmanlık yerindeki sakin tam verim alır.
-  uzmanOlmayanVerim: 0.75,
+  uzmanOlmayanVerim: 0.90,
   // Enerji düşükken makineler kademeli olarak kapanır. Kapatma sırası:
   // en kritik olmayan önce (geriDonusum → sera → su → enerji). Eşikler kaynak enerjisi
   // bu değerin ALTINDAYSA listedeki makineler o gece çalışmaz; operatör dinlenmiş sayılır.
