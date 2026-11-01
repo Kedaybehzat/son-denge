@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { state, sifirla, rastgeleAyarla, eylemYap, eylemYapabilirMi, yapiKur, yapiKurabilirMi, yapiAcik, gunuBitir, geceTahmini, kartSec, kartSecebilirMi } from '../src/state.js';
+import { state, sifirla, rastgeleAyarla, eylemYap, eylemYapabilirMi, yapiKur, yapiKurabilirMi, yapiAcik, gunuBitir, geceTahmini, kartSec, kartSecebilirMi, gorevAta, insaataYardimEt } from '../src/state.js';
 import { PANELLER } from '../src/data/panels.js';
 import { KARTLAR } from '../src/data/cards.js';
 import { ZIYARETCILER } from '../src/data/visitors.js';
@@ -17,15 +17,17 @@ assert.equal(eylemYap(PANELLER.geriDonusum.eylemler[0]), true, 'Az kalan atık d
 assert.equal(state.kaynak.atik, 0);
 
 sifirla();
-state.kaynak.atik = 0;
+state.malzeme = 0;
 assert.equal(yapiKur('yalitim'), false, 'Malzemesiz inşaat başlayamaz');
-state.kaynak.atik = 35;
+state.malzeme = 20;
 const enerjiOnce = geceTahmini().degisim.enerji;
 assert.equal(yapiKur('ekPanel'), true);
 assert.equal(state.eylem, 1);
 assert.equal(yapiAcik('ekPanel'), false);
 assert.equal(geceTahmini().degisim.enerji, enerjiOnce, 'İnşaat sürerken üretim yok');
 assert.equal(yapiKur('yalitim'), false, 'Aynı anda ikinci inşaat yok');
+gorevAta(4, 'insaat');
+assert.equal(insaataYardimEt(), true);
 const gece = gunuBitir();
 assert.equal(gece.insaatBitti, 'ekPanel');
 assert.equal(yapiAcik('ekPanel'), true);

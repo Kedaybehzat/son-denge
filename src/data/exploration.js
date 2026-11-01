@@ -18,6 +18,7 @@
 
 export const KESIF_NOKTALARI = {
   santral: {
+    araKarar: { metin: 'Sağlam batarya parçaları bulundu. Çıkarmak bir gece daha sürecek. Erken dönersen yalnız taşınabilir erzak getirilecek.', ekErzak: { gida: -2, su: -2 }, malzeme: 5 },
     ad: 'Terk edilmiş enerji santrali',
     ikon: '🏭',
     sure: 1,
@@ -54,6 +55,7 @@ export const KESIF_NOKTALARI = {
     bilgi: 'gidaisraf',
   },
   rezervuar: {
+    araKarar: { metin: 'Eski pompanın çizimleri bulundu. Kasayı çıkarmak için bir gece daha gerekiyor. Devam edersen yağmur suyu teknolojisinin önünü açabilirsin.', ekErzak: { gida: -2, su: -2 }, plan: 'pompa' },
     ad: 'Kurumuş rezervuar',
     ikon: '🏜️',
     sure: 1,

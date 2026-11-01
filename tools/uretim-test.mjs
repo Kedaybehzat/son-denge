@@ -1,0 +1,80 @@
+import assert from 'node:assert/strict';
+import { state, sifirla, rastgeleAyarla, eylemYap, dengeHesapla, makineModuSec, makineUretimi, yarinkiYorgunluk, bakimYap, yapiKur, insaatTahmini, insaatDuraklat, insaatIptal, insaataYardimEt, gorevAta, gunuBitir, moralVer } from '../src/state.js';
+import { SAKIN_AKTIVITELERI, sakinOdaTipi } from '../src/data/activities.js';
+import { sakinGorselTanimi } from '../src/data/assets.js';
+import { PANELLER } from '../src/data/panels.js';
+import { YAPILAR } from '../src/data/structures.js';
+import { ZIYARETCILER } from '../src/data/visitors.js';
+const basla = () => { rastgeleAyarla(() => 0.99); sifirla(); };
+
+basla();
+const denge = dengeHesapla(); state.malzeme = 90;
+assert.equal(dengeHesapla(), denge, 'Malzeme denge puanını değiştirmemeli');
+state.malzeme = 0; state.kaynak.atik = 10;
+eylemYap(PANELLER.geriDonusum.eylemler[0]);
+assert.equal(state.malzeme, 3, 'Yarım atıktan yarım malzeme');
+eylemYap(PANELLER.geriDonusum.eylemler[0]);
+assert.equal(state.malzeme, 3, 'Sıfır atıktan malzeme üretilmez');
+state.malzeme = 99; state.kaynak.atik = 50;
+eylemYap(PANELLER.geriDonusum.eylemler[0]); assert.equal(state.malzeme, 100);
+
+basla();
+assert.deepEqual(makineUretimi('enerji'), { enerji: 6 });
+const selin = state.sakinler[0];
+makineModuSec('enerji', 'yogun');
+assert.ok(makineUretimi('enerji').enerji > 6);
+assert.equal(yarinkiYorgunluk(selin), 2);
+makineModuSec('enerji', 'tasarruf'); assert.equal(yarinkiYorgunluk(selin), 0);
+assert.ok(makineUretimi('enerji').enerji < 6);
+assert.equal(makineModuSec('enerji', 'olmayan'), false);
+makineModuSec('enerji', 'normal'); state.makineAsinma.enerji = 8;
+assert.ok(makineUretimi('enerji').enerji < 6);
+state.malzeme = 1; assert.equal(bakimYap('enerji'), false);
+state.malzeme = 8; assert.equal(bakimYap('enerji'), true);
+assert.equal(state.malzeme, 6); assert.equal(state.makineAsinma.enerji, 3);
+state.kaynak.enerji = 0; const wear = state.makineAsinma.geriDonusum;
+gunuBitir(); assert.equal(state.makineAsinma.geriDonusum, wear, 'Kapalı makine aşınmaz');
+
+basla();
+const atik = state.kaynak.atik;
+assert.equal(yapiKur('yalitim'), true);
+assert.equal(state.kaynak.atik, atik, 'İnşaat atık tüketmez');
+assert.equal(insaatTahmini().ilerleme, 0, 'İşçi yoksa ilerleme yok');
+gunuBitir(); assert.equal(state.insaat.kalan, 2);
+gorevAta(4, 'insaat'); assert.equal(insaatTahmini().ilerleme, 1);
+insaatDuraklat(); assert.equal(insaatTahmini().ilerleme, 0);
+assert.equal(insaataYardimEt(), false);
+insaatDuraklat();
+assert.equal(insaataYardimEt(), true); assert.equal(insaataYardimEt(), false);
+assert.equal(insaatTahmini().biter, true);
+const t = gunuBitir(); assert.equal(t.insaatBitti, 'yalitim');
+assert.equal(state.sakinler.find(s=>s.uid===4).gorev, 'geriDonusum');
+assert.equal(state.insaat, null);
+
+basla(); yapiKur('bariyer'); gorevAta(4, 'insaat'); gorevAta(3, 'insaat');
+assert.equal(state.sakinler.filter(s=>s.gorev==='insaat').length, 1);
+assert.equal(state.sakinler.find(s=>s.uid===4).gorev, 'geriDonusum');
+const stock=state.malzeme;
+assert.equal(insaatIptal(), true);
+assert.equal(state.malzeme, stock + Math.floor(-YAPILAR.bariyer.maliyet.malzeme * 0.5));
+assert.equal(state.sakinler.find(s=>s.uid===3).gorev, 'sera');
+assert.equal(insaatIptal(), false);
+
+basla();
+state.sakinler.push({ uid: 10, id: ZIYARETCILER.find(z=>z.id==='tamirci').id, gorev: 'bosta', yorgunluk: 0 });
+yapiKur('bariyer'); gorevAta(10, 'insaat'); assert.equal(insaatTahmini().ilerleme, 2);
+const once = state.eylem; assert.equal(moralVer(10), true);
+assert.equal(state.eylem, once-1); assert.equal(moralVer(10), false);
+gunuBitir(); assert.equal(state.sohbetEdilenler.length, 0);
+sifirla(); assert.equal(state.malzeme, 8); assert.equal(state.makineAsinma.enerji, 0);
+assert.equal(sakinGorselTanimi('selin').dosya, 'sakin-2.png');
+assert.equal(sakinGorselTanimi('burak').dosya, 'sakin-3.png');
+assert.equal(sakinGorselTanimi('selin', (f) => f === 'sakin-selin.png').anahtar, 'sakin-selin');
+for (const noktalar of Object.values(SAKIN_AKTIVITELERI)) for (const n of noktalar) {
+  assert.ok(n.x > 0 && n.x < 1 && n.y > 0 && n.y < 1);
+  assert.ok(n.bolge[0] <= n.x && n.bolge[2] >= n.x && n.bolge[1] <= n.y && n.bolge[3] >= n.y);
+}
+assert.equal(sakinOdaTipi('sera'), 'sera');
+assert.equal(sakinOdaTipi('geriDonusum'), 'geri');
+assert.equal(sakinOdaTipi('insaat','su'), 'su');
+console.log('Üretim testleri başarılı: malzeme, mod, aşınma/bakım, inşaat iş gücü/iptal ve diyalog morali.');

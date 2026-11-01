@@ -6,3 +6,6 @@ assets-orijinal/
 # macOS
 .DS_Store
 **/.DS_Store
+
+# Local ses yedekleri (işlenmişleri public/sounds'ta)
+sounds/

@@ -7,6 +7,11 @@ import { ILK_OLAY, OLAYLAR, HAZIRLIK_MALIYETI } from './data/events.js';
 import { KARTLAR } from './data/cards.js';
 import { KESIF_NOKTALARI } from './data/exploration.js';
 import { ZIYARETCILER, KURUCULAR } from './data/visitors.js';
+import { CALISMA_MODLARI, MOD_EK_ETKILERI, BAKIM, HAVA_URETIMI } from './data/production.js';
+export { CALISMA_MODLARI, BAKIM };
+import { gunBasiniKaydet, kayitGecerliMi, kaydiSil } from './kayit.js';
+import { SENARYO_HEDEFLERI } from './data/scenario.js';
+export { SENARYO_HEDEFLERI };
 import { PANELLER } from './data/panels.js';
 import { BILGILER, GENEL_BILGILER } from './data/facts.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, BATARYA_SARJ_ESIGI, OYUNCU_CALISMA_MALIYETI } from './data/research.js';
@@ -17,6 +22,8 @@ export const AYAR = {
   maxGun: 5,            // demo kaç gün sürer
   eylemHakki: 3,        // her gün yapılabilecek panel eylemi sayısı
   baslangicNufus: 4,
+  baslangicMalzeme: 8,
+  malzemeKapasite: 100,
   // Her gece sabit değişim (negatif = azalır). Makine üretimleri (panels.js → makine)
   // bunu dengeler: dört makine de çalışırsa net etki eski -15/-4/-4/+10 ile aynıdır.
   gunSonuDegisim: { enerji: -21, su: -9, gida: -9, atik: +15, karbon: -3 },
@@ -102,6 +109,14 @@ export function sifirla() {
   state.sakinler = [];       // kurucular + içeri alınanlar: { uid, id, gorev }
   state.oyuncuMakineler = []; // oyuncunun bugün kendisi çalıştığı boş makineler
   state.arastirma = { aktif: 'batarya', puan: {}, acik: [] };
+  state.malzeme = AYAR.baslangicMalzeme;
+  state.makineModlari = Object.fromEntries(Object.keys(PANELLER).map((id) => [id, 'normal']));
+  state.makineAsinma = Object.fromEntries(Object.keys(PANELLER).map((id) => [id, 0]));
+  state.sohbetEdilenler = [];
+  state.planlar = [];
+  state.sozler = [];
+  state.sozGecmisi = [];
+  state.hedefler = SENARYO_HEDEFLERI.map((h) => ({ id: h.id, durum: 'bekliyor' }));
   state.batarya = 0;         // depodaki enerji (Batarya Deposu açıldıysa)
   state.kabulEdilen = 0;     // içeri alınan kişi sayısı
   state.reddedilen = 0;      // geri çevrilen kişi sayısı
@@ -130,6 +145,26 @@ export function sifirla() {
   bildir();
 }
 
+export function kayittanDevamEt(kayit) {
+  if (!kayitGecerliMi(kayit)) return false;
+  const k = JSON.parse(JSON.stringify(kayit.durum));
+  const kimlikler = new Set([...KURUCULAR, ...ZIYARETCILER].map(s => s.id));
+  if (k.sakinler.some(s => !kimlikler.has(s.id)) || new Set(k.sakinler.map(s => s.uid)).size !== k.sakinler.length) return false;
+  if (k.sefer && (!KESIF_NOKTALARI[k.sefer.yer] || !k.sakinler.some(s => s.uid === k.sefer.uid))) return false;
+  if (k.insaat && (!YAPILAR[k.insaat.id] || !Number.isFinite(k.insaat.kalan))) return false;
+  if (k.sakinler.some(s => s.gorev && !MAKINELER[s.gorev] && !GOREVLER[s.gorev] && s.gorev !== 'kesif')) return false;
+  if (k.arastirma.acik.some(id => !ARASTIRMALAR[id]) || k.yapilar.some(id => !YAPILAR[id])) return false;
+  const olaylar = [ILK_OLAY, ...OLAYLAR];
+  if (!olaylar.some(o => o.id === k.olay?.id) || (k.tahmin && !OLAYLAR.some(o => o.id === k.tahmin.id))) return false;
+  k.olay = olaylar.find(o => o.id === k.olay.id);
+  k.tahmin = k.tahmin ? OLAYLAR.find(o => o.id === k.tahmin.id) : null;
+  k.kart = k.kart ? KARTLAR.find(c => c.id === k.kart.id) || null : null;
+  k.ziyaretci = k.ziyaretci ? ZIYARETCILER.find(z => z.id === k.ziyaretci.id) || null : null;
+  sifirla();
+  for (const ad of Object.keys(state)) if (Object.hasOwn(k, ad)) state[ad] = k[ad];
+  katkiGuncelle(); state.denge = dengeHesapla(); bildir(); return true;
+}
+
 // Denge = 0 (distopya) ... 100 (ütopya)
 // - Her kaynak 80'de "tam puan" sayılır: fazla enerji kirliliği telafi edemez.
 // - Karbon iki kat ağırlıklı: kirli seçenekler dengeyi gerçekten bozar.
@@ -150,7 +185,8 @@ export function dengeHesapla(k = state.kaynak) {
 
 function etkiUygula(etki) {
   for (const [ad, deger] of Object.entries(etki || {})) {
-    if (ad in state.kaynak) state.kaynak[ad] = sinirla(state.kaynak[ad] + deger);
+    if (ad === 'malzeme') state.malzeme = sinirla(state.malzeme + deger, 0, AYAR.malzemeKapasite);
+    else if (ad in state.kaynak) state.kaynak[ad] = sinirla(state.kaynak[ad] + deger);
   }
 }
 
@@ -192,7 +228,7 @@ export function olayEtkisi(etki, olay = state.olay, hazirlikli = state.olayHazir
 
 // Kaynak harcayan işlemler sıfırın altında kaynak tüketemez.
 export function kaynakYeterliMi(etki = {}, malzeme = false) {
-  return Object.entries(etki || {}).every(([ad, d]) => d >= 0 || (!malzeme && !KAYNAKLAR[ad]?.yuksekIyi) || (state.kaynak[ad] ?? 0) >= -d);
+  return Object.entries(etki || {}).every(([ad, d]) => d >= 0 || (!malzeme && ad !== 'malzeme' && !KAYNAKLAR[ad]?.yuksekIyi) || (ad === 'malzeme' ? state.malzeme : state.kaynak[ad] ?? 0) >= -d);
 }
 
 // Yapı inşa (GDD Faz 7)
@@ -213,21 +249,58 @@ export function yapiKur(id) {
   const kaynakMaliyet = {};
   for (const [k, v] of Object.entries(m)) if (k !== 'eylem') kaynakMaliyet[k] = v;
   etkiUygula(kaynakMaliyet);
-  state.insaat = { id, kalan: YAPILAR[id].sure ?? 1 };
+  state.insaat = { id, kalan: YAPILAR[id].sure ?? 2, duraklat: false, yardim: false };
   if (YAPILAR[id].bilgi) state.bugunBilgi.push({ anahtar: YAPILAR[id].bilgi, kirli: false });
   state.denge = dengeHesapla();
   bildir();
   return true;
 }
 
-function insaatGecesi() {
+export const insaatci = () => state.sakinler.find((s) => s.gorev === 'insaat') || null;
+export function insaatTahmini() {
+  const i = state.insaat;
+  if (!i) return null;
+  const kisi = insaatci();
+  const uzman = kisi && ['tamirci', 'muhendis'].includes(kisi.id);
+  const ilerleme = i.duraklat ? 0 : (kisi ? (uzman ? 2 : 1) : 0) + (i.yardim ? 1 : 0);
+  return { ilerleme, kalan: Math.max(0, i.kalan - ilerleme), biter: ilerleme >= i.kalan, uid: kisi?.uid };
+}
+function insaatciBirak(s) {
+  const onceki = s.insaatOncekiGorev || 'bosta';
+  s.gorev = MAKINELER[onceki] && makineOperatoru(onceki) ? 'bosta' : onceki;
+  delete s.insaatOncekiGorev;
+}
+export function insaatDuraklat() {
+  if (!state.insaat || state.bitti) return false;
+  state.insaat.duraklat = !state.insaat.duraklat;
+  bildir(); return true;
+}
+export function insaataYardimEt() {
+  const i = state.insaat;
+  if (state.bitti || !i || i.duraklat || i.yardim || state.eylem < 1) return false;
+  state.eylem -= 1; i.yardim = true;
+  bildir(); return true;
+}
+export function insaatIptal() {
+  if (!state.insaat || state.bitti) return false;
+  const { id, kalan } = state.insaat;
+  const y = YAPILAR[id];
+  const oran = kalan / (y.sure ?? 2);
+  const iade = Math.floor(-(y.maliyet.malzeme || 0) * oran * 0.5);
+  state.malzeme = Math.min(AYAR.malzemeKapasite, state.malzeme + iade);
+  for (const s of state.sakinler.filter((s) => s.gorev === 'insaat')) insaatciBirak(s);
+  state.insaat = null; katkiGuncelle(); bildir(); return true;
+}
+function insaatGecesi(tahmin) {
   if (!state.insaat) return null;
-  state.insaat.kalan -= 1;
-  if (state.insaat.kalan > 0) return null;
+  state.insaat.kalan = tahmin.kalan;
+  state.insaat.yardim = false;
+  if (!tahmin.biter) return null;
   const id = state.insaat.id;
   state.yapilar.push(id);
   state.insaat = null;
-  return id;
+  for (const s of state.sakinler.filter((s) => s.gorev === 'insaat')) insaatciBirak(s);
+  katkiGuncelle(); return id;
 }
 
 export function hazirlanabilirMi() {
@@ -319,7 +392,7 @@ export function kesfeGonderebilirMi(yer, uid) {
   const n = KESIF_NOKTALARI[yer];
   const s = state.sakinler.find((x) => x.uid === uid);
   return !state.bitti && !!n && !!s && !state.sefer && !state.kesfedilenler.includes(yer)
-    && sakinTanimi(s.id).calisir !== false && state.gun + n.sure <= AYAR.maxGun;
+    && s.gorev !== 'insaat' && sakinTanimi(s.id).calisir !== false && state.gun + n.sure <= AYAR.maxGun && kaynakYeterliMi(n.erzak);
 }
 
 export function kesfeGonder(yer, uid) {
@@ -347,16 +420,48 @@ function seferSabahi() {
     state.sefer = null;
     return { yer: sf.yer, ad: n.ad, ikon: n.ikon, basari: false, kayip: true, metin: 'Seferdeki ekip geri dönmedi.' };
   }
+  if (sf.kararBekliyor) return { bekliyor: true, yer: sf.yer, ad: n.ad, metin: n.araKarar.metin };
   sf.kalan -= 1;
   if (sf.kalan > 0) return null;
+  if (n.araKarar && !sf.kararVerildi) {
+    sf.kararBekliyor = true;
+    return { bekliyor: true, yer: sf.yer, ad: n.ad, metin: n.araKarar.metin };
+  }
+  return seferDonusu(sf);
+}
+export function kesifKarariYapabilirMi(secim) {
+  const sf = state.sefer;
+  if (!sf?.kararBekliyor || state.bitti || !['don','devam','erzak'].includes(secim)) return false;
+  if (secim === 'don') return true;
+  return state.gun + 1 <= AYAR.maxGun && (secim !== 'erzak' || kaynakYeterliMi(KESIF_NOKTALARI[sf.yer].araKarar.ekErzak));
+}
+export function kesifKarariSec(secim) {
+  if (!kesifKarariYapabilirMi(secim)) return false;
+  const sf = state.sefer, n = KESIF_NOKTALARI[sf.yer];
+  sf.kararVerildi = true; sf.kararBekliyor = false;
+  let sonuc = null;
+  if (secim === 'don') sonuc = seferDonusu(sf, true);
+  else {
+    sf.kalan = 1;
+    if (secim === 'erzak') { etkiUygula(n.araKarar.ekErzak); sf.sans = Math.min(1, sf.sans + 0.1); }
+    else sf.sans = Math.max(0, sf.sans - 0.15);
+  }
+  state.denge = dengeHesapla(); bildir(); return sonuc || true;
+}
+function seferDonusu(sf, erken = false) {
+  const n = KESIF_NOKTALARI[sf.yer], s = state.sakinler.find(s => s.uid === sf.uid);
+  if (!s) return null;
   const z = sakinTanimi(s.id);
-  const basari = rastgele() < sf.sans;
+  const basari = erken || rastgele() < sf.sans;
   let arastirmaBitti = null;
   if (basari) {
-    etkiUygula(n.odul.kaynak);
+    const kaynak = erken ? Object.fromEntries(Object.entries(n.odul.kaynak || {}).map(([k,v]) => [k, Math.round(v * 0.5)])) : n.odul.kaynak;
+    etkiUygula(kaynak);
+    if (!erken && n.araKarar?.plan && !state.planlar.includes(n.araKarar.plan)) state.planlar.push(n.araKarar.plan);
+    if (!erken && n.araKarar?.malzeme) state.malzeme = Math.min(AYAR.malzemeKapasite, state.malzeme + n.araKarar.malzeme);
     if (n.odul.insanlik) state.insanlik = sinirla(state.insanlik + n.odul.insanlik);
     state.memnuniyet = sinirla(state.memnuniyet + AYAR.memnuniyet.kesifBasari);
-    if (n.odul.arastirma) arastirmaBitti = puanEkle(n.odul.arastirma.puan, n.odul.arastirma.id);
+    if (!erken && n.odul.arastirma) arastirmaBitti = puanEkle(n.odul.arastirma.puan, n.odul.arastirma.id);
   }
   // Eski görevine döner (makinesi başkasına verildiyse dinlenir)
   const eski = s.oncekiGorev;
@@ -365,8 +470,8 @@ function seferSabahi() {
   state.sefer = null;
   katkiGuncelle();
   if (n.bilgi) state.gosterilenBilgiler.push(n.bilgi);
-  return { yer: sf.yer, ad: n.ad, ikon: n.ikon, kisi: z.ad, basari, metin: basari ? n.basari : n.basarisiz,
-    odul: basari ? n.odul : null, arastirmaBitti, bilgi: n.bilgi };
+  return { yer: sf.yer, ad: n.ad, ikon: n.ikon, kisi: z.ad, basari, metin: erken ? 'Ekip güvenle döndü; yalnız taşınabilir kaynakların yarısı getirildi, çizimler/parçalar geride kaldı.' : basari ? n.basari : n.basarisiz,
+    odul: basari ? (erken ? { kaynak: Object.fromEntries(Object.entries(n.odul.kaynak || {}).map(([k,v]) => [k, Math.round(v * 0.5)])) } : n.odul) : null, plan: !erken && basari ? n.araKarar?.plan : null, arastirmaBitti, bilgi: n.bilgi };
 }
 
 // Gece kişi başı tüketim
@@ -405,6 +510,36 @@ export function kapaliMakineler(enerji = state.kaynak.enerji) {
 }
 export const makineKapali = (makine) => kapaliMakineler().includes(makine);
 
+export const makineModu = (id) => CALISMA_MODLARI[state.makineModlari[id]] || CALISMA_MODLARI.normal;
+export function makineModuSec(id, mod) {
+  if (state.bitti || !MAKINELER[id] || !CALISMA_MODLARI[mod]) return false;
+  state.makineModlari[id] = mod; katkiGuncelle(); bildir(); return true;
+}
+export function havaUretimEtkisi(id) {
+  const olay = state.olay?.id;
+  if (olay === 'toz' && (state.olayHazirlikli || arastirmaAcik('havaFiltresi'))) return {};
+  if (olay === 'sel' && (state.olayHazirlikli || yapiAcik('bariyer'))) return {};
+  const etki = { ...(HAVA_URETIMI[olay]?.[id] || {}) };
+  if (olay === 'sicak' && state.makineModlari[id] === 'yogun') for (const k in etki) etki[k] *= 2;
+  return etki;
+}
+export function makineUretimi(id) {
+  const mod = makineModu(id);
+  const asinma = state.makineAsinma[id] || 0;
+  const verim = asinma >= 10 ? 0.4 : asinma >= 6 ? 0.7 : 1;
+  const temel = Object.fromEntries(Object.entries(MAKINELER[id].uretim).map(([k,v]) => [k, Math.round(v * mod.carpani * verim)]));
+  return topla(temel, MOD_EK_ETKILERI[id]?.[state.makineModlari[id]], havaUretimEtkisi(id));
+}
+export function bakimYapabilirMi(id) {
+  return !state.bitti && !!MAKINELER[id] && state.makineAsinma[id] > 0 && state.eylem >= BAKIM.eylem && state.malzeme >= BAKIM.malzeme;
+}
+export function bakimYap(id) {
+  if (!bakimYapabilirMi(id)) return false;
+  state.eylem -= BAKIM.eylem; state.malzeme -= BAKIM.malzeme;
+  state.makineAsinma[id] = Math.max(0, state.makineAsinma[id] - BAKIM.onarim);
+  katkiGuncelle(); bildir(); return true;
+}
+
 function kosulAktif(z, gorev) {
   const k = z.kosul;
   if (!k) return false;
@@ -427,7 +562,7 @@ export function sakinCiktisi(s, kosullar = true) {
       // Enerji yetersiz: makine çalışmaz, operatör dinleniyor sayılır
       sonuc.kapali = true;
     } else {
-      etki = { ...MAKINELER[s.gorev].uretim };
+      etki = makineUretimi(s.gorev);
       // Uzman olmayan sakin makineyi daha az verimli kullanır
       if (!uzmanBurada) {
         for (const ad of Object.keys(etki)) etki[ad] = Math.round(etki[ad] * AYAR.uzmanOlmayanVerim);
@@ -464,7 +599,7 @@ function sakinlerToplami(kosullar = true) {
   }
   // Oyuncunun bugün kendisi çalıştığı makineler de üretir (kapalı değilse)
   const kapali = kapaliMakineler();
-  for (const m of state.oyuncuMakineler) if (!kapali.includes(m)) etki = topla(etki, MAKINELER[m].uretim);
+  for (const m of state.oyuncuMakineler) if (!kapali.includes(m)) etki = topla(etki, makineUretimi(m));
   return { etki, puan, eylem };
 }
 
@@ -483,9 +618,71 @@ export function gorevAta(uid, gorev) {
     const eski = makineOperatoru(gorev);
     if (eski && eski !== s) eski.gorev = 'bosta';
   }
+  if (gorev === 'insaat') {
+    if (!state.insaat) return;
+    if (s.gorev === 'insaat') return;
+    const eski = insaatci();
+    if (eski) insaatciBirak(eski);
+    s.insaatOncekiGorev = s.gorev;
+  } else if (s.gorev === 'insaat') delete s.insaatOncekiGorev;
   s.gorev = gorev;
   katkiGuncelle();
   bildir();
+}
+
+export function dinlenmeSozuVerebilirMi(uid) {
+  const s = state.sakinler.find(s => s.uid === uid);
+  return !state.bitti && state.gun < AYAR.maxGun && !!s && sakinTanimi(s.id).calisir !== false
+    && s.gorev !== 'kesif' && !state.sozler.some(p => p.uid === uid);
+}
+export function dinlenmeSozuVer(uid) {
+  if (!dinlenmeSozuVerebilirMi(uid)) return false;
+  state.sozler.push({ uid, gun: state.gun + 1, ad: sakinTanimi(state.sakinler.find(s => s.uid === uid).id).ad });
+  bildir(); return true;
+}
+function sozleriDegerlendir() {
+  const sonuc = [];
+  for (const p of state.sozler.filter(p => p.gun <= state.gun)) {
+    const s = state.sakinler.find(s => s.uid === p.uid);
+    const tutuldu = s?.gorev === 'bosta';
+    const durum = !s ? 'ayrildi' : tutuldu ? 'tutuldu' : 'bozuldu';
+    if (s) { s.guven = sinirla((s.guven ?? 50) + (tutuldu ? 10 : -12)); state.memnuniyet = sinirla(state.memnuniyet + (tutuldu ? 6 : -6)); }
+    sonuc.push({ ...p, durum });
+  }
+  state.sozler = state.sozler.filter(p => p.gun > state.gun);
+  state.sozGecmisi.push(...sonuc); return sonuc;
+}
+export function hedefYardimiGonderebilirMi() {
+  const h = state.hedefler.find(h => h.id === 'komsuDestek');
+  return !state.bitti && h?.durum === 'bekliyor' && state.gun <= 3 && kaynakYeterliMi(SENARYO_HEDEFLERI[1].maliyet, true);
+}
+export function hedefYardimiGonder() {
+  if (!hedefYardimiGonderebilirMi()) return false;
+  etkiUygula(SENARYO_HEDEFLERI[1].maliyet);
+  state.hedefler.find(h => h.id === 'komsuDestek').durum = 'tamamlandi';
+  state.insanlik = sinirla(state.insanlik + 5); state.memnuniyet = sinirla(state.memnuniyet + 4);
+  state.bugunBilgi.push({ anahtar: 'goc', kirli: false }); state.denge = dengeHesapla(); bildir(); return true;
+}
+function hedefleriDegerlendir() {
+  const sonuc = [];
+  for (const h of state.hedefler.filter(h => h.durum === 'bekliyor')) {
+    const tanim = SENARYO_HEDEFLERI.find(t => t.id === h.id);
+    if (tanim.yapi && yapiAcik(tanim.yapi)) { h.durum = 'tamamlandi'; state.memnuniyet = sinirla(state.memnuniyet + 4); sonuc.push({ ...h }); }
+    else if (state.gun >= tanim.sonGun) { h.durum = 'kacirildi'; sonuc.push({ ...h }); }
+  }
+  return sonuc;
+}
+
+export function moralVerebilirMi(uid) {
+  return !state.bitti && state.eylem >= 1 && !state.sohbetEdilenler.includes(uid)
+    && state.sakinler.some((s) => s.uid === uid && s.gorev !== 'kesif');
+}
+export function moralVer(uid) {
+  if (!moralVerebilirMi(uid)) return false;
+  const s = state.sakinler.find((s) => s.uid === uid);
+  state.eylem -= 1; state.memnuniyet = sinirla(state.memnuniyet + 4);
+  s.yorgunluk = Math.max(0, (s.yorgunluk || 0) - 1);
+  state.sohbetEdilenler.push(uid); bildir(); return true;
 }
 
 // Yeni gelen için varsayılan görev: uzmanlık makinesi boşsa orası, değilse boş makine, yoksa laboratuvar
@@ -592,6 +789,7 @@ export function geceTahmini() {
   const denge = dengeHesapla(sonra);
   return {
     ...g,
+    insaat: insaatTahmini(),
     denge,
     cokus: denge <= AYAR.cokusEsigi,
     sonGun: state.gun >= AYAR.maxGun,
@@ -611,8 +809,14 @@ export function eylemYapabilirMi(eylem) {
   return state.eylem >= (eylem.maliyet ?? 1) && kaynakYeterliMi(eylem.etki);
 }
 
+export function geriKazanimMiktari(eylem) {
+  if (!eylem.geriKazanim) return 0;
+  return Math.floor(Math.min(state.kaynak.atik, -(eylem.etki?.atik || 0)) / (-(eylem.etki?.atik || 0) || 1) * eylem.geriKazanim);
+}
 export function eylemYap(eylem) {
   if (!eylemYapabilirMi(eylem)) return false;
+  const malzeme = geriKazanimMiktari(eylem);
+  state.malzeme = Math.min(AYAR.malzemeKapasite, state.malzeme + malzeme);
   state.eylem -= eylem.maliyet ?? 1;
   etkiUygula(eylem.etki);
   if (eylem.bilgi) state.bugunBilgi.push({ anahtar: eylem.bilgi, kirli: !!eylem.kirli });
@@ -714,6 +918,7 @@ function sonucBelirle() {
 // Bir sakin bu gece gerçekten çalışıyor mu? Kapalı makinedeki operatör dinleniyor sayılır.
 const calisiyor = (s) => {
   if (!s.gorev || s.gorev === 'bosta') return false;
+  if (s.gorev === 'insaat' && (!state.insaat || state.insaat.duraklat)) return false;
   if (MAKINELER[s.gorev] && kapaliMakineler().includes(s.gorev)) return false;
   return true;
 };
@@ -721,7 +926,7 @@ const calisiyor = (s) => {
 // Bu gecenin sonunda sakinin yorgunluğu ne olur
 export function yarinkiYorgunluk(s) {
   if (!s.gorev) return s.yorgunluk || 0; // çalışmayanlar (çocuklar) değişmez
-  return calisiyor(s) ? (s.yorgunluk || 0) + 1 : Math.max(0, (s.yorgunluk || 0) - 2);
+  return calisiyor(s) ? (s.yorgunluk || 0) + (MAKINELER[s.gorev] ? makineModu(s.gorev).yorgunluk : 1) : Math.max(0, (s.yorgunluk || 0) - 2);
 }
 
 export function ayrilmaSansi(yorgunluk) {
@@ -731,10 +936,10 @@ export function ayrilmaSansi(yorgunluk) {
 
 // Gece sonunda yorgunluğu günceller, sınırı aşanlar için ayrılma zarı atar.
 // Ayrılanların listesini döndürür.
-function yorgunlukGecesi() {
+function yorgunlukGecesi(plan) {
   const ayrilanlar = [];
   for (const s of state.sakinler) {
-    s.yorgunluk = yarinkiYorgunluk(s);
+    s.yorgunluk = plan.get(s.uid);
     if (rastgele() < ayrilmaSansi(s.yorgunluk)) ayrilanlar.push(s);
   }
   for (const s of ayrilanlar) {
@@ -762,6 +967,10 @@ export function gunuBitir() {
     state.ziyaretci = null;
   }
 
+  const sozSonuclari = sozleriDegerlendir();
+  const insaatPlani = insaatTahmini();
+  const yorgunlukPlani = new Map(state.sakinler.map((s) => [s.uid, yarinkiYorgunluk(s)]));
+  const asinmaPlani = Object.keys(MAKINELER).filter((id) => makineCalisiyorMu(id) && !makineKapali(id));
   const once = { ...state.kaynak };
   const gece = geceHesapla();
   etkiUygula(gece.degisim);
@@ -771,11 +980,13 @@ export function gunuBitir() {
   state.denge = dengeHesapla();
   const rapor = {};
   for (const ad of Object.keys(once)) rapor[ad] = state.kaynak[ad] - once[ad];
-  const ayrilanlar = yorgunlukGecesi();
+  const ayrilanlar = yorgunlukGecesi(yorgunlukPlani);
+  for (const id of asinmaPlani) state.makineAsinma[id] = Math.min(10, state.makineAsinma[id] + makineModu(id).asinma);
   if (ayrilanlar.length) state.denge = dengeHesapla();
   const memnuniyet = memnuniyetGecesi();
-  const insaatBitti = insaatGecesi();
-  const ek = { insaatBitti, arastirmaPuani: gece.puan, arastirmaBitti, bataryaKullanim: gece.bataryaKullanim, bataryaSarj: gece.bataryaSarj, ayrilanlar, memnuniyet };
+  const insaatBitti = insaatGecesi(insaatPlani);
+  const hedefSonuclari = hedefleriDegerlendir();
+  const ek = { sozSonuclari, hedefSonuclari, insaatBitti, arastirmaPuani: gece.puan, arastirmaBitti, bataryaKullanim: gece.bataryaKullanim, bataryaSarj: gece.bataryaSarj, ayrilanlar, memnuniyet };
   const bilgi = bilgiSec();
   state.bugunBilgi = [];
 
@@ -786,10 +997,12 @@ export function gunuBitir() {
 
   if (tip !== 'devam') {
     state.bitti = true;
+    kaydiSil();
     bildir();
     return { tip, rapor, bilgi, gidenZiyaretci, ...ek };
   }
 
+  state.sohbetEdilenler = [];
   state.gun += 1;
   state.olay = state.tahmin || havuzdanSec(OLAYLAR, state.kullanilanOlaylar);
   state.olayHazirlikli = state.hazirlik;
@@ -807,5 +1020,6 @@ export function gunuBitir() {
   kartKontrol();
   state.denge = dengeHesapla();
   bildir();
+  gunBasiniKaydet(state);
   return { tip, rapor, bilgi, gidenZiyaretci, ...ek, sefer };
 }

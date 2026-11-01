@@ -20,6 +20,12 @@ export const BATARYA_SARJ_ESIGI = 80; // gece bu değerin üstündeki enerji dep
 const seviyeII = (state) => state.arastirma.acik.length >= 1;
 
 export const ARASTIRMALAR = {
+  yagmurSuyu: {
+    ad: 'Yağmur Suyu Pompası', ikon: '💧', maliyet: 4,
+    aciklama: 'Keşiften gelen pompa çizimlerini araştır: Yağmur Suyu Deposu inşa planını açar.',
+    onKosul: (state) => state.planlar.includes('pompa'),
+    kilitAciklama: 'Rezervuar keşfinde pompa çizimlerini getir', bilgi: 'grisu',
+  },
   // --- Seviye I: temel ---
   batarya: {
     ad: 'Batarya Deposu',
@@ -77,6 +83,7 @@ export function seciliebilirArastirmalar(state) {
 // Her makinede en fazla 1 operatör olur; laboratuvara sınırsız kişi gidebilir.
 export const GOREVLER = {
   arastirma: { ad: 'Laboratuvar', ikon: '🧪', puan: 2 },
+  insaat:    { ad: 'İnşaat', ikon: '🔨' },
   bosta:     { ad: 'Dinlen',      ikon: '💤' },
 };
 export const OYUNCU_CALISMA_MALIYETI = 1; // boş makinede kendin çalışmak: eylem hakkı
