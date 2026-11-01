@@ -7,7 +7,7 @@
 import { state, sifirla, eylemYap, gunuBitir, ziyaretciKabul, ziyaretciReddet, hazirlan, kartSec, kartSecenekleri, kartSecebilirMi,
   dengeHesapla, nufusTuketimi, AYAR, rastgeleAyarla, bosMakineler, kendinCalis,
   masadaArastirabilirMi, masadaArastir, arastirmaSec, arastirmaAcik, gorevAta,
-  makineOperatoru, sakinTanimi, MAKINELER } from '../src/state.js';
+  makineOperatoru, sakinTanimi, MAKINELER, yapiKur, yapiKurabilirMi, yapiAcik } from '../src/state.js';
 import { PANELLER } from '../src/data/panels.js';
 import { ARASTIRMALAR } from '../src/data/research.js';
 
@@ -92,8 +92,10 @@ function oyna(stilAd, stil, kapi, r) {
       akilliArastirmaSec();
       // Yarının zararlı olayına hazırlan (1 eylem)
       if (process.env.SIM_HAZIRLIK !== "0") hazirlan();
-      // Not: yorgunluk riskindekileri dinlendirmek bu ayarlarla daha KÖTÜ sonuç veriyor
-      // (herkes 4. gece aynı anda riske giriyor, PROJECT_LOG D10). Akıllı stil riski göze alır.
+      // Not: Yapı inşası (GDD bölüm 7) oyuncu kararı; 5 günlük demo için
+      // eylem maliyeti dengeyi bozar, sim bunu test etmez. Yorgunluk
+      // riskindekileri dinlendirmek de bu ayarlarla daha KÖTÜ sonuç veriyor
+      // (herkes 4. gece aynı anda riske giriyor, PROJECT_LOG D10).
     }
     // Operatörü olmayan makinelerde önce oyuncu kendisi çalışır
     for (const m of bosMakineler()) kendinCalis(m);

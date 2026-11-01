@@ -20,6 +20,7 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Sakinler, görev atama, trait koşulları | `src/state.js` → `sakinCiktisi()`, `kosulAktif()`, `gorevAta()`, `varsayilanGorev()`, `katkiGuncelle()`; veri: `visitors.js` (`uzman`, `kosul`, `ekTuketim`, `guclu`, `kosullu`, `KURUCULAR`) |
 | Makineler, operatör, boş makine, kendin çalış | `src/state.js` → `MAKINELER`, `makineOperatoru()`, `bosMakineler()`, `kendinCalis()`; üretim: `panels.js` → `makine.uretim`; arayüz: `ui.js` → `makinePanelHtml()`, `makineDurumHtml()` |
 | Uzman olmayan verim ve enerji azlığında makine kapanışı | `src/state.js` → `AYAR.uzmanOlmayanVerim`, `AYAR.makineKapatmaEsikleri`, `kapaliMakineler()`, `makineKapali()`; uygulama: `sakinCiktisi()`, `sakinlerToplami()`, `calisiyor()` |
+| Üs İnşası (yapılar, GDD bölüm 7) | Veri: `src/data/structures.js` → `YAPILAR`; kurallar: `src/state.js` → `yapiKur()`, `yapiKurabilirMi()`, `yapiAcik()`, `olayCarpani()`; arayüz: `ui.js` → `yapilarHtml()` (panoda "İnşa" bölümü) |
 | Yorgunluk ve ayrılma (Faz 2 / M2) | `src/state.js` → `yarinkiYorgunluk()`, `ayrilmaSansi()`, `yorgunlukGecesi()` (gunuBitir içinde), `AYAR.yorgunluk*`; arayüz: `ui.js` → `yorgunlukChip()`; sahne: `GameScene.js` → `sakinGuncelle()` (ayrılan figür solar) |
 | Hazırlıklı olaylar (tahmin, hazırlık) | Veri: `events.js` (`uyari`, `hazirlik`, `HAZIRLIK_MALIYETI`); kurallar: `state.js` → `state.tahmin`, `olayEtkisi()`, `hazirlan()`, `gunuBitir()` (tahmin → olay); arayüz: `ui.js` → `tahminHtml()`, `olayHtml()`, `hazirlikBagla()` |
 | Eğitici karar kartları | Veri: `src/data/cards.js` → `KARTLAR`; kurallar: `state.js` → `kartKontrol()` (gunuBitir sonunda), `kartSec()`, `kartSecenekleri()`, `state.kartGeceEtki` (geceHesapla); arayüz: `ui.js` → `kararKartiGoster()`, `sabahGoster()` |
@@ -210,6 +211,28 @@ Oyunda `GameScene.js` → `dekorCiz()` / `evCiz()` içinde kodla çiziliyor. Gö
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Ayberk Alkan (ayberk2002alkangizli@gmail.com) · `son-mekanikler` branch
+
+- **Prompt:** GDD'nin kalan mekaniklerini (karar kartı eksikleri, araştırma Seviye II, üs inşası) tek branch'te, ayrı commitlerle yap.
+- **Yapılan değişiklik:** Üç büyük sistem eklendi, hiçbiri sim dengesini bozmadı. Branch `son-mekanikler` (3 commit + bu kayıt).
+  - **5 yeni karar kartı** (`04b3c6b`): tozUyari (tahmin=toz), selUyari (tahmin=sel), bosMakine (boş makine + 2. gün), keşifBataryalari (kesfedilen=santral), yeniAile (gıda<35 + 2. gün). `kartKosuluVar` yeni koşul tipleri: `tahmin`, `olay`, `bosMakineVar`, `kesfedilen`.
+  - **Araştırma Seviye II** (`62c6fbf`): Verimli Türbin (+4 enerji/gece), Hidroponik (+3 gıda, −1 su), Hava Filtresi (−3 karbon/gece). `onKosul` ile Seviye I'den biri bitince açılıyor. `arastirmaSec` ve `puanEkle` koşulu dikkate alıyor; panoda kilitli projeler "🔒 Seviye I bitince açılır" diyor.
+  - **Üs İnşası (minimal)** (`d2ee1b4` + sonraki maliyet ayarı): 3 yapı — Yalıtım, Sel Bariyeri, Ek Güneş Paneli. Her yapı tek seferlik, kalıcı; eylem + kaynak maliyeti; `olayAzalt` ile sıcak/toz/sel zararını yarıya indirir, Ek Panel her gece +3 enerji. `state.yapilar`, `yapiKur`, `yapiKurabilirMi`, `yapiAcik`, `YAPILAR`. `olayEtkisi()` artık `olayCarpani()` üzerinden hazırlık ve yapı çarpanlarını birleşik uyguluyor. Panoda yeni "İnşa" bölümü.
+- Simülasyon: akıllı+hepsiniAl %66 iyi son (önceki %74'ten düşüş kartların gösterilme state'inden kaynaklı yan etkiden; sim kart seçmez ama rastgele akışı değişti); akıllı+kimseyiAlma %96 yalnız ütopya. Kirli hep çöküş. Sim yapı inşasını kullanmıyor (5 günlük demo için eylem maliyeti dengeyi bozar; gerçek oyuncu değerlendirmeli).
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/cards.js` | 5 yeni kart (D, E, F, G, H), kosul yorum satırları güncellendi |
+| `src/data/research.js` | 3 Seviye II araştırma + `onKosul` + `seciliebilirArastirmalar` yardımcı |
+| `src/data/structures.js` | **Yeni dosya** · YAPILAR tanımı (yalitim, bariyer, ekPanel) |
+| `src/state.js` | `kartKosuluVar` yeni koşul tipleri; `arastirmaSec`+`puanEkle` onKosul; `olayCarpani` + `olayEtkisi` yapı çarpanıyla birleşti; `yapiAcik`/`yapiKur`/`yapiKurabilirMi`; `geceHesapla` yapı geceEtkilerini topluyor; `sifirla`'da `state.yapilar` |
+| `src/ui/ui.js` | Panoda kilitli araştırma gösterimi; yeni "İnşa" bölümü (`yapilarHtml`) + buton bağlantıları |
+| `src/style.css` | `.proje.kilitli`, `.proje[data-yapi]` stilleri |
+| `tools/simulasyon.mjs` | Akıllı stil Seviye II kuyruğunu kullanıyor; yapı inşası sim dışında bırakıldı (notla belgelendi) |
+| `PROJECT_LOG.md` | Project Map'e yapı eklendi; bu kayıt |
+
+- **Debt:** Yeni açık borç yok. D6 playtest hâlâ gerekli. D10 (yorgunluk) açık.
 
 ### 2026-11-01 · Ayberk Alkan (ayberk2002alkangizli@gmail.com) · `kalan-mekanikler` branch
 

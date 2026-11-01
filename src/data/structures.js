@@ -17,7 +17,7 @@ export const YAPILAR = {
   yalitim: {
     ad: 'Yalıtım Tesisi',
     ikon: '🧱',
-    maliyet: { eylem: 2, atik: -8 },
+    maliyet: { eylem: 1, atik: -8 },
     aciklama: 'Duvar ve çatılara yalıtım: sıcak hava dalgası ve toz fırtınasının zararı yarı yarıya azalır.',
     olayAzalt: { sicak: 0.5, toz: 0.5 },
     bilgi: 'ruzgar',
@@ -25,7 +25,7 @@ export const YAPILAR = {
   bariyer: {
     ad: 'Sel Bariyeri',
     ikon: '🏗️',
-    maliyet: { eylem: 2, atik: -6 },
+    maliyet: { eylem: 1, atik: -6 },
     aciklama: 'Serenin alt katına kalıcı bariyer: sel zararı yarı yarıya azalır.',
     olayAzalt: { sel: 0.5 },
     bilgi: 'tatlisu',
@@ -33,9 +33,9 @@ export const YAPILAR = {
   ekPanel: {
     ad: 'Ek Güneş Paneli',
     ikon: '🌞',
-    maliyet: { eylem: 3, karbon: +4 },
-    aciklama: 'Çatıya ek güneş paneli dizisi: her gece +4 enerji. Kurulumda biraz karbon salımı var.',
-    geceEtki: { enerji: +4 },
+    maliyet: { eylem: 2, karbon: +3 },
+    aciklama: 'Çatıya ek güneş paneli dizisi: her gece +3 enerji. Kurulumda biraz karbon salımı var.',
+    geceEtki: { enerji: +3 },
     bilgi: 'gunes',
   },
 };
