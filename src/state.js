@@ -192,6 +192,10 @@ function kartKosuluVar(k) {
   return k.kosul.every((c) => {
     if (c.gunMin != null) return state.gun >= c.gunMin;
     if (c.memnuniyetAlti != null) return state.memnuniyet < c.memnuniyetAlti;
+    if (c.tahmin) return state.tahmin?.id === c.tahmin;
+    if (c.olay) return state.olay?.id === c.olay;
+    if (c.bosMakineVar) return bosMakineler().length > 0;
+    if (c.kesfedilen) return state.kesfedilenler?.includes(c.kesfedilen);
     const v = state.kaynak[c.kaynak];
     if (c.alti != null && !(v < c.alti)) return false;
     if (c.ust != null && !(v > c.ust)) return false;
