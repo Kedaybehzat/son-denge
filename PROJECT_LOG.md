@@ -229,6 +229,17 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
 
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `menu-cerceve`
+
+- **Prompt:** Yüklediğim dosyaları oyuna aktar (menü asset'leri; kullanım sınırı sonrası devam).
+- **Yapılan değişiklik:** Menü asset'leri ve bağlantıları main'e zaten girmişti (`83cf8b5`). Kalan tek sorun giderildi: `kart-cerceve.png` dışı beyaz zeminliydi (9-dilim çerçevenin köşelerinde beyaz görünüyordu); kenardan flood-fill ile beyaz silindi, iç panel ve metal/ahşap kenar korundu (orijinal `assets-orijinal/kart-cerceve-beyaz.png`). Başlık, panel, karar kartı, son ekranı headless görüntüyle doğrulandı; `npm test` ve derleme temiz.
+
+| Dosya | Açıklama |
+|---|---|
+| `public/assets/kart-cerceve.png` | Dış beyaz zemin şeffaf |
+
+- **Debt:** Yok.
+
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · PR #11
 
 - **Prompt:** Push, PR ve merge; rehber/log dosyalarını devralacak ekip arkadaşının tüm asset ve mekanik geliştirmelerine devam edebileceği şekilde güncelle.
