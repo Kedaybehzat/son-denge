@@ -221,6 +221,17 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-listesi-guncel`
 
+- **Prompt:** Prompt da verir misin.
+- **Yapılan değişiklik:** `docs/asset-promptu.md` güncel listeye göre yeniden yazıldı: PDF ile yüklenir, her yanıtta tek görsel, 55 madde (2 sakin animasyonu, 9 portre yenileme, menü: çerçeve/buton/HUD/10 ikon/logo/arka plan/5 son görseli; isteğe bağlı 11 kart görseli + 12 pano ikonu). Hale sorununa karşı "temiz şeffaf arka plan, karakter etrafında duman/gölge yok" kuralı eklendi.
+
+| Dosya | Açıklama |
+|---|---|
+| `docs/asset-promptu.md` | Yeniden yazıldı |
+
+- **Debt:** Yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-listesi-guncel`
+
 - **Prompt:** Oyundaki menüleri de güncellemek istiyorum, menüler için asset listesi; genel olarak bütün asset listesini güncel duruma çek; PDF'i de güncel asset bilgileri ve rehberle güncelle.
 - **Yapılan değişiklik:** Asset Listesi baştan, oyunun son hâline göre: 92 satır, durumlu (27 ✅ hazır, 9 🔁 eski stil portreler, 12 ⏳ eksik: yaşlı sakin/usta animasyonları + isteğe bağlı karakter sprite'ları, 44 yeni menü asset'i: logo, menü arka planı, 9-dilim pencere çerçevesi/buton/HUD kutusu, 10 HUD ikonu, 5 son ekranı görseli, 11 karar kartı görseli, 12 pano ikonu). Menüler şu an HTML/CSS + emoji; menü asset'leri gelince kodla bağlanacak. PDF yeniden yazıldı (14 sayfa): renkli durum tablosu, oyundaki 5 odanın güncel görüntüsü, mevcut karakter/nesne/animasyon/portre örnekleri, menü rehberi (her menünün ekran görüntüsü ve hangi asset'in nereye gideceği, 9-dilim kuralları), sanat stili rehberi.
 
