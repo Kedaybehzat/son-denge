@@ -383,7 +383,9 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // public/assets/'ten gerçekten yüklenmiş bir görsel mi?
+  // 'oda-x' sorgusu birleşik 'oda-x-tam' varsa da doğru sayılır (görselli oda)
   gercekAsset(anahtar) {
+    if (anahtar.startsWith('oda-') && !anahtar.endsWith('-tam') && this.textures.exists(anahtar + '-tam') && !YER_TUTUCULAR.has(anahtar + '-tam')) return true;
     return this.textures.exists(anahtar) && !YER_TUTUCULAR.has(anahtar);
   }
 
@@ -453,7 +455,9 @@ export default class GameScene extends Phaser.Scene {
   // Oda görselini yerleştirir (oran korunur, yürüme çizgisi zeminin ortasına
   // denk gelir, taşan yanlar kırpılır). Görsel yoksa null döner.
   odaGorseliYerlestir(oda, i) {
-    const anahtar = 'oda-' + oda.tip;
+    // Birleşik oda (nesneler görselde çizili) varsa o, yoksa boş oda görseli
+    const tam = this.gercekAsset('oda-' + oda.tip + '-tam');
+    const anahtar = tam ? 'oda-' + oda.tip + '-tam' : 'oda-' + oda.tip;
     if (!this.gercekAsset(anahtar)) return null;
     const x0 = i * ODA_GENISLIK;
     const kaynak = this.textures.get(anahtar).getSourceImage();
@@ -470,7 +474,7 @@ export default class GameScene extends Phaser.Scene {
     const img = this.add.image(sol, ust, anahtar).setOrigin(0).setDisplaySize(W, H).setDepth(0.5);
     const olcek = W / kaynak.width;
     img.setCrop((x0 - sol) / olcek, 0, ODA_GENISLIK / olcek, kaynak.height);
-    const yer = { sol, ust, W, H, alt: ust + H, duvarY: ust + duvar * H };
+    const yer = { sol, ust, W, H, alt: ust + H, duvarY: ust + duvar * H, tam };
     // Görsel üzerindeki oran koordinatını dünyaya çevirir
     yer.nokta = (fx, fy) => ({ x: sol + fx * W, y: ust + fy * H });
     this.odaYerlesimi[oda.tip] = yer;
@@ -697,7 +701,7 @@ export default class GameScene extends Phaser.Scene {
         if (yer && arkada) s.ekOlcek = ARKA_OLCEK;
         this.olcekle(s, anahtar);
         // Görselde zaten çizili nesne: sprite görünmez, etkileşim ve ipucu kalır
-        if (yer && oda.gorsel?.gorseldeVar?.includes(n.tip)) s.setAlpha(0);
+        if (yer && (yer.tam || oda.gorsel?.gorseldeVar?.includes(n.tip))) { s.setAlpha(0); s.gorseldeCizili = true; }
         this.nesneler.push({ sprite: s, def: n, statik: anahtar });
       }
     });

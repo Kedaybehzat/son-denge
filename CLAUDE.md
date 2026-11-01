@@ -42,8 +42,8 @@ Bu dosyayı bir yapay zeka asistanına veriyorsan, asistan şunları bilmeli:
 4. **Bilinen borçlar** tablosunu güncelle: yeni borcu ekle, kapanan borcu sil ve logda "kapandı: D#" diye belirt.
 5. **Asset listesi:** Görsel gerektiren yeni bir şey eklendiyse (sprite, dekor, oda, portre, ekran, UI görseli; kodla çizilen yer tutucu da dahil) `PROJECT_LOG.md` → **Asset Listesi** bölümüne satır ekle (liste her zaman güncel tutulur): dosya adı, ne olduğu, yükseklik/boyut, prompt referansı, durum, eklenme tarihi.
    - **İsimlendirme:** küçük harf, Türkçe karakter yok, kelimeler `-` ile (`panel-su.png`, `sakin-1.png`, `ziyaretci-<id>.png`, `kurucu-<id>.png`, `dekor-<ad>.png`, `oda-<oda>.png`). Ziyaretçi/kurucu için koddaki `id` kullanılır.
-   - **Animasyon** eklendiyse `src/data/animations.js` → `ANIMASYONLAR`'a ekle (kare sayısı, fps, döngü, sahip, ne zaman) ve Asset Listesi **D** tablosuna yaz. Kare dosyaları: `anim/<animasyon>-<kare>.png`, kareler 1'den başlar.
-   - Doğrudan sahnede çizilen nesne ise `src/data/assets.js` → `ASSETLER`'e de ekle (yer tutucusu `dokulariUret()`'te kalsın) ve A tablosuna yaz; değilse B ya da C tablosuna.
+   - **Animasyon** eklendiyse `src/data/animations.js` → `ANIMASYONLAR`'a ekle (kare sayısı, fps, döngü, sahip, ne zaman) ve Asset Listesi tablosuna (uzantısız satır olarak) yaz. Kare dosyaları: `anim/<animasyon>-<kare>.png`, kareler 1'den başlar.
+   - Doğrudan sahnede çizilen nesne ise `src/data/assets.js` → `ASSETLER`'e de ekle (yer tutucusu `dokulariUret()`'te kalsın) ve Asset Listesi'ne (tek tablo, kategori yok) satır ekle.
    - `CLAUDE.md` bölüm 6'ya görsel promptunu ekle (yoksa listede "yok, yazılacak" yaz).
    - Asset geldiğinde ya da kaldırıldığında `node tools/asset-durum.mjs` çalıştır ve Durum sütununu güncelle.
    - **Dosya boyutu:** Oyun her şeyi tarayıcıda indirir. Gelen görselleri repoya koymadan önce oyunun ihtiyacına küçült (orijinali `assets-orijinal/` altına yedekle, git'e girmez): nesne/karakter/animasyon karesi en fazla 600 px yükseklik, portre 512×512, hikaye 1280 px genişlik. Oda ve manzara görselleri olduğu gibi kalır.
@@ -471,7 +471,7 @@ node tools/asset-durum.mjs   # hangi görseller hazır
 | `kurucu-<id>.png` | Kurucu portreleri (`selin`, `burak`, `nur`, `can`) | PNG | 1:1, Görev Panosu |
 | `kapak.png` | Sunum kapağı (oyunda kullanılmaz) | PNG | 16:9 |
 
-**Animasyonlar:** Kareler `public/assets/anim/<animasyon>-<kare>.png` adıyla konur (ör. `oyuncu-yuru-1.png` … `oyuncu-yuru-6.png`). Bir animasyonun **tüm kareleri** gelmeden animasyon oynamaz, nesne sabit görselle kalır. Kareler aynı boyutta olmalı ve karakter her karede aynı yerde/ölçekte durmalı. Animasyon, tüm karelerin ortak dolu alanına göre ölçeklenir; bu yüzden sabit görselle aynı boyda görünür. Hangi animasyonun kaç kare istediği: `PROJECT_LOG.md` → Asset Listesi → D. Üretim ipuçları: 6.11.
+**Animasyonlar:** Kareler `public/assets/anim/<animasyon>-<kare>.png` adıyla konur (ör. `oyuncu-yuru-1.png` … `oyuncu-yuru-6.png`). Bir animasyonun **tüm kareleri** gelmeden animasyon oynamaz, nesne sabit görselle kalır. Kareler aynı boyutta olmalı ve karakter her karede aynı yerde/ölçekte durmalı. Animasyon, tüm karelerin ortak dolu alanına göre ölçeklenir; bu yüzden sabit görselle aynı boyda görünür. Hangi animasyonun kaç kare istediği: `PROJECT_LOG.md` → Asset Listesi. Üretim ipuçları: 6.11.
 
 Oyun nesneleri için `public/assets/`'e koyup commit'lemek yeterli; diğerlerini bu isimlerle kod sorumlusuna iletin. **Güncel ve tam liste (durumlarıyla): `PROJECT_LOG.md` → Asset Listesi.**
 
@@ -661,6 +661,8 @@ Key art for a climate video game: a small glowing eco-bunker in the foreground, 
 - duvar–zemin çizgisi yüksekliğin **%74,5**'i · yürüme çizgisi **%82** · tavan kirişi üst **%4** · kenar bantları her yanda genişliğin **%4**'ü
 - ölçek: **1 m ≈ görsel yüksekliğinin %18'i** (ön zemin), duvar dibinde **%16,5**'i · 1,75 m insan ≈ yüksekliğin **%32**'si · 2,1 m kapı ≈ **%34**'ü
 - Şablonlar 1891×831 (2,28:1) çizildi; 21:9'a yüklenince oranlar aynen tutar.
+
+**Birleşik oda sürümü:** her oda için ayrıca `oda-<oda>-tam.png` üretin: aynı görsel + etkileşimli nesneler (kapı, radyo, pano, paneller) aşağıdaki konumlarda içine çizili. Oyun bunu bulursa kullanır ve nesnelerin üstüne görünmez etkileşim alanı koyar; ayrı parçalar yine yedek olarak kalır. Güncel konumlar ve tam liste: `PROJECT_LOG.md` → Asset Listesi.
 
 #### Oda → nesne listesi (rework'te bu alanlar ayrılmalı)
 

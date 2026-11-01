@@ -19,6 +19,7 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Sakin görseli seçimi (özel `sakin-<id>` / genel `sakin-N`) | `assets.js` → `SAKIN_OZEL_YUKSEKLIK` ve otomatik `sakin-<id>` girdileri; `GameScene.js` → `sakinGuncelle()` (`ozelDoku`), `sakinAnimGuncelle()` |
 | Sakinler, görev atama, trait koşulları | `src/state.js` → `sakinCiktisi()`, `kosulAktif()`, `gorevAta()`, `varsayilanGorev()`, `katkiGuncelle()`; veri: `visitors.js` (`uzman`, `kosul`, `ekTuketim`, `guclu`, `kosullu`, `KURUCULAR`) |
 | Makineler, operatör, boş makine, kendin çalış | `src/state.js` → `MAKINELER`, `makineOperatoru()`, `bosMakineler()`, `kendinCalis()`; üretim: `panels.js` → `makine.uretim`; arayüz: `ui.js` → `makinePanelHtml()`, `makineDurumHtml()` |
+| Uzman olmayan verim ve enerji azlığında makine kapanışı | `src/state.js` → `AYAR.uzmanOlmayanVerim`, `AYAR.makineKapatmaEsikleri`, `kapaliMakineler()`, `makineKapali()`; uygulama: `sakinCiktisi()`, `sakinlerToplami()`, `calisiyor()` |
 | Yorgunluk ve ayrılma (Faz 2 / M2) | `src/state.js` → `yarinkiYorgunluk()`, `ayrilmaSansi()`, `yorgunlukGecesi()` (gunuBitir içinde), `AYAR.yorgunluk*`; arayüz: `ui.js` → `yorgunlukChip()`; sahne: `GameScene.js` → `sakinGuncelle()` (ayrılan figür solar) |
 | Hazırlıklı olaylar (tahmin, hazırlık) | Veri: `events.js` (`uyari`, `hazirlik`, `HAZIRLIK_MALIYETI`); kurallar: `state.js` → `state.tahmin`, `olayEtkisi()`, `hazirlan()`, `gunuBitir()` (tahmin → olay); arayüz: `ui.js` → `tahminHtml()`, `olayHtml()`, `hazirlikBagla()` |
 | Eğitici karar kartları | Veri: `src/data/cards.js` → `KARTLAR`; kurallar: `state.js` → `kartKontrol()` (gunuBitir sonunda), `kartSec()`, `kartSecenekleri()`, `state.kartGeceEtki` (geceHesapla); arayüz: `ui.js` → `kararKartiGoster()`, `sabahGoster()` |
@@ -93,7 +94,7 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | # | Borç | Yer | Eklenme |
 |---|---|---|---|
 | D2 | Otomatik test yok; doğrulama yalnızca simülasyon ve elle oynama | `tools/simulasyon.mjs` | 2026-10-31 |
-| D3 | "Biliyor muydun?" rakamları kaynaklarından kontrol edilmedi (yeni: `batarya`, `grisu`, `erkenuyari`) | `src/data/facts.js` | 2026-10-31 |
+| D3 | "Biliyor muydun?" rakamları kaynaklarından kontrol edilmedi (kaynak etiketleri 2026-11-01'de 1. el'e çekildi; sayıların doğruluğu hâlâ sunum öncesi doğrulanmalı) | `src/data/facts.js` | 2026-10-31 |
 | D6 | Simülasyon artık görev atama + araştırma seçimini kullanıyor; akıllı stilde ortalama 1.67 araştırma açılıyor. Faz 1 sayıları hâlâ tarayıcıda insan tarafından playtest edilmedi | `tools/simulasyon.mjs` | 2026-10-31 |
 | D10 | Yorgunluk ayarlarıyla dinlendirme stratejisi kötü: herkes 0'dan başlayıp 4. gece aynı anda riske giriyor; riskteki herkesi dinlendiren akıllı stil iyi sonu %82 → %20 düşürüyor. Öneri: kurucuları farklı yorgunlukla başlatmak ya da dinlenmeyi −3 / eşiği 5 yapmak (karar bekliyor) | `AYAR.yorgunluk*`, `KURUCULAR` | 2026-11-01 |
 | D12 | Hazırlıklı olaylarla zararlı olaylar ~1,6 kat sertleştirildi (hazırlık bir eylem değerinde olsun diye). Toplam zorluk arttı: akıllı+herkesi al iyi son %83 → %61 (hazırlanarak; hazırlıksız %62). 1,3 katta hazırlık bazen kötü seçim çıkıyordu. Dengeleme D10 ile birlikte yapılmalı | `events.js`, `AYAR` | 2026-11-01 |
@@ -103,114 +104,112 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 
 ## Asset Listesi
 
-> Yapılması gereken tüm görsellerin **tek güncel listesi** (kural: `CLAUDE.md` → 0.1 madde 5). Her değişiklikte güncel tutulur.
-> Promptlar ve stil blokları: `CLAUDE.md` bölüm 6. Durum kontrolü: `node tools/asset-durum.mjs`.
+> **Tek, güncel liste** (görseller ve animasyonlar birlikte, kategori yok). 1 Kasım 2026'da oyunun son hâline göre **sıfırdan** oluşturuldu: komple yeniden üretim için her şey burada. Kural: `CLAUDE.md` → 0.1 madde 5.
+> Üretim standardı: **ölçek dizisi** (`docs/olcek-standardi.md`, şablon `docs/olcek-sablonu.png`) · oda brifi ve promptları: `CLAUDE.md` 6.12 · stil blokları: 6.4 · durum kontrolü: `node tools/asset-durum.mjs`.
 
-**Durum:** ✅ hazır (`public/assets/`'te) · ⏳ yapılacak · 💤 isteğe bağlı (yoksa yedeği kullanılır)
+**Genel kurallar**
+- Dosya adı küçük harf, Türkçe karakter yok. `.png` ile biten satırlar tek görsel; uzantısız satırlar **animasyon**: kareler `anim/<ad>-1.png … -N.png` olur (2×2 / 2×3 ızgaralı tek görsel olarak teslim edilebilir, kesme asistanda).
+- Nesne ve karakterler: şeffaf (ya da düz beyaz) arka plan, yandan görünüş, karakterler sağa bakar, taban en altta. Boyut serbest; oyun "Boy" sütunundaki gerçek ölçüye göre ölçekler (`PX_METRE`). Göreli boylar için ölçek dizisiyle üretin.
+- Animasyon kareleri: aynı boyut, aynı konum, aynı taban çizgisi; sadece hareket eden kısım değişir.
+- Odalar: 21:9, duvar–zemin çizgisi **tüm odalarda %74,5**, yürüme çizgisi %82, kenar %4'ler aynı kolon, camlar düz magenta #FF00FF, gerçek ölçek (1 m = yüksekliğin %18'i ön zeminde, %16,5'i duvar dibinde). Odanın "Ne" sütunundaki konumlar oyunun nesneleri yerleştirdiği yerlerdir; boş sürümde bu alanlar **boş bırakılır**.
+- **Her oda iki sürüm:** `oda-<oda>.png` (boş) + `oda-<oda>-tam.png` (aynı görsel, etkileşimli nesneler içine çizili). Oyun birleşik sürüm varsa onu kullanır ve nesnelerin üstüne görünmez etkileşim alanı koyar (garanti yol); yoksa ayrı parçaları yerleştirir. En kolay üretim: önce birleşik sürümü üretin, sonra aynı görselden nesneleri silip boş sürümü elde edin (ya da tersi).
+- Teslimde ölçekleme/kırpma yok; dosyaları olduğu gibi `public/assets/`'e koyun ya da asistana verin (isimlendirme, kesme, küçültme, magenta silme asistanda).
 
-**Genel kurallar:** Şeffaf PNG (beyaz arka planla üretip arkayı silin), yandan görünüş, sağa bakan karakterler. Boyut ve kenar boşluğu serbest: oyun görselin dolu kısmını ölçer, oranı koruyarak "Yükseklik" sütunundaki değere ölçekler ve en alt dolu satırı zemine oturtur. Büyük üretin (en az 2–3 kat).
+**Toplam:** 72 satır · 55 görsel · 17 animasyon (57 kare). "İsteğe bağlı/Önerilir" olanlar yoksa oyun yedeğini kullanır.
 
----
-
-### A. Oyuna bağlı: `public/assets/`'e koyunca direkt oyuna girer
-
-Kaynak: `src/data/assets.js` (`ASSETLER`). Kod değişikliği gerekmez.
-
-| Dosya | Ne | Yükseklik | Prompt | Durum | Eklendi |
-|---|---|---|---|---|---|
-| `oyuncu.png` | Ana karakter, sağa bakıyor | 72 px | 6.5 Karakter | ✅ (512×768, 01.11 güncellendi) | 31.10 |
-| `panel.png` | Genel kontrol paneli (tüm odalarda) | 118 px (1,9 m) | 6.5 Kontrol paneli | ✅ (918×1334, 01.11) | 31.10 |
-| `panel-enerji.png` | Enerji odası paneli | 100 px | 6.5 varyasyon | ✅ (1040×1512, 01.11) | 31.10 |
-| `panel-su.png` | Su arıtma paneli | 100 px | 6.5 varyasyon | ✅ (1040×1512, 01.11) | 31.10 |
-| `panel-sera.png` | Sera paneli | 100 px | 6.5 varyasyon | ✅ (1040×1512, 01.11) | 31.10 |
-| `panel-geri.png` | Geri dönüşüm paneli | 100 px | 6.5 varyasyon | ✅ (1040×1512, 01.11) | 31.10 |
-| `radyo.png` | Radyo + küçük masa | 80 px | 6.5 Radyo | ✅ (1254×1254, 01.11) | 31.10 |
-| `pano.png` | Görev ve araştırma panosu (ayaklı mantar pano) | 110 px | 6.5 Görev panosu | ✅ (1081×1455, 01.11) | 31.10 |
-| `yatak.png` | Yatak (günü bitirir) | 60 px | 6.5 Yatak | ✅ (1862×845, 01.11) | 31.10 |
-| `kapi.png` | Sığınak kapısı | 120 px | 6.5 Kapı | ✅ (933×1686, 01.11) | 31.10 |
-| `bitki.png` | Sera bitkisi, sağlıklı | 56 px | 6.5 Bitki | ✅ (1024×1536, 01.11) | 31.10 |
-| `bitki-solgun.png` | Sera bitkisi, solgun (gıda/denge düşünce) | 56 px | 6.5 Bitki | ✅ (1042×1509, 01.11) | 31.10 |
-| `cati.png` | Çatı şeridi: eğik güneş panelleri, yatayda döşenir (yoksa kodla çizilir) | 70 px | final prompt C | ✅ (2172×724, 01.11) | 01.11 |
-| `cop-yigini.png` | Geri dönüşümdeki çöp yığını (atığa göre büyür/küçülür; şimdilik kodla çizilmiş torba/hurda yığını) | 70 px | yok, yazılacak | ✅ (01.11) | 01.11 |
-| `sakin-1.png` | Sakin 1: asalı yaşlı işçi | 64 px | 6.5 Sakinler | ✅ (1024×1536, 01.11) | 31.10 |
-| `sakin-2.png` … `sakin-4.png` | Örgülü kadın saha ceketli · deri önlüklü usta · hardal şapkalı genç gezgin | 105 px | 6.5 Sakinler | ✅ (1024×1536, 01.11) | 31.10 |
-| `sakin-selin.png` | Sahnede Kurucu Selin (Enerji) — genç kadın, enerji teknisyeni (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
-| `sakin-burak.png` | Sahnede Kurucu Burak (Su) — otuzlarında, sakallı (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
-| `sakin-nur.png` | Sahnede Kurucu Nur (Sera) — ellilerinde, başörtülü bahçıvan (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
-| `sakin-can.png` | Sahnede Kurucu Can (Geri Dönüşüm) — yirmilerinde, kıvırcık (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
-| `sakin-muhendis.png` | Sahnede Deniz, mühendis (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
-| `sakin-ciftci.png` | Sahnede Hasan ve kızı Elif (ikisi bir arada) (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
-| `sakin-bilim.png` | Sahnede Dr. Leyla (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
-| `sakin-cocuklar.png` | Sahnede Mert ve Ada (iki çocuk bir arada) (tam boy, yandan, sağa bakıyor) | 50 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
-| `sakin-tamirci.png` | Sahnede Kemal, tamirci (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
-| `sakin-kafile.png` | Sahnede Sahil ailesi (4 kişi, grup) (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
-| `oda-yasam.png` | Yaşam Alanı arka planı (duvarın üstüne biner; **pencereyi şeffaf bırakın**, dışarısı görünsün) | 640×280'e gerilir | 6.6 | ✅ rework (1916×821, magenta camlar şeffaf, 01.11) | 31.10 |
-| `oda-enerji.png` | Enerji Odası arka planı | 640×280 | 6.6 | ✅ rework (1916×821, magenta camlar şeffaf, 01.11) | 31.10 |
-| `oda-su.png` | Su Arıtma arka planı | 640×280 | 6.6 | ✅ rework (1916×821, magenta camlar şeffaf, 01.11) | 31.10 |
-| `oda-sera.png` | Sera arka planı | 640×280 | 6.6 | ✅ rework (1916×821, magenta camlar şeffaf, 01.11) | 31.10 |
-| `oda-geri.png` | Geri Dönüşüm arka planı | 640×280 | 6.6 | ✅ rework (1916×821, magenta camlar şeffaf, 01.11) | 31.10 |
-| `manzara-iyi.png` | Şehir panoraması, ütopya (kodla çizilen şehrin yerine geçer, yatayda tekrar eder; kenarları birleşebilir olsun) | 470 px yükseklik | 6.7 | ✅ rework (1916×821, 01.11) | 31.10 |
-| `manzara-kotu.png` | Aynı panorama, distopya (denge düştükçe belirir; yoksa iyi hâl karartılır) | 470 px | 6.7 | ✅ rework (1916×821, 01.11) | 31.10 |
-
-> **Karaktere özel sakin görselleri (`sakin-<id>.png`, 💤):** Varsa o kişi sahnede kendi görseliyle görünür (genel `sakin-1..4` yerine). Yoksa genel görseller sırayla kullanılır. Özel görselli sakine genel yürüme/bekleme animasyonu uygulanmaz.
-
-### B. Arayüz görselleri: `public/assets/`'e koyunca kartlarda görünür
-
-Kaynak: `src/data/assets.js` → `portreDosyasi()`, `hikayeDosyasi()`; kullanım `src/ui/ui.js`. Dosya yoksa emoji ya da düz ekran kalır.
-
-| Dosya | Ne | Nerede görünür | Boyut | Prompt | Durum | Eklendi |
+| # | Dosya / animasyon | Ne (odalarda: içerik ve ayrılacak alanlar) | Boy / oran | Kare | Zorunlu | Not |
 |---|---|---|---|---|---|---|
-| `hikaye-1.png` … `hikaye-4.png` | Açılış hikaye ekranları | Hikaye kartının üstünde bant | 16:9 | 6.8 | ✅ (1672×941, 01.11) | 31.10 |
-| `ziyaretci-muhendis.png` | Deniz, mühendis | Kapı kartı (büyük) + pano rozeti | 1:1 | 6.9 | ✅ (01.11) | 31.10 |
-| `ziyaretci-ciftci.png` | Hasan ve kızı Elif | Kapı kartı + pano | 1:1 | 6.9 | ✅ (01.11) | 31.10 |
-| `ziyaretci-bilim.png` | Dr. Leyla | Kapı kartı + pano | 1:1 | 6.9 | ✅ (01.11) | 31.10 |
-| `ziyaretci-cocuklar.png` | Mert ve Ada | Kapı kartı + pano | 1:1 | 6.9 | ✅ (01.11) | 31.10 |
-| `ziyaretci-tamirci.png` | Kemal, tamirci | Kapı kartı + pano | 1:1 | 6.9 | ✅ (01.11) | 31.10 |
-| `ziyaretci-kafile.png` | Sahil kasabasından aile (4 kişi) | Kapı kartı + pano | 1:1 | 6.9 | ✅ (01.11) | 31.10 |
-| `kurucu-selin.png` | Kurucu Selin (Enerji) | Pano rozeti | 1:1 | 6.9 Kurucular | ✅ (01.11) | 01.11 |
-| `kurucu-burak.png` | Kurucu Burak (Su) | Pano rozeti | 1:1 | 6.9 Kurucular | ✅ (01.11) | 01.11 |
-| `kurucu-nur.png` | Kurucu Nur (Sera) | Pano rozeti | 1:1 | 6.9 Kurucular | ✅ (01.11) | 01.11 |
-| `kurucu-can.png` | Kurucu Can (Geri Dönüşüm) | Pano rozeti | 1:1 | 6.9 Kurucular | ✅ (01.11) | 01.11 |
-| `kapak.png` | Sunum kapağı | Oyunda kullanılmaz (sunum) | 16:9 | 6.10 | ✅ (01.11) | 31.10 |
-
-### D. Animasyonlar: `public/assets/anim/<animasyon>-<kare>.png`
-
-Kaynak: `src/data/animations.js` (`ANIMASYONLAR`). Kareler 1'den başlar: `oyuncu-yuru-1.png` … `oyuncu-yuru-6.png`. **Bir animasyonun tüm kareleri gelmeden animasyon oynamaz** (nesne sabit görselle kalır). Kareler aynı boyutta, karakter her karede aynı yerde/aynı ölçekte olmalı; alt kenar zemine basar. Yükseklik sahibinin yüksekliğidir.
-
-| Animasyon | Dosyalar | Kare | FPS | Tür | Ne zaman oynar | Yükseklik | Durum | Eklendi |
-|---|---|---|---|---|---|---|---|---|
-| `oyuncu-bekle` | `oyuncu-bekle-1..4.png` | 4 | 4 | döngü | Oyuncu dururken (nefes alma) | 72 px | ✅ (2×2 sheet'ten kesildi) | 01.11 |
-| `oyuncu-yuru` | `oyuncu-yuru-1..6.png` | 6 | 10 | döngü | Oyuncu yürürken (gelince kodla zıplama kapanır) | 72 px | ✅ (512×768, 01.11) | 01.11 |
-| `oyuncu-calis` | `oyuncu-calis-1..4.png` | 4 | 8 | bir kez | Panelle etkileşimde (tuşlara basma) | 72 px | ✅ (2×2 sheet'ten kesildi) | 01.11 |
-| `sakin-1-bekle` … `sakin-4-bekle` | `sakin-N-bekle-1..2.png` | 2 (×4 sakin) | 2 | döngü | Sakin dururken | 105 px | sakin-1, sakin-2 ✅ (2×3 sheet'ten) · sakin-3, sakin-4 ⏳ | 01.11 |
-| `sakin-1-yuru` … `sakin-4-yuru` | `sakin-N-yuru-1..4.png` | 4 (×4 sakin) | 8 | döngü | Sakin yürürken | 105 px | sakin-1, sakin-2 ✅ (2×3 sheet'ten) · sakin-3, sakin-4 ⏳ | 01.11 |
-| `kapi-ac` | `kapi-ac-1..4.png` | 4 | 10 | bir kez | Ziyaretçi içeri alınınca (kapalı → açık) | 120 px | ✅ (2×2 sheet'ten kesildi) | 01.11 |
-| `panel-calis` | `panel-calis-1..3.png` | 3 | 6 | döngü | Makinenin operatörü varken; boş makinede durur | 100 px | ✅ (2×2 sheet'ten kesildi) | 01.11 |
-
-| `panel-enerji-calis`, `panel-su-calis`, `panel-sera-calis`, `panel-geri-calis` | `panel-<oda>-calis-1..3.png` | 3 (×4) | 6 | döngü | Odaya özel panel çalışırken (1. kare aynı zamanda `panel-<oda>.png` sabit görseli) | 93 px | ✅ (2×2 sheet, yarı saydam zemin silindi) | 01.11 |
-
-**Toplam:** 17 animasyon, 71 kare (oyuncu 14, sakinler 24, kapı 4, panel 3). Öncelik önerisi: `oyuncu-yuru` → `oyuncu-bekle` → `panel-calis` → sakinler.
-
-### C. Şu an kodla çizilen, ileride asset olabilecekler (öneri adlar)
-
-Oyunda `GameScene.js` → `dekorCiz()` / `evCiz()` içinde kodla çiziliyor. Görsel yapılırsa yukarıdaki A tablosuna taşınır ve koda bağlanır.
-
-| Önerilen dosya | Ne | Oda | Not | Durum |
-|---|---|---|---|---|
-| `dekor-dolap.png` | Ahşap dolap | Yaşam Alanı | | 💤 |
-| `dekor-batarya.png` | Batarya rafı (3'lü) | Enerji Odası | Batarya araştırmasıyla bağ kurulabilir | 💤 |
-| `dekor-jenerator.png` | Dizel jeneratör (bacalı) | Enerji Odası | Kirli eylemde duman buradan çıkıyor | 💤 |
-| `su-tanki.png` | Su tankı gövdesi (şeffaf pencereli) | Su Arıtma | İçindeki su seviyesi kodla çizilmeye devam eder | 💤 |
-| `dekor-boru.png` | Duvar borusu | Su Arıtma | | 💤 |
-| `dekor-saksi.png` | Uzun saksı sırası | Sera | Bitkiler üstüne dizilir | 💤 |
-| `dekor-kutular.png` | Renkli ayrıştırma kutuları (4'lü) | Geri Dönüşüm | | 💤 |
-| `lamba.png` | Tavan lambası | Tüm odalar | Işığı kodla, enerjiye göre | 💤 |
+| 1 | `oda-yasam.png` | Yaşam Alanı arka planı — **boş sürüm** (oyunun nesneleri ayrı parça olarak konur). **İçerik ve ayrılacak alanlar** (x = görsel genişliğine %): KAPI x 13–21% (1,1×2,1 m, duvar dibi) · RADYO+SEHPA x 71–78% (0,8×0,9 m, duvar dibi) · YATAK x 35–59% (2,0×0,9 m) · GÖREV PANOSU ön zeminde x 3–11% (1,1×1,7 m) · sakinlerin durduğu boş zemin x 41–59%. Süs: kitaplık x 23–34% (1,2 m altı) + üstünde pencere, duvar rafı/askılar x 60–71%, koltuk + büyük bitki x 80–96%. | 21:9 (≈2,33:1) | — | Evet | Zemin çizgisi %74,5 · kenar %4 kolon · camlar magenta · 6.12 |
+| 2 | `oda-yasam-tam.png` | Yaşam Alanı — **birleşik sürüm**: `oda-yasam.png` ile birebir aynı görsel + etkileşimli nesneler (kapı, radyo+sehpa, yatak, görev panosu) yukarıdaki konum ve boylarda içine çizili. Varsa oyun bunu kullanır, nesnelerin üstüne görünmez etkileşim alanı koyar. | 21:9 (≈2,33:1) | — | Önerilir (garanti) | Boş sürümle aynı kompozisyon; sadece listelenen nesneler eklenir. Dinamik olanlar (bitki, çöp, su seviyesi, karakterler) ÇİZİLMEZ |
+| 3 | `oda-enerji.png` | Enerji Odası arka planı — **boş sürüm** (oyunun nesneleri ayrı parça olarak konur). **İçerik ve ayrılacak alanlar:** DİZEL JENERATÖR x 5–31% (2,4×1,9 m; dikey baca, ucu x 15%, y 20% — kirli eylem dumanı buradan) · ENERJİ PANELİ x 57–65% (0,9×1,5 m, duvar dibi) · operatör boş zemini x 50–72%. Süs: alet tezgâhı x 31–50% + üstünde pencere, batarya rafı x 72–96%, üst duvarda kablo kanalları. | 21:9 (≈2,33:1) | — | Evet | Zemin çizgisi %74,5 · kenar %4 kolon · camlar magenta · 6.12 |
+| 4 | `oda-enerji-tam.png` | Enerji Odası — **birleşik sürüm**: `oda-enerji.png` ile birebir aynı görsel + etkileşimli nesneler (enerji paneli) yukarıdaki konum ve boylarda içine çizili. Varsa oyun bunu kullanır, nesnelerin üstüne görünmez etkileşim alanı koyar. | 21:9 (≈2,33:1) | — | Önerilir (garanti) | Boş sürümle aynı kompozisyon; sadece listelenen nesneler eklenir. Dinamik olanlar (bitki, çöp, su seviyesi, karakterler) ÇİZİLMEZ |
+| 5 | `oda-su.png` | Su Arıtma arka planı — **boş sürüm** (oyunun nesneleri ayrı parça olarak konur). **İçerik ve ayrılacak alanlar:** 2 SU TANKI x 27–40% ve 44–57% (her biri 1,7×2,4 m); önlerinde dikey GÖSTERGE CAMI x 37,2–38,0% ve 53,1–54,2%, y 38–64%, içi düz açık gri (su seviyesini oyun çizer) · ARITMA PANELİ x 61–70% (0,9×1,5 m, duvar dibi) · operatör boş zemini x 57–74%. Süs: kavanozlu raf x 5–24% + üstünde pencere, akan sulu beton havuz x 74–95%, tanklar arası borular/vanalar. | 21:9 (≈2,33:1) | — | Evet | Zemin çizgisi %74,5 · kenar %4 kolon · camlar magenta · 6.12 |
+| 6 | `oda-su-tam.png` | Su Arıtma — **birleşik sürüm**: `oda-su.png` ile birebir aynı görsel + etkileşimli nesneler (arıtma paneli (tanklar zaten görselde)) yukarıdaki konum ve boylarda içine çizili. Varsa oyun bunu kullanır, nesnelerin üstüne görünmez etkileşim alanı koyar. | 21:9 (≈2,33:1) | — | Önerilir (garanti) | Boş sürümle aynı kompozisyon; sadece listelenen nesneler eklenir. Dinamik olanlar (bitki, çöp, su seviyesi, karakterler) ÇİZİLMEZ |
+| 7 | `oda-sera.png` | Sera arka planı — **boş sürüm** (oyunun nesneleri ayrı parça olarak konur). **İçerik ve ayrılacak alanlar:** arka duvar 1 m yükseklikten tavana CAM DUVAR (camlar magenta) · YÜKSELTİLMİŞ YATAKLAR x 5–37% ve FİDE RAFLARI x 38–70% (hepsi 1 m altında, duvar dibinde) · ön zemin x 6–63% BOŞ (oyun 7 saksı bitki dizer, 0,65 m) · SERA PANELİ x 81–89% (0,9×1,5 m, duvar dibi) · operatör boş zemini x 74–82%. | 21:9 (≈2,33:1) | — | Evet | Zemin çizgisi %74,5 · kenar %4 kolon · camlar magenta · 6.12 |
+| 8 | `oda-sera-tam.png` | Sera — **birleşik sürüm**: `oda-sera.png` ile birebir aynı görsel + etkileşimli nesneler (sera paneli) yukarıdaki konum ve boylarda içine çizili. Varsa oyun bunu kullanır, nesnelerin üstüne görünmez etkileşim alanı koyar. | 21:9 (≈2,33:1) | — | Önerilir (garanti) | Boş sürümle aynı kompozisyon; sadece listelenen nesneler eklenir. Dinamik olanlar (bitki, çöp, su seviyesi, karakterler) ÇİZİLMEZ |
+| 9 | `oda-geri.png` | Geri Dönüşüm arka planı — **boş sürüm** (oyunun nesneleri ayrı parça olarak konur). **İçerik ve ayrılacak alanlar:** hurda kasaları duvar dibinde x 4–23%, ÖNLERİ BOŞ ön zemin x 6–20% (oyun büyüyüp küçülen çöp yığını çizer, 1,8×0,9 m) · GERİ DÖNÜŞÜM PANELİ x 47–57% (0,9×1,5 m, duvar dibi) · operatör boş zemini x 45–59%. Süs: tamir tezgâhı + alet panosu x 24–45%, geri dönüşüm afişi x 53–58% (1,6 m üstü), ayrıştırılmış kutu rafları x 59–95%, pencere x 6–20%. | 21:9 (≈2,33:1) | — | Evet | Zemin çizgisi %74,5 · kenar %4 kolon · camlar magenta · 6.12 |
+| 10 | `oda-geri-tam.png` | Geri Dönüşüm — **birleşik sürüm**: `oda-geri.png` ile birebir aynı görsel + etkileşimli nesneler (geri dönüşüm paneli) yukarıdaki konum ve boylarda içine çizili. Varsa oyun bunu kullanır, nesnelerin üstüne görünmez etkileşim alanı koyar. | 21:9 (≈2,33:1) | — | Önerilir (garanti) | Boş sürümle aynı kompozisyon; sadece listelenen nesneler eklenir. Dinamik olanlar (bitki, çöp, su seviyesi, karakterler) ÇİZİLMEZ |
+| 11 | `manzara-iyi.png` | Şehir panoraması, ütopya hâli (pencerelerden ve çatı üstünden görünür) | 21:9 (≈2,33:1), yatay döşenebilir | — | Evet | Ufuk %55 · 6.7 |
+| 12 | `manzara-kotu.png` | Aynı panorama, distopya hâli (denge düştükçe belirir) | 21:9 (≈2,33:1), aynı kompozisyon | — | Evet | 6.7 |
+| 13 | `cati.png` | Sığınak çatı şeridi, eğik güneş panelleri + havalandırma | 6:1, yatay döşenebilir | — | Evet | Final prompt C |
+| 14 | `oyuncu.png` | Oyuncu karakteri (sağa bakan, duruş) | 1,75 m | — | Evet | Ölçek dizisinin referansı · 6.13 |
+| 15 | `oyuncu-bekle` | Oyuncu dururken (nefes) | 1,75 m | 4 (döngü, 4 fps) | Evet |  |
+| 16 | `oyuncu-yuru` | Oyuncu yürürken | 1,75 m | 6 (döngü, 10 fps) | Evet | Gelince kodla zıplama kapanır |
+| 17 | `oyuncu-calis` | Oyuncu panele dokunurken | 1,75 m | 4 (bir kez, 8 fps) | Evet |  |
+| 18 | `sakin-1.png` | Genel sakin 1 (asalı yaşlı işçi); isimsiz sakinler sırayla bunları kullanır | 1,7 m | — | Evet | 6.5 |
+| 19 | `sakin-2.png` | Genel sakin 2 (örgülü kadın, saha ceketli); isimsiz sakinler sırayla bunları kullanır | 1,7 m | — | Evet | 6.5 |
+| 20 | `sakin-3.png` | Genel sakin 3 (deri önlüklü usta); isimsiz sakinler sırayla bunları kullanır | 1,7 m | — | Evet | 6.5 |
+| 21 | `sakin-4.png` | Genel sakin 4 (hardal şapkalı genç gezgin); isimsiz sakinler sırayla bunları kullanır | 1,7 m | — | Evet | 6.5 |
+| 22 | `sakin-1-bekle` | Sakin 1 dururken | 1,7 m | 2 (döngü, 2 fps) | Evet |  |
+| 23 | `sakin-1-yuru` | Sakin 1 yürürken | 1,7 m | 4 (döngü, 8 fps) | Evet |  |
+| 24 | `sakin-2-bekle` | Sakin 2 dururken | 1,7 m | 2 (döngü, 2 fps) | Evet |  |
+| 25 | `sakin-2-yuru` | Sakin 2 yürürken | 1,7 m | 4 (döngü, 8 fps) | Evet |  |
+| 26 | `sakin-3-bekle` | Sakin 3 dururken | 1,7 m | 2 (döngü, 2 fps) | Evet |  |
+| 27 | `sakin-3-yuru` | Sakin 3 yürürken | 1,7 m | 4 (döngü, 8 fps) | Evet |  |
+| 28 | `sakin-4-bekle` | Sakin 4 dururken | 1,7 m | 2 (döngü, 2 fps) | Evet |  |
+| 29 | `sakin-4-yuru` | Sakin 4 yürürken | 1,7 m | 4 (döngü, 8 fps) | Evet |  |
+| 30 | `sakin-selin.png` | Sahnede Kurucu Selin (enerji); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
+| 31 | `sakin-burak.png` | Sahnede Kurucu Burak (su); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
+| 32 | `sakin-nur.png` | Sahnede Kurucu Nur (sera); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
+| 33 | `sakin-can.png` | Sahnede Kurucu Can (geri dönüşüm); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
+| 34 | `sakin-muhendis.png` | Sahnede Deniz, mühendis; varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
+| 35 | `sakin-ciftci.png` | Sahnede Hasan ve kızı Elif (birlikte); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
+| 36 | `sakin-bilim.png` | Sahnede Dr. Leyla; varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
+| 37 | `sakin-cocuklar.png` | Sahnede Mert ve Ada (iki çocuk birlikte); varsa genel sakin görseli yerine bu | 1,3 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
+| 38 | `sakin-tamirci.png` | Sahnede Kemal, tamirci; varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
+| 39 | `sakin-kafile.png` | Sahnede Sahil ailesi (4 kişi birlikte); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
+| 40 | `kapi.png` | Sığınak kapısı (kapalı) — ayrı parça | 2,1 m | — | Evet | Birleşik yaşam odası varsa görünmez ama yedek olarak gerekli |
+| 41 | `kapi-ac` | Kapı açılıyor (ziyaretçi içeri alınınca) | 2,1 m | 4 (bir kez, 10 fps) | Evet | 1. kare = kapi.png. Birleşik odada oynamaz |
+| 42 | `panel.png` | Genel kontrol konsolu (yedek) | 1,5 m | — | Evet | Oda paneli yoksa kullanılır |
+| 43 | `panel-calis` | Genel konsol çalışıyor (ekran/ışık) | 1,5 m | 3 (döngü, 6 fps) | Evet |  |
+| 44 | `panel-enerji.png` | Enerji konsolu (sönük ekran) — ayrı parça | 1,5 m | — | Evet | = panel-enerji-calis 1. karesi |
+| 45 | `panel-enerji-calis` | Enerji konsolu çalışıyor | 1,5 m | 3 (döngü, 6 fps) | Evet | Sadece ekran/düğme ışığı değişir. Birleşik odada görünmez (durum ışığı yine görünür) |
+| 46 | `panel-su.png` | Su arıtma konsolu (sönük ekran) — ayrı parça | 1,5 m | — | Evet | = panel-su-calis 1. karesi |
+| 47 | `panel-su-calis` | Su arıtma konsolu çalışıyor | 1,5 m | 3 (döngü, 6 fps) | Evet | Sadece ekran/düğme ışığı değişir. Birleşik odada görünmez (durum ışığı yine görünür) |
+| 48 | `panel-sera.png` | Sera konsolu (sönük ekran) — ayrı parça | 1,5 m | — | Evet | = panel-sera-calis 1. karesi |
+| 49 | `panel-sera-calis` | Sera konsolu çalışıyor | 1,5 m | 3 (döngü, 6 fps) | Evet | Sadece ekran/düğme ışığı değişir. Birleşik odada görünmez (durum ışığı yine görünür) |
+| 50 | `panel-geri.png` | Geri dönüşüm konsolu (sönük ekran) — ayrı parça | 1,5 m | — | Evet | = panel-geri-calis 1. karesi |
+| 51 | `panel-geri-calis` | Geri dönüşüm konsolu çalışıyor | 1,5 m | 3 (döngü, 6 fps) | Evet | Sadece ekran/düğme ışığı değişir. Birleşik odada görünmez (durum ışığı yine görünür) |
+| 52 | `radyo.png` | Küçük sehpa üstünde radyo — ayrı parça | 0,9 m | — | Evet |  |
+| 53 | `pano.png` | Ayaklı görev ve araştırma panosu — ayrı parça | 1,7 m | — | Evet | Ön zeminde durur |
+| 54 | `yatak.png` | Tek kişilik yatak (yedek) | 0,9 m | — | İsteğe bağlı | Yaşam odası görselinde yatak çizili olduğundan normalde kullanılmaz |
+| 55 | `bitki.png` | Saksıda sebze fidesi, sağlıklı (seranın ön zemininde 7 adet) | 0,65 m | — | Evet | Her zaman ayrı parça (dinamik) |
+| 56 | `bitki-solgun.png` | Aynı fide, solgun (gıda/denge düşünce) | 0,65 m | — | Evet | Aynı saksı, aynı boy |
+| 57 | `cop-yigini.png` | Çöp yığını (atığa göre büyür/küçülür) | 0,9 m (≈1,8 m genişlik) | — | Evet | Her zaman ayrı parça (dinamik) |
+| 58 | `ziyaretci-muhendis.png` | Portre: Deniz, mühendis (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
+| 59 | `ziyaretci-ciftci.png` | Portre: Hasan ve kızı Elif (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
+| 60 | `ziyaretci-bilim.png` | Portre: Dr. Leyla (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
+| 61 | `ziyaretci-cocuklar.png` | Portre: Mert ve Ada (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
+| 62 | `ziyaretci-tamirci.png` | Portre: Kemal, tamirci (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
+| 63 | `ziyaretci-kafile.png` | Portre: Sahil kasabasından aile (4 kişi) (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
+| 64 | `kurucu-selin.png` | Portre: kurucu Selin (pano) | 1:1 | — | Evet | 6.9 Kurucular |
+| 65 | `kurucu-burak.png` | Portre: kurucu Burak (pano) | 1:1 | — | Evet | 6.9 Kurucular |
+| 66 | `kurucu-nur.png` | Portre: kurucu Nur (pano) | 1:1 | — | Evet | 6.9 Kurucular |
+| 67 | `kurucu-can.png` | Portre: kurucu Can (pano) | 1:1 | — | Evet | 6.9 Kurucular |
+| 68 | `hikaye-1.png` | Açılış hikaye ekranı 1: Dünya ısınıyordu | 16:9 | — | Evet | 6.8 |
+| 69 | `hikaye-2.png` | Açılış hikaye ekranı 2: Buz çözüldü | 16:9 | — | Evet | 6.8 |
+| 70 | `hikaye-3.png` | Açılış hikaye ekranı 3: Büyük Sessizlik | 16:9 | — | Evet | 6.8 |
+| 71 | `hikaye-4.png` | Açılış hikaye ekranı 4: Yeşilvadi | 16:9 | — | Evet | 6.8 |
+| 72 | `kapak.png` | Sunum kapağı (oyunda kullanılmaz) | 16:9 | — | Evet | 6.10 |
 
 ---
 
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `animasyon-duzeltme` → `main`
+
+- **Prompt:** Commit, push, PR, merge; main'deki yenilikleri çek, bizimkileri push'layıp mergele; komple yeniden asset üretimi için oyunun güncel hâline göre sıfırdan, kategorisiz tek bir asset + animasyon listesi oluştur ve PROJECT_LOG'u güncelle.
+- **Yapılan değişiklik:** `origin/main` (Ayberk: M3 uzman verimi, M5 enerji azlığında makine kapanışı, M4 kaynaklar, denge ayarı) dala birleştirildi; tek çakışma PROJECT_LOG kayıtlarıydı (iki taraf da korundu). Birleşik kod: derleme, simülasyon (akıllı+herkesi al iyi son %74) ve headless oyun testi temiz. Asset Listesi A/B/C/D tabloları kaldırıldı; yerine 72 satırlık tek tablo (55 görsel + 17 animasyon / 57 kare); odalarda içerik + ayrılacak alanlar (konum %, boy m); kullanıcı isteğiyle her oda için birleşik sürüm `oda-<oda>-tam.png` (nesneler görselde çizili, oyun görünmez etkileşim alanı koyar) — kodda desteklendi ve geçici dosyayla test edildi (panel görünmez, ipucu/etkileşim/durum ışığı çalışıyor), gerçek boylar ve üretim notlarıyla. Kodla çizilen eski "C" adayları (dekor-*) oda görselleri bunları içerdiği için listeden çıktı. Commit, push, PR, merge.
+
+| Dosya | Açıklama |
+|---|---|
+| `PROJECT_LOG.md` | Asset Listesi tek tablo; merge kayıtları |
+| `CLAUDE.md` | 0.1 madde 5: tek tabloya göre güncellendi; 6.12'ye birleşik oda notu |
+| `src/data/assets.js`, `src/scenes/GameScene.js` | `oda-<tip>-tam` desteği: `odaGorseliYerlestir()` önce birleşik sürümü dener, odadaki nesne sprite'ları görünmez (`gorseldeCizili`); `gercekAsset('oda-x')` birleşik varken de doğru |
+
+- **Debt:** Yok.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `animasyon-duzeltme`
 
@@ -254,6 +253,24 @@ Oyunda `GameScene.js` → `dekorCiz()` / `evCiz()` içinde kodla çiziliyor. Gö
 
 - **Asset durumu:** 9/17 animasyon. Eksik: `sakin-3/4` bekle+yürü, 4 oda paneli "çalışıyor".
 - **Debt:** Yok. Commit atılmadı.
+
+### 2026-11-01 · Ayberk Alkan (ayberk2002alkangizli@gmail.com) · `kalan-mekanikler` branch
+
+- **Prompt:** Kalan mekanikleri (M3, M5, M4) ayrı commit, yeni branch üzerinde yap.
+- **Yapılan değişiklik:** Üç mekanik ayrı commit olarak `kalan-mekanikler` branch'ine (main `e26cdd1`'den) eklendi.
+  - **M3** (`3142b94`) — Uzman olmayan sakin makineyi `AYAR.uzmanOlmayanVerim = 0.75` ile çarpar. Uzman '*' ve uzmanlık yerindeki tam. Oyuncu kendisi çalışırsa tam (bilinçli). Simülasyon: akıllı+hepsiniAl %91 → %58, akıllı+kimseyiAlma %95 → yalnız ütopya.
+  - **M5** (`de825af`) — Enerji < 25 iken Geri Dönüşüm, < 10 iken Sera da o gece kapanır (`AYAR.makineKapatmaEsikleri`, veri odaklı). Kapalı makinenin operatörü dinleniyor sayılır (yorgunluk azalır, üretim ve uzmanlık katkısı yok). Oyuncu kendisi çalıştığı kapalı makine de üretmez. Yeni yardımcılar: `kapaliMakineler()`, `makineKapali()`. Kemal'in özel `kosul.enerjiAlti: 25` koşulu kaldırıldı (artık genel kural). Pano makine şeridi "⚡ KAPALI" durumunu gösteriyor; açıklama metninde yeni verim yüzdesi ve enerji eşikleri yazıyor.
+  - **M4** (`8c4bfbc`) — `gunes` → NREL, `hiyerarsi` → US EPA Waste Management Hierarchy, `sibirya` → WHO 2016 Yamal şarbon raporu. "Genel bilgi" / "Sıfır Atık yaklaşımı" gibi belirsiz etiketler kaldırıldı. Metinler değişmedi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/state.js` | `AYAR.uzmanOlmayanVerim`, `AYAR.makineKapatmaEsikleri`; `kapaliMakineler()`, `makineKapali()`; `sakinCiktisi` uzman olmayan çarpanı + kapalı makine kontrolü; `sakinlerToplami` oyuncu kapalı makinede üretmez; `calisiyor()` kapalı makinedeki operatörü dinlenmiş sayar (yorgunluk azalır) |
+| `src/data/visitors.js` | Kemal'in `kosul.enerjiAlti: 25, carpan: 0` kaldırıldı, `kosullu` metni genel kurala referans veriyor |
+| `src/ui/ui.js` | `makineDurumHtml` kapalı durumu gösteriyor; pano açıklaması güncel; `kapaliMakineler`, `makineKapali` import |
+| `src/data/facts.js` | `gunes`, `hiyerarsi`, `sibirya` kaynakları |
+| `PROJECT_LOG.md` | Bu kayıt |
+
+- **Debt:** D3 **kısmen** iyileşti (kaynak etiketleri 1. el, rakamlar hâlâ doğrulanmadı). D10 (yorgunluk ayarları) hâlâ açık; M3/M5 doğrudan etkilemedi. D11, D2, D6 açık.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `sakin-gorselleri` → `main`
 

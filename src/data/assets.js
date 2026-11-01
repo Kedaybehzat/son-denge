@@ -53,6 +53,13 @@ export const ASSETLER = {
   'oda-su':            { dosya: 'oda-su.png', yukseklik: 280, arka: true },
   'oda-sera':          { dosya: 'oda-sera.png', yukseklik: 280, arka: true },
   'oda-geri':          { dosya: 'oda-geri.png', yukseklik: 280, arka: true },
+  // Birleşik oda: etkileşimli nesneler (kapı, radyo, pano, paneller) görselin içine çizili.
+  // Varsa oda-<tip>.png yerine kullanılır; nesne sprite'ları görünmez olur, etkileşim aynı yerde kalır.
+  'oda-yasam-tam':     { dosya: 'oda-yasam-tam.png', yukseklik: 280, arka: true },
+  'oda-enerji-tam':    { dosya: 'oda-enerji-tam.png', yukseklik: 280, arka: true },
+  'oda-su-tam':        { dosya: 'oda-su-tam.png', yukseklik: 280, arka: true },
+  'oda-sera-tam':      { dosya: 'oda-sera-tam.png', yukseklik: 280, arka: true },
+  'oda-geri-tam':      { dosya: 'oda-geri-tam.png', yukseklik: 280, arka: true },
   'manzara-iyi':       { dosya: 'manzara-iyi.png', yukseklik: 470, arka: true },
   'manzara-kotu':      { dosya: 'manzara-kotu.png', yukseklik: 470, arka: true },
   cati:                { dosya: 'cati.png', yukseklik: 120, arka: true },  // yatayda döşenen çatı şeridi (güneş panelleri)
