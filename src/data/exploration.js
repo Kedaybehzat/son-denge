@@ -18,6 +18,7 @@
 
 export const KESIF_NOKTALARI = {
   santral: {
+    harita: { x: 17, y: 24 }, // Keşif haritasında konum (% genişlik/yükseklik)
     araKarar: { metin: 'Sağlam batarya parçaları bulundu. Çıkarmak bir gece daha sürecek. Erken dönersen yalnız taşınabilir erzak getirilecek.', ekErzak: { gida: -2, su: -2 }, malzeme: 5 },
     ad: 'Terk edilmiş enerji santrali',
     ikon: '🏭',
@@ -31,6 +32,7 @@ export const KESIF_NOKTALARI = {
     bilgi: 'batarya',
   },
   sehir: {
+    harita: { x: 80, y: 20 }, // Keşif haritasında konum (% genişlik/yükseklik)
     ad: 'Eski şehir',
     ikon: '🏚️',
     sure: 2,
@@ -43,6 +45,7 @@ export const KESIF_NOKTALARI = {
     bilgi: 'hiyerarsi',
   },
   komsu: {
+    harita: { x: 84, y: 72 }, // Keşif haritasında konum (% genişlik/yükseklik)
     ad: 'Komşu yerleşim',
     ikon: '🏘️',
     sure: 1,
@@ -55,6 +58,7 @@ export const KESIF_NOKTALARI = {
     bilgi: 'gidaisraf',
   },
   rezervuar: {
+    harita: { x: 19, y: 76 }, // Keşif haritasında konum (% genişlik/yükseklik)
     araKarar: { metin: 'Eski pompanın çizimleri bulundu. Kasayı çıkarmak için bir gece daha gerekiyor. Devam edersen yağmur suyu teknolojisinin önünü açabilirsin.', ekErzak: { gida: -2, su: -2 }, plan: 'pompa' },
     ad: 'Kurumuş rezervuar',
     ikon: '🏜️',

@@ -20,7 +20,7 @@ Terminalin verdiği adresi açın; varsayılan port 5173'tür, doluysa sonraki p
 |---|---|
 | `PROJECT_LOG.md` | Her işe başlamadan Project Map; tamamlayınca en üste değişiklik kaydı; açık borçlar ve asset durumları |
 | `CLAUDE.md` / `AGENTS.md` | Aynı proje bilgisi ve asistan kuralları; Codex `AGENTS.md` kullanır. Mekanik anlatım güncellendiğinde ikisini eş tutun |
-| `docs/asset-listesi.md` | Project Log içindeki 93 satırlık asset tablosunun paylaşılabilir kopyası |
+| `docs/asset-listesi.md` | Project Log içindeki 100 satırlık asset tablosunun paylaşılabilir kopyası + üretim sırası |
 | `docs/asset-rehberi.pdf` | Güncel asset listesi, örnek görseller ve sanat stili; üreticiye gönderilebilir |
 | `docs/asset-promptu.md` | Yalnız halen eksik veya yenilenecek görseller için güncel üretim promptu |
 | `docs/olcek-standardi.md` | Referans karaktere göre görsel ölçeği |
@@ -163,3 +163,11 @@ Açılış artık salgın yerine iklim baskısı, kaynak güvenliği ve dayanı�
 Kullanıcı raporunda 240 Hz ekran ve Edge’in AMD 610M üzerinden çizmesi görüldü; makinede ayrı NVIDIA GPU bulunması tarayıcının onu kullandığını garanti etmez. Windows uygulama bazında GPU seçimi için Microsoft’un Grafik Ayarları rehberi kullanılabilir; sistem ayarı bu çalışmada değiştirilmedi.
 
 **Test ortamı kuralı:** Yazılımsal SwiftShader kullanan başsız tarayıcı, bu makinede yüksek CPU tüketti. Test bitince kendi tarayıcınızı `finally` ile kapatın; profilleme süresini sınırlayın. Açık bırakılan test tarayıcısı kapatıldı. WSL başsız FPS sonuçları Windows donanım FPS’si gibi sunulmamalı; kontrollü Windows karşılaştırması henüz yok. `npm test` ve iki build geçti; efekt havuzu için anlamlı regresyonlar eklendi. Yeni asset yok.
+
+## Prolog ve oda konsolları (1 Kasım 2026)
+
+Gün 0 kaldırıldı; yerine 3 günlük prolog geldi. Veri ve ayarlar `src/data/prolog.js`, kurallar `state.js`'in "PROLOG" bölümünde. Oda panelleri `panels.js` → `konsol` tanımıyla `ui.js` → `konsolHtml` içinde çizilen etkileşimli konsollardır. Rehber adımı eklemek için `PROLOG_REHBER[panel]` dizisine `{ hedef, tur, metin, i? }` ekleyin. `hedef`, konsoldaki bir `data-rehber` alanıdır: operator, ekran, oda, ihtiyac, moduller, modul-N, mod, asinma. Prolog sayıları değişirse `node tools/prolog-test.mjs` çalıştırın; test, rehberli oynanışın Gün 1'i normal başlangıca ±6 içinde açtığını doğrular.
+
+## Sığınak Yönetimi panosu (1 Kasım 2026)
+
+`panoCiz()` ortak kabuğu çizer (sekmeler, durum ekranı, gövde, alt şerit). Gövdeyi bölüm fonksiyonları üretir: `koloniHtml`, `odaKartlariHtml`, `kesifHaritaHtml`/`kesifDetayHtml`, `arastirmaAgaciHtml`, `insaatPlaniHtml`, `hedefPanosuHtml`. Bir öğeye `data-bilgi="..."` verilirse üstüne gelindiğinde metni durum ekranında görünür. Yeni keşif noktası `exploration.js` içinde `harita: { x, y }` (%) ister. Görsel yollarını CSS değişkenine verirken `cssUrl()` kullanın; göreli yol, derlenmiş stil dosyasına göre çözülür ve kırılır.

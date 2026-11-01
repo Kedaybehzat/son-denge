@@ -61,8 +61,8 @@ assert rows, 'Asset tablosu boş olamaz.'
 
 im,d = sayfa('Son Denge — Asset ve geliştirme devri')
 y = yazi(d, f"{sum(r[5] == '✅' for r in rows)} hazır · {sum(r[5] == '🔁' for r in rows)} yenilenecek · {sum(r[5] == '⏳' for r in rows)} eksik / isteğe bağlı. Toplam {len(rows)} satır.",65,135,1110,30,True)
-y = yazi(d, 'Menü, HUD, ikon, karar ve son görselleri oyuna bağlı. Hazır dosyaları yeniden üretmeyin. Öncelik: sakin-1 ve sakin-3 animasyonları; ardından eski stildeki dokuz portre. On özel sakin sprite’ı isteğe bağlıdır.',65,y+20,1110)
-y = yazi(d, 'Oyunda: beş ayrı yönetim paneli (Koloni / Odalar / Keşif / Araştırma / İnşaat), iş gücüne bağlı inşaatlar, Shift ile koşma, hıza uyumlu NPC animasyonları ve yerel Türkçe fontlar.',65,y+15,1110)
+y = yazi(d, 'Hazır dosyaları yeniden üretmeyin. Üretim sırası: 1) dört kurucu portresi (prolog kapı kartında büyük görünür), 2) sakin-1 ve sakin-3 animasyonları, 3) beş ziyaretçi portresi, 4) yedi yeni ikon, 5) hikaye-2, 6) önerilen özel sakin sprite’ları, 7) oda konsolu arka planları ve 11 kontrol çizimi, 8) prolog gün görselleri, 9) yönetim panosu arka planları (özellikle keşif haritası), sığınak işareti ve sekme ikonları.',65,y+20,1110)
+y = yazi(d, 'Oyunda: 3 günlük prolog (kurucular günlere bölünerek gelir, oda konsollarında adım adım rehber, pano turu), oda başına etkileşimli konsollar, altı yönetim paneli (Koloni / Odalar / Keşif / Araştırma / İnşaat / Hedefler), iş gücüne bağlı inşaatlar, Shift ile koşma, hıza uyumlu NPC animasyonları ve yerel Türkçe fontlar.',65,y+15,1110)
 y = yazi(d, 'Ana devir belgesi: docs/devralma.md. Mekanikler: CLAUDE.md / AGENTS.md. Güncel asset tablosu: PROJECT_LOG.md ve docs/asset-listesi.md. Yeni üretim: docs/asset-promptu.md. Önceki final/sıfırdan promptları arşivdir.',65,y+15,1110)
 gorsel(im, 'public/assets/menu-arka.png', (65,y+30,1175,y+620))
 y = yazi(d, 'Teknik teslim: şeffaf karakter/nesne ve animasyon kareleri en fazla 600 px yüksek; portre 512×512. Ham sprite sheet, public/assets/anim/ altında ayrı karelere kesilir. Orijinaller assets-orijinal/ altında git dışında kalır.',65,y+650,1110)
@@ -100,10 +100,27 @@ for i,oda in enumerate(['yasam','enerji','su','sera','geri']):
 
 im,d=sayfa('Teslim ve stil tutarlılığı')
 y=yazi(d,'Animasyonlar: 2 bekleme + 4 yürüyüş karesi; her karede aynı boy, taban, açı ve karakter. Duman/ışıma/opak hale olmamalı. Sakin-1 ve sakin-3 setlerini mevcut sabit karakterlerle eşleştirin.',65,135,1110,25)
-y=yazi(d,'Portreler: ziyaretci-muhendis.png yeni stil referansıdır. Diğer beş ziyaretçi ve dört kurucu portresi yenilenecek. Kimlikleri dosya adlarında koruyun; kişi sayısı doğru olsun.',65,y+25,1110,25)
+y=yazi(d,'Portreler: ziyaretci-muhendis.png yeni stil referansıdır. Dört kurucu (öncelikli, prolog) ve beş ziyaretçi portresi yenilenecek. Kimlikleri dosya adlarında koruyun; kişi sayısı doğru olsun.',65,y+25,1110,25)
+y=yazi(d,'Yeni ikonlar (ikon-yagmur-suyu, ikon-yagmur-deposu, ikon-su-hatti, ikon-onarim-tezgahi, ikon-insaat, ikon-dinlen, ikon-malzeme) ikon-grisu.png ile aynı kontur ve paletle; kod bağlı, dosya gelince otomatik görünür. hikaye-2: kuraklık, sel ve yol değiştiren topluluklar.',65,y+25,1110,25)
+y=yazi(d,'Konsollar: konsol-<oda>.png 1600×900 opak, ortası sade ve koyu. modul-<ad>.png ~1000×400 opak YAZISIZ sahne kartı, kontrol kutusunun tamamını kaplar; alt %40 sakin (etiket oraya yazılır). konsol-cerceve.png 9-dilim sarmaşıklı çerçeve. Hedef görünüm: docs/tasarim-referans/.',65,y+25,1110,25)
+y=yazi(d,'Yönetim panosu: yonetim-<bölüm>.png ortası sade (kartlar üstüne biner). Keşif haritası 3:2; pin konumları: santral %17/%24, eski şehir %80/%20, komşu %84/%72, rezervuar %19/%76, sığınak %50/%52.',65,y+25,1110,25)
 y=yazi(d,'9-dilim UI: çerçeve 512×512, köşeler 96 px; buton 384×128, köşeler 32 px; HUD 256×128, köşeler 24 px. Oyun iç renkleri CSS ile çizer. İkonlar en fazla 256×256; okunur siluet, sade detay.',65,y+25,1110,25)
 y=yazi(d,'Oda yerleşimi: mevcut oda-*-tam.png görselleri kullanılır. Dünya genişliği oda başına 739 px, ölçek PX_METRE=74. Eski ayrı oda şablonları farklı bir briftir; güncel odaları yanlışlıkla değiştirmeyin. Konumlar src/data/rooms.js içindedir.',65,y+25,1110,25)
 yazi(d,'Kontrol: node tools/asset-durum.mjs; npm test; npm run build; tarayıcıda gece geçişi ve animasyon/menü kontrolü. Dosya varlığı kalite onayı anlamına gelmez.',65,y+25,1110,25)
+im,d=sayfa('Hedef görünüm — tasarım referansı (mockup)')
+yazi(d,'Bu mockup’lar hedef görünümdür; yazı ve sayılar gömülü olduğu için oyuna doğrudan girmez. Kontrol kutularındaki sahneler, konsol çerçevesi ve harita bunlara benzer ama YAZISIZ üretilmeli.',65,125,1110,21)
+for i,ad in enumerate(['konsol-enerji','konsol-su','konsol-sera','konsol-geri','yonetim-kesif','yonetim-insaat']):
+    x=65+(i%2)*560; y=215+(i//2)*480
+    gorsel(im,f'docs/tasarim-referans/{ad}.jpg',(x,y,x+540,y+420))
+    d.text((x,y+425),ad+' (mockup)',font=font(19,True),fill=FG)
+
+im,d=sayfa('Yeni arayüz ekranları — görseller nereye oturur')
+yazi(d,'Şu an CSS yedekleriyle çiziliyor. konsol-*.png konsolun arka yüzeyine, modul-*.png kontrol kutularındaki simgenin yerine, yonetim-*.png ilgili pano bölümünün arka planına (keşifte harita) oturur.',65,125,1110,21)
+for i,ad in enumerate(['konsol-enerji','konsol-su','yonetim-koloni','yonetim-kesif','yonetim-arastirma','yonetim-insaat']):
+    x=65+(i%2)*560; y=215+(i//2)*480
+    gorsel(im,f'docs/arayuz-ornekleri/{ad}.jpg',(x,y,x+540,y+420))
+    d.text((x,y+425),ad,font=font(19,True),fill=FG)
+
 for n in range(1,4):
     im,d=sayfa(f'Sanat stili referansı · {n}/3')
     gorsel(im,f'docs/sanat-stili-{n}.png',(50,120,1190,1670))

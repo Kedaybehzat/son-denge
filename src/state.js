@@ -11,6 +11,7 @@ import { CALISMA_MODLARI, MOD_EK_ETKILERI, BAKIM, HAVA_URETIMI } from './data/pr
 export { CALISMA_MODLARI, BAKIM };
 import { gunBasiniKaydet, kayitGecerliMi, kaydiSil } from './kayit.js';
 import { SENARYO_HEDEFLERI } from './data/scenario.js';
+import { PROLOG_AYAR, PROLOG_GUNLER } from './data/prolog.js';
 export { SENARYO_HEDEFLERI };
 import { PANELLER } from './data/panels.js';
 import { BILGILER, GENEL_BILGILER } from './data/facts.js';
@@ -97,7 +98,7 @@ export function rastgeleAyarla(fn) {
   rastgele = fn;
 }
 
-export function sifirla({ gun0 = false } = {}) {
+export function sifirla({ prolog = false } = {}) {
   state.gun = 1;
   state.kaynak = { ...BASLANGIC };
   state.olay = ILK_OLAY;
@@ -140,15 +141,17 @@ export function sifirla({ gun0 = false } = {}) {
   state.kesfedilenler = [];     // bu oyunda gidilmiş keşif noktaları
   state.insaat = null;           // { id, kalan }: aynı anda tek inşaat
   state.yapilar = [];           // inşa edilen yapılar (data/structures.js)
-  state.gun0 = null;            // Gün 0 öğreticisi: { sira, kapida }
+  state.prolog = null;            // Prolog öğreticisi: { gun, sira, kapida, ogrenilen, panoGoruldu }
   for (const k of KURUCULAR) state.sakinler.push({ uid: state.sakinler.length + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
-  if (gun0) {
+  if (prolog) {
     // Sığınak boş: kurucular kapıya teker teker gelir, makineler operatörsüz.
     state.gun = 0;
     state.sakinler = [];
     state.nufus = 0;
-    state.eylem = 0;
-    state.gun0 = { sira: 0, kapida: false, incelenen: [], panoGoruldu: false };
+    state.kaynak = { ...PROLOG_AYAR.baslangic };
+    state.malzeme = PROLOG_AYAR.malzeme;
+    state.prolog = { gun: 1, sira: 0, kapida: false, ogrenilen: [], panoGoruldu: false };
+    state.eylem = PROLOG_GUNLER[0].eylem;
   }
   katkiGuncelle();
   state.denge = dengeHesapla();
@@ -166,51 +169,102 @@ export function testDegistir(fn) {
 }
 
 // ---------------------------------------------------------------
-//  GÜN 0 · HAZIRLIK (öğretici; kaynak/denge değiştirmez)
+//  PROLOG (3 günlük öğretici; data/prolog.js)
+//  Kurucular günlere bölünerek gelir. Operatörü gelen makine çalışır,
+//  gece küçük bir sabit tüketim + kişi tüketimi + makine üretimi uygulanır.
+//  Olay, ziyaretçi, yorgunluk, aşınma ve memnuniyet prologda işlemez.
 // ---------------------------------------------------------------
-export const gun0Aktif = () => state.gun === 0 && !!state.gun0;
-export const gun0EkipTamam = () => gun0Aktif() && state.gun0.sira >= KURUCULAR.length;
-// Son gelen kurucunun paneli henüz incelenmediyse o makine (sıradaki kişi bunu bekler)
-export function gun0BekleyenPanel() {
-  if (!gun0Aktif() || state.gun0.sira === 0) return null;
-  const m = KURUCULAR[state.gun0.sira - 1].varsayilan;
-  return state.gun0.incelenen.includes(m) ? null : m;
+export const prologAktif = () => state.gun === 0 && !!state.prolog;
+export const prologGunu = () => (prologAktif() ? PROLOG_GUNLER[state.prolog.gun - 1] : null);
+// Bugün sonuna kadar gelmiş olması gereken toplam kurucu sayısı
+export const prologGunHedefi = () => PROLOG_GUNLER.slice(0, state.prolog.gun).reduce((t, g) => t + g.gelen, 0);
+export const prologEkipTamam = () => prologAktif() && state.prolog.sira >= KURUCULAR.length;
+// Son gelen kurucunun paneli henüz öğrenilmediyse o makine (sıradaki kişi bunu bekler)
+export function prologBekleyenPanel() {
+  if (!prologAktif() || state.prolog.sira === 0) return null;
+  const m = KURUCULAR[state.prolog.sira - 1].varsayilan;
+  return state.prolog.ogrenilen.includes(m) ? null : m;
 }
-export const gun0Tamam = () => gun0EkipTamam() && !gun0BekleyenPanel() && state.gun0.panoGoruldu;
-export const gun0KapidakiKurucu = () => (gun0Aktif() && state.gun0.kapida ? KURUCULAR[state.gun0.sira] || null : null);
-export function gun0PanelIncele(makine) {
-  if (!gun0Aktif() || !makineOperatoru(makine) || state.gun0.incelenen.includes(makine)) return false;
-  state.gun0.incelenen.push(makine);
+export const prologPanoSirasi = () => !!prologGunu()?.pano && state.prolog.sira >= prologGunHedefi() && !prologBekleyenPanel() && !state.prolog.panoGoruldu;
+export const prologGunTamam = () => prologAktif() && state.prolog.sira >= prologGunHedefi() && !prologBekleyenPanel()
+  && (!prologGunu().pano || state.prolog.panoGoruldu);
+export const prologTamam = () => prologGunTamam() && state.prolog.gun >= PROLOG_GUNLER.length;
+export const prologKapidakiKurucu = () => (prologAktif() && state.prolog.kapida ? KURUCULAR[state.prolog.sira] || null : null);
+export const prologPanelOgrenildi = (makine) => !prologAktif() || state.prolog.ogrenilen.includes(makine);
+export function prologPanelOgren(makine) {
+  if (!prologAktif() || !makineOperatoru(makine) || state.prolog.ogrenilen.includes(makine)) return false;
+  state.prolog.ogrenilen.push(makine);
   bildir();
   return true;
 }
-export function gun0PanoGor() {
-  if (!gun0EkipTamam() || gun0BekleyenPanel() || state.gun0.panoGoruldu) return false;
-  state.gun0.panoGoruldu = true;
+export function prologPanoGor() {
+  if (!prologPanoSirasi()) return false;
+  state.prolog.panoGoruldu = true;
   bildir();
   return true;
 }
-export function gun0KapiyaGel() {
-  if (!gun0Aktif() || state.gun0.kapida || gun0EkipTamam() || gun0BekleyenPanel()) return false;
-  state.gun0.kapida = true;
+export function prologKapiyaGel() {
+  if (!prologAktif() || state.prolog.kapida || state.prolog.sira >= prologGunHedefi() || prologBekleyenPanel()) return false;
+  state.prolog.kapida = true;
   bildir();
   return true;
 }
 // Kapıdaki kurucuyu içeri alıp kendi makinesine yönlendirir
-export function gun0Karsila() {
-  const k = gun0KapidakiKurucu();
+export function prologKarsila() {
+  const k = prologKapidakiKurucu();
   if (!k) return null;
-  state.sakinler.push({ uid: state.gun0.sira + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
+  state.sakinler.push({ uid: state.prolog.sira + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
   state.nufus = state.sakinler.length;
-  state.gun0.sira += 1;
-  state.gun0.kapida = false;
+  state.prolog.sira += 1;
+  state.prolog.kapida = false;
+  katkiGuncelle();
   bildir();
   return k;
 }
-// Gün 1'e geçiş: her zamanki başlangıç durumu (kararGecmisi Gün 0'da boş kalır)
-export function gun0Bitir() {
-  if (!gun0Aktif()) return false;
+// Rehberli eylem adımında eylem hakkı bitmişse rehber takılmasın diye bir hak verilir
+export function prologRehberEylemi() {
+  if (!prologAktif() || state.eylem >= 1) return false;
+  state.eylem = 1;
+  bildir();
+  return true;
+}
+// Prolog gecesinin tahmini: normal gece hesabı, sabit tüketim prologa göre küçük
+export function prologGeceTahmini() {
+  const g = geceHesapla(PROLOG_AYAR.geceDegisim);
+  const sonra = { ...state.kaynak };
+  for (const [ad, d] of Object.entries(g.degisim)) if (ad in sonra) sonra[ad] = sinirla(sonra[ad] + d);
+  return { degisim: g.degisim, denge: dengeHesapla(sonra) };
+}
+// Geceyi uygular. Son prolog gecesinden sonra Gün 1 başlar (kaynaklar devreder).
+export function prologGecesi() {
+  if (!prologGunTamam()) return null;
+  const once = { ...state.kaynak };
+  etkiUygula(prologGeceTahmini().degisim);
+  const rapor = {};
+  for (const ad of Object.keys(once)) rapor[ad] = state.kaynak[ad] - once[ad];
+  if (state.prolog.gun >= PROLOG_GUNLER.length) {
+    prologBitir({ devret: true });
+    return { rapor, bitti: true };
+  }
+  state.prolog.gun += 1;
+  state.eylem = prologGunu().eylem;
+  state.oyuncuMakineler = [];
+  state.denge = dengeHesapla();
+  bildir();
+  return { rapor, bitti: false };
+}
+// Gün 1'e geçiş. devret: prologda biriken kaynak, malzeme ve modlar korunur;
+// atlama (devret yok) her zamanki başlangıç değerleriyle açar.
+export function prologBitir({ devret = false } = {}) {
+  if (!prologAktif()) return false;
+  const kalan = devret ? { kaynak: { ...state.kaynak }, malzeme: state.malzeme, makineModlari: { ...state.makineModlari } } : null;
   sifirla();
+  if (kalan) {
+    Object.assign(state, kalan);
+    katkiGuncelle();
+    state.denge = dengeHesapla();
+    bildir();
+  }
   gunBasiniKaydet(state);
   return true;
 }
@@ -374,7 +428,7 @@ function insaatGecesi(tahmin) {
 }
 
 export function hazirlanabilirMi() {
-  return !state.bitti && !!state.tahmin?.hazirlik && !state.hazirlik && state.eylem >= HAZIRLIK_MALIYETI;
+  return !state.bitti && !prologAktif() && !!state.tahmin?.hazirlik && !state.hazirlik && state.eylem >= HAZIRLIK_MALIYETI;
 }
 
 function kararKaydet(karar) {
@@ -611,7 +665,7 @@ export function makineUretimi(id) {
   return topla(temel, MOD_EK_ETKILERI[id]?.[state.makineModlari[id]], havaUretimEtkisi(id));
 }
 export function bakimYapabilirMi(id) {
-  return !state.bitti && !!MAKINELER[id] && state.makineAsinma[id] > 0 && state.eylem >= BAKIM.eylem && state.malzeme >= BAKIM.malzeme;
+  return !state.bitti && !prologAktif() && !!MAKINELER[id] && state.makineAsinma[id] > 0 && state.eylem >= BAKIM.eylem && state.malzeme >= BAKIM.malzeme;
 }
 export function bakimYap(id) {
   if (!bakimYapabilirMi(id)) return false;
@@ -775,7 +829,7 @@ function varsayilanGorev(z) {
 
 // Oyuncu operatörü olmayan bir makinede bugün kendisi çalışır (bu gece üretir)
 export function kendinCalisabilirMi(makine) {
-  return !state.bitti && !!MAKINELER[makine] && !makineCalisiyorMu(makine)
+  return !state.bitti && !prologAktif() && !!MAKINELER[makine] && !makineCalisiyorMu(makine)
     && state.eylem >= OYUNCU_CALISMA_MALIYETI;
 }
 
@@ -823,7 +877,7 @@ function puanEkle(puan, proje = state.arastirma.aktif) {
 }
 
 export function masadaArastirabilirMi() {
-  return !state.bitti && !!state.arastirma.aktif && state.eylem >= MASA_ARASTIRMA.maliyet;
+  return !state.bitti && !prologAktif() && !!state.arastirma.aktif && state.eylem >= MASA_ARASTIRMA.maliyet;
 }
 
 export function masadaArastir() {
@@ -838,11 +892,11 @@ export function masadaArastir() {
 // ---------------------------------------------------------------
 //  GECE HESABI (gunuBitir ve geceTahmini aynı hesabı kullanır)
 // ---------------------------------------------------------------
-function geceHesapla() {
+function geceHesapla(sabit = AYAR.gunSonuDegisim) {
   const sakin = sakinlerToplami(true);
   const teknoloji = state.arastirma.acik.map((id) => ARASTIRMALAR[id].geceEtki);
   const yapi = (state.yapilar || []).map((id) => YAPILAR[id].geceEtki);
-  const degisim = topla(AYAR.gunSonuDegisim, nufusTuketimi(), sakin.etki, olayEtkisi(state.olay?.gunSonu), state.kartGeceEtki, ...teknoloji, ...yapi);
+  const degisim = topla(sabit, nufusTuketimi(), sakin.etki, olayEtkisi(state.olay?.gunSonu), state.kartGeceEtki, ...teknoloji, ...yapi);
 
   // Batarya: açık varsa önce depodan karşıla, fazla varsa depoya aktar
   let batarya = state.batarya;

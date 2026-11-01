@@ -2,7 +2,7 @@
 // Yöntemler GameScene üzerinde çalışır; Phaser yaşam döngüsünü sahne yönetir.
 import Phaser from 'phaser';
 import { ODA_GENISLIK } from '../../data/rooms.js';
-import { state, KAYNAKLAR, gun0KapidakiKurucu } from '../../state.js';
+import { state, KAYNAKLAR, prologKapidakiKurucu } from '../../state.js';
 import * as ui from '../../ui/ui.js';
 import { muzikCal } from '../../sesler.js';
 import { EKRAN_G, EKRAN_Y, DUMAN_KONUMU } from './ayarlar.js';
@@ -113,7 +113,7 @@ export const efektler = {
   gunBasligiGoster(gun, olayAd, bitince) {
     const cx = EKRAN_G / 2;
     const cy = EKRAN_Y / 2;
-    const buyuk = this.add.text(cx, cy - 20, `GÜN ${gun}`, {
+    const buyuk = this.add.text(cx, cy - 20, typeof gun === 'number' ? `GÜN ${gun}` : gun, {
       fontFamily: '"Barlow Condensed", sans-serif',
       fontSize: '110px',
       color: '#eaffd4',
@@ -244,7 +244,7 @@ export const efektler = {
     }
     this.atmosfer.setAlpha((1 - t) * 0.42);
 
-    const ziyaretciVar = (!!state.ziyaretci || !!gun0KapidakiKurucu()) && !state.bitti;
+    const ziyaretciVar = (!!state.ziyaretci || !!prologKapidakiKurucu()) && !state.bitti;
     this.kapiIsaret.setVisible(ziyaretciVar);
     if (ziyaretciVar) this.kapiTakTakBaslat();
     else this.kapiTakTakDurdur();

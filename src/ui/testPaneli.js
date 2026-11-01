@@ -4,7 +4,7 @@
 //  değişkenleri doğrudan değiştirir, ziyaretçi/olay/kart/son tetikler.
 //  Oyun kurallarını değiştirmez; yalnız state'i elle düzenler.
 // =============================================================
-import { state, abone, testDegistir, KAYNAKLAR, AYAR, MAKINELER, sakinTanimi, gun0Aktif } from '../state.js';
+import { state, abone, testDegistir, KAYNAKLAR, AYAR, MAKINELER, sakinTanimi, prologAktif } from '../state.js';
 import { ZIYARETCILER } from '../data/visitors.js';
 import { OLAYLAR, ILK_OLAY } from '../data/events.js';
 import { KARTLAR } from '../data/cards.js';
@@ -19,7 +19,7 @@ const SAYILAR = [
   ['🙂 Memnuniyet', 0, 100, (s) => s.memnuniyet, (s, v) => { s.memnuniyet = v; }],
   ['❤ İnsanlık (gizli)', 0, 100, (s) => s.insanlik, (s, v) => { s.insanlik = v; }],
   ['⚡ Eylem hakkı', 0, 10, (s) => s.eylem, (s, v) => { s.eylem = v; }],
-  ['📅 Gün', 1, AYAR.maxGun, (s) => s.gun, (s, v) => { if (!gun0Aktif()) s.gun = v; }],
+  ['📅 Gün', 1, AYAR.maxGun, (s) => s.gun, (s, v) => { if (!prologAktif()) s.gun = v; }],
   ['🧱 Malzeme', 0, 100, (s) => s.malzeme, (s, v) => { s.malzeme = v; }],
   ['🔋 Batarya', 0, BATARYA_KAPASITE, (s) => s.batarya, (s, v) => { s.batarya = v; }],
 ];
@@ -37,7 +37,7 @@ function ciz() {
     <section><h4>Değişkenler</h4>
       ${SAYILAR.map(([ad, min, max], i) => `<label class="tp-sayi"><span>${ad}</span>
         <input type="range" min="${min}" max="${max}" data-aralik="${i}"><input type="number" min="${min}" max="${max}" data-sayi="${i}"></label>`).join('')}
-      <p class="tp-not">Denge: <b data-denge></b> · Nüfus: <b data-nufus></b> · ${gun0Aktif() ? 'Gün 0 aktif' : `Olay: <b data-olay></b>`}</p>
+      <p class="tp-not">Denge: <b data-denge></b> · Nüfus: <b data-nufus></b> · ${prologAktif() ? `Prolog ${state.prolog.gun}/3 aktif` : `Olay: <b data-olay></b>`}</p>
     </section>
     <section><h4>Sakinler</h4><div data-sakinler></div>
       <div class="tp-satir"><button data-yorgun-sifir>Yorgunlukları sıfırla</button><button data-yorgun-max>Herkesi yor (5)</button></div>
@@ -52,7 +52,7 @@ function ciz() {
     <section><h4>Akış</h4>
       <div class="tp-satir"><button data-gunu-bitir>Günü bitir</button><button data-eylem-doldur>Eylemleri doldur</button></div>
       <div class="tp-satir"><select data-son>${Object.entries(SON_TIPLERI).map(([id, ad]) => `<option value="${id}">${ad}</option>`).join('')}</select><button data-son-goster>Son ekranını göster</button></div>
-      <div class="tp-satir"><button data-yeni="gun0">Gün 0'dan başlat</button><button data-yeni="gun1">Gün 1'den başlat</button><button data-kayit-sil>Kaydı sil</button></div>
+      <div class="tp-satir"><button data-yeni="prolog">Prologdan başlat</button><button data-yeni="gun1">Gün 1'den başlat</button><button data-kayit-sil>Kaydı sil</button></div>
     </section>`;
   bagla();
   guncelle();
@@ -145,8 +145,8 @@ function bagla() {
   q('[data-eylem-doldur]').addEventListener('click', () => testDegistir((s) => { s.eylem = AYAR.eylemHakki + (s.ekEylem || 0); }));
   q('[data-son-goster]').addEventListener('click', () => yayinla('testSon', { tip: q('[data-son]').value }));
   kok.querySelectorAll('[data-yeni]').forEach((b) => b.addEventListener('click', () => {
-    yayinla('testYeniOyun', { gun0: b.dataset.yeni === 'gun0' });
-    setTimeout(ciz, 150); // Gün 0 / Gün 1 alanları değişir
+    yayinla('testYeniOyun', { prolog: b.dataset.yeni === 'prolog' });
+    setTimeout(ciz, 150); // Prolog / Gün 1 alanları değişir
   }));
   q('[data-kayit-sil]').addEventListener('click', () => { kaydiSil(); q('[data-kayit-sil]').textContent = 'Kayıt silindi'; });
 }

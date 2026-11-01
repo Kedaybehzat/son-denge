@@ -12,6 +12,7 @@
 // =============================================================
 
 import { ZIYARETCILER, KURUCULAR } from './visitors.js';
+import { PANELLER } from './panels.js';
 
 // =============================================================
 //  ÖLÇÜ STANDARDI (CLAUDE.md bölüm 6.13)
@@ -89,6 +90,12 @@ export const ARAYUZ_IKONLARI = {
   hidroponik: 'hidroponik', havaFiltresi: 'hava-filtresi', yalitim: 'yalitim',
   bariyer: 'bariyer', ekPanel: 'ek-panel', santral: 'santral', sehir: 'sehir',
   komsu: 'komsu', rezervuar: 'rezervuar', sera: 'gida', geriDonusum: 'atik',
+  // Dosya gelene kadar emoji / benzer ikon yedeği görünür
+  yagmurSuyu: 'yagmur-suyu', yagmurDeposu: 'yagmur-deposu', suDeposu: 'su-hatti', onarimTezgahi: 'onarim-tezgahi',
+  insaat: 'insaat', bosta: 'dinlen', malzeme: 'malzeme',
+  // Yönetim panosu sekme ikonları (isteğe bağlı)
+  'yonetim-koloni': 'sekme-koloni', 'yonetim-odalar': 'sekme-odalar', 'yonetim-kesif': 'sekme-kesif',
+  'yonetim-arastirma': 'sekme-arastirma', 'yonetim-insaat': 'sekme-insaat', 'yonetim-hedefler': 'sekme-hedefler',
 };
 export const KARAR_GORSELLERI = {
   itiraz: 'itiraz', karanlik: 'karanlik', susuz: 'susuz', protesto: 'protesto',
@@ -104,6 +111,17 @@ export const ARAYUZ_DOSYALARI = [...new Set([
   ...Object.values(ARAYUZ_IKONLARI).map((ad) => `ikon-${ad}.png`),
   ...Object.values(KARAR_GORSELLERI).map((ad) => `kart-${ad}.png`),
   ...Object.values(SON_GORSELLERI).map((ad) => `son-${ad}.png`),
+  // Oda konsolları (isteğe bağlı; yoksa CSS çizimi): arka plan + kontrol çizimleri
+  ...Object.values(PANELLER).filter((p) => p.konsol?.gorsel).map((p) => `konsol-${p.konsol.gorsel}.png`),
+  ...Object.values(PANELLER).flatMap((p) => (p.konsol?.moduller || []).filter((m) => m.gorsel).map((m) => `modul-${m.gorsel}.png`)),
+  // Yönetim panosu bölüm arka planları ve keşif haritası işaretleri (isteğe bağlı)
+  ...['koloni', 'odalar', 'kesif', 'arastirma', 'insaat', 'hedefler'].map((b) => `yonetim-${b}.png`),
+  'kesif-siginak.png', 'konsol-cerceve.png',
+  'konsol-tank.png',
+  // Küçük yüz rozetleri (konsol operatörü, koloni kartları); yoksa 1:1 portre ya da sprite
+  ...[...KURUCULAR, ...ZIYARETCILER].map((z) => `rozet-${z.id}.png`),
+  // Prolog gün kartı görselleri (isteğe bağlı)
+  'prolog-1.png', 'prolog-2.png', 'prolog-3.png',
 ])];
 
 // Sahnede ve arayüzde aynı kişi için aynı kaynak. Özel tam-boy asset yoksa
