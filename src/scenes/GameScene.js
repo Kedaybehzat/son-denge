@@ -108,6 +108,13 @@ export default class GameScene extends Phaser.Scene {
     this.gecisVar = false;
     this.yurumeTozSayac = 0;
     this.kapiTakTakTimer = null;
+    // Sahne tekrar başlatıldığında (Tekrar oyna) eski Graphics referansları
+    // "truthy" kalmasın: _cizCatiPanelleri/_cizYapilar null kontrolü yapıyor.
+    this.catiTemel = null;
+    this.catiEkPaneller = [];
+    this.catiPaneller = [];
+    this.yalitimKat = null;
+    this.bariyerDekor = null;
     this.lambaTitremeTimer = null;
 
     this.dokulariUret();
@@ -721,12 +728,13 @@ export default class GameScene extends Phaser.Scene {
 
     // Dış duvarlar, tavan, çatı ve zemin
     g.fillStyle(0x6e5a46).fillRect(0, ust, 14, alt - ust).fillRect(this.dunyaG - 14, ust, 14, alt - ust);
-    g.fillStyle(0x5b4a3a).fillRect(-20, ust - 18, this.dunyaG + 40, 18);
-    g.fillStyle(0x3f4a3a).fillRect(-20, ust - 30, this.dunyaG + 40, 12);
-    // Çatı güneş panelleri: başta 2 karo, Ek Güneş Paneli yapısı inşa edilince
-    // +2 karo. Dünya ortasında eşit aralıklı yerleştirilir. Yer tutucu asset
-    // yoksa her karo için kodla çizilen eğik panel.
-    this.catiPaneller = [];
+    // cati.png varsa altındaki kahverengi kiriş şeridi çizilmez (asset altta
+    // transparan olabilir, overlap çirkin görünüyor). Yoksa yer tutucu kirişler
+    // çizilsin ki kodla üretilen eğik paneller yere oturmuş gibi dursun.
+    if (!this.gercekAsset('cati')) {
+      g.fillStyle(0x5b4a3a).fillRect(-20, ust - 18, this.dunyaG + 40, 18);
+      g.fillStyle(0x3f4a3a).fillRect(-20, ust - 30, this.dunyaG + 40, 12);
+    }
     this._cizCatiPanelleri();
     g.fillStyle(0x4b3b2c).fillRect(-20, alt, this.dunyaG + 40, 14);
     g.fillStyle(0x3a2e24).fillRect(-20, alt + 14, this.dunyaG + 40, EKRAN_Y - alt);
