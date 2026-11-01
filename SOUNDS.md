@@ -65,24 +65,24 @@ MOOD varyasyonları (önek'e göre):
 - `son-isiklar-sondu` → "somber slow synth, elegy for lost potential"
 - `son-guven-oylamasi` → "muted institutional ambience, resigned"
 
-## Önerilen eksik sesler (sonraki tur için)
+## Oyuna eklenen ses efektleri (1 Kasım 2026)
 
-Hackathon demosunda hikayeyi güçlendirmek için çok etkili olacak, kritik değil:
+Uzak main’deki `a056a6d` ve `390a8bd` commitleriyle aşağıdaki on MP3 ve çağrı yerleri eklendi. Dosyalar `public/sounds/` altında; root `/sounds/` yedekleri git dışında kalır.
 
-| Dosya önerisi | Nerede çalınır | Prompt özü |
+| Dosya | Nerede çalınır | Prompt özü |
 |---|---|---|
 | `ses-tiklama.mp3` | Buton/menü tıklamalarında (ayarlar, pano, panel) | "Soft UI click, 50ms, warm wooden tap, no reverb, neutral pitch" |
 | `ses-panel-onay.mp3` | Panel eylemi başarıyla yapılınca (ör. güneş paneli temizle) | "Short positive confirmation beep, 200ms, two-note rise, synth bell" |
 | `ses-kapi-cal.mp3` | Kapıda ziyaretçi geldiğinde (sabah radyosundan sonra) | "Three gentle wooden door knocks, 1.2s total, warm and inviting, slight room reverb" |
-| `ses-radyo-aç.mp3` | Radyo nesnesine E'ye basınca | "Vintage radio tuning crackle and static for 0.8s then settles, lo-fi" |
+| `ses-radyo-ac.mp3` | Radyo nesnesine E'ye basınca | "Vintage radio tuning crackle and static for 0.8s then settles, lo-fi" |
 | `ses-arastirma-bitti.mp3` | Bir araştırma projesi tamamlanınca (gece raporu) | "Scientific discovery chime, 1.5s, glass bells and warm synth lift, hopeful major chord" |
 | `ses-insa-bitti.mp3` | Bir yapı inşa edilince (yalıtım, bariyer, ek panel) | "Construction completion thud with metallic ring, 0.9s, solid and satisfying" |
 | `ses-gun-basi.mp3` | Yeni gün başlığı belirince (sabah radyosu öncesi) | "Dawn chime, 2 ascending bell notes, 1.2s, bright and gentle" |
-| `ses-uyari.mp3` | Memnuniyet 35 altına düşüp itiraz kartı çıkınca, ya da enerji 25 altına düşünce | "Low warning tone, 0.6s, muted alarm, not aggressive" |
+| `ses-uyari.mp3` | Sabah bekleyen karar kartı varsa | "Low warning tone, 0.6s, muted alarm, not aggressive" |
 | `ses-kart-ac.mp3` | Karar kartı sabah açılırken | "Paper unfolding + soft page turn, 0.8s, intimate" |
-| `ses-adim.mp3` | Oyuncu her 400ms yürürken (loop değil, tek sefer) | "Single soft footstep on dusty concrete, 150ms, subtle, no echo" |
+| `ses-adim.mp3` | Yürürken yaklaşık 220 ms, koşarken 140 ms aralıkla (loop değil, tek sefer) | "Single soft footstep on dusty concrete, 150ms, subtle, no echo" |
 
-Bu sesler eklenirse `src/sesler.js`'de ek bir çağrı değişmeden `sesCal('ses-tiklama')` gibi hemen kullanılabilir. İlgili çağrı yerlerini SOUNDS.md'ye "Entegrasyon noktaları" tablosuna eklemeyi unutma.
+Çağrı yerleri: `src/ui/ui.js` (modal tıklaması, panel onayı, gün başlığı çağrısı, gece araştırma/inşaat bildirimi, sabah kapı/kart uyarısı ve karar kartı açılması); `src/scenes/GameScene.js` (yürüyüş/koşu ve radyo etkileşimi). Sesler mevcut `sesCal` yöneticisinden geçer; ayarlardan kapatılınca efektler de susturulur.
 
 ## Regresyon kontrolü
 
