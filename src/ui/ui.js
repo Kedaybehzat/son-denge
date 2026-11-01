@@ -5,7 +5,7 @@
 // =============================================================
 import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, ziyaretciNetEtki, geceTahmini, AYAR, KAYNAKLAR,
   sakinTanimi, sakinCiktisi, gorevAta, arastirmaSec, arastirmaAcik, masadaArastir, masadaArastirabilirMi,
-  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi, kapaliMakineler, makineKapali } from '../state.js';
+  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi, kapaliMakineler, makineKapali, YAPILAR, yapiAcik, yapiKur, yapiKurabilirMi } from '../state.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, OYUNCU_CALISMA_MALIYETI } from '../data/research.js';
 import { HIKAYE } from '../data/story.js';
 import { HAZIRLIK_MALIYETI } from '../data/events.js';
@@ -585,6 +585,25 @@ function makineDurumHtml() {
   }).join('');
 }
 
+// İnşa edilebilir yapılar (GDD bölüm 7, data/structures.js)
+function yapilarHtml() {
+  return Object.entries(YAPILAR).map(([id, y]) => {
+    const inşaEdildi = yapiAcik(id);
+    const kurabilir = yapiKurabilirMi(id);
+    const m = y.maliyet || {};
+    const maliyetMetin = [];
+    if (m.eylem) maliyetMetin.push(`${m.eylem} eylem`);
+    for (const [k, v] of Object.entries(m)) if (k !== 'eylem') maliyetMetin.push(`${v > 0 ? '+' : '−'}${Math.abs(v)} ${KAYNAKLAR[k]?.ikon || k}`);
+    const durum = inşaEdildi ? '✓ İnşa edildi' : kurabilir ? 'İnşa Et' : 'Yeterli eylem/kaynak yok';
+    return `
+      <button class="proje ${inşaEdildi ? 'acik' : ''}" data-yapi="${id}" ${inşaEdildi || !kurabilir ? 'disabled' : ''}>
+        <span class="ad">${y.ikon} ${kacis(y.ad)} ${inşaEdildi ? '✓' : ''}</span>
+        <span class="aciklama">${kacis(y.aciklama)}</span>
+        <span class="kalan">${inşaEdildi ? 'Kalıcı etki aktif' : `Maliyet: ${maliyetMetin.join(', ')} · ${durum}`}</span>
+      </button>`;
+  }).join('');
+}
+
 // Laboratuvarda şu an kimler çalışıyor + bu gece ne üretecekler
 function laboratuvarDurumHtml() {
   const laborantlar = state.sakinler.filter((s) => s.gorev === 'arastirma');
@@ -686,12 +705,15 @@ function panoCiz() {
   const projeler = Object.entries(ARASTIRMALAR).map(([id, p]) => {
     const puan = Math.min(p.maliyet, a.puan[id] || 0);
     const acik = arastirmaAcik(id);
+    const kilitli = !acik && p.onKosul && !p.onKosul(state);
+    const disabled = acik || kilitli;
+    const durumEtiket = acik ? '✓' : a.aktif === id ? '◂ aktif' : kilitli ? '🔒 Seviye I bitince açılır' : '';
     return `
-      <button class="proje ${a.aktif === id ? 'secili' : ''} ${acik ? 'acik' : ''}" data-proje="${id}" ${acik ? 'disabled' : ''}>
-        <span class="ad">${p.ikon} ${kacis(p.ad)} ${acik ? '✓' : a.aktif === id ? '◂ aktif' : ''}</span>
+      <button class="proje ${a.aktif === id ? 'secili' : ''} ${acik ? 'acik' : ''} ${kilitli ? 'kilitli' : ''}" data-proje="${id}" ${disabled ? 'disabled' : ''}>
+        <span class="ad">${p.ikon} ${kacis(p.ad)} ${durumEtiket}</span>
         <span class="aciklama">${kacis(p.aciklama)}</span>
         <span class="bar"><i class="iyi" style="width:${(puan / p.maliyet) * 100}%"></i></span>
-        <span class="kalan">${acik ? 'Tamamlandı' : `${puan} / ${p.maliyet} puan`}</span>
+        <span class="kalan">${acik ? 'Tamamlandı' : kilitli ? 'Önce Seviye I' : `${puan} / ${p.maliyet} puan`}</span>
       </button>`;
   }).join('');
 
@@ -714,6 +736,8 @@ function panoCiz() {
       <span class="govde"><span class="ad">${kacis(MASA_ARASTIRMA.ad)}</span><span class="chipler"><span class="chip iyi">+${MASA_ARASTIRMA.puan} araştırma puanı</span></span></span>
       <span class="maliyet">${MASA_ARASTIRMA.maliyet} eylem</span>
     </button>
+    <h3>İnşa</h3>
+    <div class="projeler">${yapilarHtml()}</div>
     ${sonMesaj ? `<p class="mesaj">&gt; ${kacis(sonMesaj)}</p>` : ''}
     <div class="alt">
       <span class="kalan"><span>Kalan eylem</span> <span class="noktalar">${eylemNoktalari()}</span></span>
@@ -728,6 +752,13 @@ function panoCiz() {
   kart.querySelectorAll('[data-proje]').forEach((b) => b.addEventListener('click', () => {
     sonMesaj = '';
     arastirmaSec(b.dataset.proje);
+  }));
+  kart.querySelectorAll('[data-yapi]').forEach((b) => b.addEventListener('click', () => {
+    const id = b.dataset.yapi;
+    if (yapiKur(id)) {
+      sonMesaj = `${YAPILAR[id].ikon} ${YAPILAR[id].ad} inşa edildi.`;
+      panoCiz();
+    }
   }));
   kart.querySelectorAll('[data-kesif]').forEach((b) => b.addEventListener('click', () => {
     seciliKesif = seciliKesif === b.dataset.kesif ? null : b.dataset.kesif;
