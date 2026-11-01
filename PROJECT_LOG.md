@@ -57,6 +57,8 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Radyo, sabah raporu, kapı kartı | `ui.js` → `olayGoster()`, `gunBaslangici()`, `sabahGoster()`, `ziyaretciGoster()` |
 | Hikaye, başlangıç ve son ekranları | `ui.js` → `girisHikayesi()`, `baslangicEkrani()`, `SONLAR`, `sonGoster()` |
 | Genel modal / onay pencereleri | `style.css` → `.kart-icerik` (iç kaydırma), `.kart > .alt` (sabit alt şerit); `ui.js` → `modalAc()`, `modalKapat()`, `onay()`, `bilgi()` |
+| Ayarlar menüsü (tam ekran + kontroller) | `ui.js` → `ayarlarAc(donus)`; `baslangicEkrani` ve HUD'daki ⚙ düğmesi çağırır |
+| Tam ekran (F tuşu) | `src/main.js` → `tamEkranToggle()`, `window.tamEkranToggle`; CSS `#sahne:fullscreen` |
 | Günü bitirme onayı (gece tahmini penceresi) | `ui.js` → `gunuBitirOnay()`; çağrı: `GameScene.js` → `case 'yatak'` |
 | Arayüz stili | `src/style.css`; fontlar: `@font-face`, `--font-metin` (Nunito Sans), `--font-baslik` (Barlow Condensed); yerel dosyalar ve OFL lisansları: `public/fonts/` |
 | Giriş noktası (Phaser config) | `src/main.js` |
@@ -228,6 +230,26 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Ayberk Alkan (ayberk2002alkangizli@gmail.com) · `oynanabilirlik` → `main`
+
+- **Prompt:** Çatıdaki güneş panelleri başta az olsun; tam ekran; ayarlar menüsü; giriş menüsü; Shift ile hızlı yürüme; yapılar inşa edilince sahnede görsel karşılık. Asset gereği doğarsa yaz.
+- **Yapılan değişiklik:** `oynanabilirlik` branch (main `83cf8b5`'in üstüne rebase edildi), 4 commit → main `39589a8`; ardından yalıtım/bariyer kodla çizim polish (`496e176`). Shift ile koşu arkadaş tarafından zaten eklenmişti (M14), diğerleri bu oturumda:
+  - **M10 — Çatıda güneş paneli sayısı dinamik** (`2ba17b3`): `cati.png` tileSprite yerine karo karo image. Başlangıçta 2 karo, Ek Güneş Paneli yapısı inşa edilince +2. `_cizCatiPanelleri()` `gorselGuncelle`'de her state değişiminde çağrılır, idempotent.
+  - **M11 — F tuşuyla tam ekran** (`031eb0e`): Browser native Fullscreen API; `tamEkranToggle()` dışa açık (window + export). CSS `#sahne:fullscreen` 16:9 oranı korur.
+  - **M12 + M13 — Ayarlar + giriş menüsü** (`8e19697`): `ayarlarAc(donus)` (Tam ekran toggle + kontrol listesi); `baslangicEkrani` iki butonlu (Başla / Ayarlar); HUD'a küçük ⚙ düğmesi — oyun içinde ayarları açar.
+  - **M15 — Yapılar sahnede görsel** (`b327abb` + `496e176`): Yalıtım kenar duvarlara açık yeşil panel (alüminyum başlık, dikey segment, lattice desen, vidalar, iç gölge). Sel Bariyeri sera önüne T profilli beton (sarı-siyah uyarı bandı, drenaj delikleri, segment çizgileri, zemin gölgesi). Ek Güneş Paneli zaten M10 ile çatıda +2 panel.
+- Simülasyon dengesinde değişiklik yok (asset/UI işi).
+
+| Dosya | Açıklama |
+|---|---|
+| `src/main.js` | `tamEkranToggle()`, 'F' key handler, `window.tamEkranToggle` |
+| `src/scenes/GameScene.js` | `_cizCatiPanelleri()`, `_cizYapilar()` (yalitim + bariyer kodla çizim) |
+| `src/style.css` | `#sahne` siyah bg + fullscreen, `.menu-butonlar`, `.ayarlar`, `.kontrol-liste`, `.ayarlar-btn` |
+| `src/ui/ui.js` | `ayarlarAc(donus)`, `baslangicEkrani` düğme sırası, HUD'a ⚙ |
+| `PROJECT_LOG.md` | Project Map'e Ayarlar menüsü + Tam ekran satırları; bu kayıt |
+
+- **Debt:** Yeni açık borç yok. İsteğe bağlı asset: `yapi-yalitim.png`, `yapi-bariyer.png` — şimdilik kodla çiziliyor, promptlar sohbette verildi; gelirse `_cizYapilar` yerine `this.add.image` ile değiştirilir.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · PR #11
 
