@@ -41,11 +41,11 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Çizim netliği (2× tuval + zoom, asset küçültme) | `GameScene.js` → `CIZIM_OLCEGI`, `SABIT_X/Y`, `ekranaSabitle()`, `yuksekKaliteKucult()`, `dokuKucult()`, `dokuKucultOran()`, `assetleriKucult()`; tuval boyu: `src/main.js` |
 | Görsel içerik kutusu (şeffaf boşluk hariç ölçek) | `GameScene.js` → `icerikKutusu()`, `animKutusu()`, `olcekle()`, `gorunurY()` |
 | Var olan asset listesi (404'süz yükleme, canlı yenileme) | `vite.config.js` → `assetListesi()` eklentisi; `src/assetListesi.js` → `assetVar()`; kullanım: `GameScene.js` → `preload()`, `animasyonlariYukle()`; `ui.js` → `varsaImg()` |
-| Nesne boyları (gerçek ölçü) | `assets.js` → `PX_METRE` (1 m = 62 px), `m()` |
+| Nesne boyları (gerçek ölçü) | `assets.js` → `PX_METRE` (75, oda görsellerinden kalibre), `m()`; üretim standardı: `docs/olcek-standardi.md` |
 | Görsel yükleme (public/assets) ve yer tutucular | Liste + hedef yükseklik: `src/data/assets.js` → `ASSETLER`; yükleme: `GameScene.js` → `preload()`; yer tutucu: `dokulariUret()` / `dokuUret()`; ölçek: `olcekle()`, `dokuAnahtari()`, `gercekAsset()`; dosyalar: `public/assets/` |
 | Dışarısı, şehir silueti | `GameScene.js` → `disariCiz()`, `sehirBoya()` |
 | Ev/oda çizimi, oda dekorları | `GameScene.js` → `evCiz()`, `dekorCiz()` |
-| Oyuncu, hareket, etkileşim (E tuşu) | `GameScene.js` → `oyuncuOlustur()`, `update()`, sabitler `HIZ`, `ETKILESIM_MESAFE` |
+| Oyuncu, hareket, etkileşim (E tuşu) | `GameScene.js` → `oyuncuOlustur()`, `update()`, `oyuncuDurdur()` (pencere açıkken duruş), sabitler `HIZ`, `ETKILESIM_MESAFE` |
 | Sakinlerin sayısı/hareketi | `GameScene.js` → `sakinGuncelle()` |
 | Ütopya ↔ distopya görsel dönüşümü | `GameScene.js` → `gorselGuncelle()`, `gorselUygula()`, `renkGecis()` |
 | HUD (kaynak barları) | `src/ui/ui.js` → `hudKur()`, `hudGuncelle()` |
@@ -81,6 +81,8 @@ tools/asset-durum.mjs      public/assets'te hangi görsellerin ve animasyon kare
 CLAUDE.md                  Takım dokümanı + asistan kuralları
 docs/oda-sablonlari/       Oda görselleri rework şablonları (sablon-<oda>.png, 1891×831)
 assets-orijinal/           Küçültülmeden önceki asset yedekleri (git'e girmez, .gitignore)
+docs/olcek-standardi.md    Asset üretiminde tek ölçü standardı (ölçek dizisi) + prompt
+docs/olcek-sablonu.png     Ölçek dizisi şablonu (tek taban, 1 m = 300 px, 10 yuva)
 docs/final-asset-promptu.md  Asset sohbetine tek seferde yapıştırılacak final prompt (eksik/düzeltilecek tüm görseller)
 PROJECT_LOG.md             Bu dosya (Project Map, borçlar, Asset Listesi, değişiklik logu)
 Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
@@ -117,7 +119,7 @@ Kaynak: `src/data/assets.js` (`ASSETLER`). Kod değişikliği gerekmez.
 | Dosya | Ne | Yükseklik | Prompt | Durum | Eklendi |
 |---|---|---|---|---|---|
 | `oyuncu.png` | Ana karakter, sağa bakıyor | 72 px | 6.5 Karakter | ✅ (512×768, 01.11 güncellendi) | 31.10 |
-| `panel.png` | Genel kontrol paneli (tüm odalarda) | 100 px | 6.5 Kontrol paneli | ✅ (918×1334, 01.11) | 31.10 |
+| `panel.png` | Genel kontrol paneli (tüm odalarda) | 118 px (1,9 m) | 6.5 Kontrol paneli | ✅ (918×1334, 01.11) | 31.10 |
 | `panel-enerji.png` | Enerji odası paneli | 100 px | 6.5 varyasyon | ✅ (1040×1512, 01.11) | 31.10 |
 | `panel-su.png` | Su arıtma paneli | 100 px | 6.5 varyasyon | ✅ (1040×1512, 01.11) | 31.10 |
 | `panel-sera.png` | Sera paneli | 100 px | 6.5 varyasyon | ✅ (1040×1512, 01.11) | 31.10 |
@@ -128,8 +130,8 @@ Kaynak: `src/data/assets.js` (`ASSETLER`). Kod değişikliği gerekmez.
 | `kapi.png` | Sığınak kapısı | 120 px | 6.5 Kapı | ✅ (933×1686, 01.11) | 31.10 |
 | `bitki.png` | Sera bitkisi, sağlıklı | 56 px | 6.5 Bitki | ✅ (1024×1536, 01.11) | 31.10 |
 | `bitki-solgun.png` | Sera bitkisi, solgun (gıda/denge düşünce) | 56 px | 6.5 Bitki | ✅ (1042×1509, 01.11) | 31.10 |
-| `cati.png` | Çatı şeridi: eğik güneş panelleri, yatayda döşenir (yoksa kodla çizilir) | 70 px | final prompt C | ⏳ | 01.11 |
-| `cop-yigini.png` | Geri dönüşümdeki çöp yığını (atığa göre büyür/küçülür; şimdilik kodla çizilmiş torba/hurda yığını) | 70 px | yok, yazılacak | 💤 | 01.11 |
+| `cati.png` | Çatı şeridi: eğik güneş panelleri, yatayda döşenir (yoksa kodla çizilir) | 70 px | final prompt C | ✅ (2172×724, 01.11) | 01.11 |
+| `cop-yigini.png` | Geri dönüşümdeki çöp yığını (atığa göre büyür/küçülür; şimdilik kodla çizilmiş torba/hurda yığını) | 70 px | yok, yazılacak | ✅ (01.11) | 01.11 |
 | `sakin-1.png` | Sakin 1: asalı yaşlı işçi | 64 px | 6.5 Sakinler | ✅ (1024×1536, 01.11) | 31.10 |
 | `sakin-2.png` … `sakin-4.png` | Örgülü kadın saha ceketli · deri önlüklü usta · hardal şapkalı genç gezgin | 105 px | 6.5 Sakinler | ✅ (1024×1536, 01.11) | 31.10 |
 | `sakin-selin.png` | Sahnede Kurucu Selin (Enerji) — genç kadın, enerji teknisyeni (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
@@ -142,13 +144,13 @@ Kaynak: `src/data/assets.js` (`ASSETLER`). Kod değişikliği gerekmez.
 | `sakin-cocuklar.png` | Sahnede Mert ve Ada (iki çocuk bir arada) (tam boy, yandan, sağa bakıyor) | 50 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
 | `sakin-tamirci.png` | Sahnede Kemal, tamirci (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
 | `sakin-kafile.png` | Sahnede Sahil ailesi (4 kişi, grup) (tam boy, yandan, sağa bakıyor) | 64 px | 6.9 tarifleri / 6.5 stil | 💤 | 01.11 |
-| `oda-yasam.png` | Yaşam Alanı arka planı (duvarın üstüne biner; **pencereyi şeffaf bırakın**, dışarısı görünsün) | 640×280'e gerilir | 6.6 | ✅ (~1891×831, 01.11; pencere boyalı) | 31.10 |
-| `oda-enerji.png` | Enerji Odası arka planı | 640×280 | 6.6 | ✅ (~1891×831, 01.11; pencere boyalı) | 31.10 |
-| `oda-su.png` | Su Arıtma arka planı | 640×280 | 6.6 | ✅ (~1891×831, 01.11; pencere boyalı) | 31.10 |
-| `oda-sera.png` | Sera arka planı | 640×280 | 6.6 | ✅ (~1891×831, 01.11; pencere boyalı) | 31.10 |
-| `oda-geri.png` | Geri Dönüşüm arka planı | 640×280 | 6.6 | ✅ (~1891×831, 01.11; pencere boyalı) | 31.10 |
-| `manzara-iyi.png` | Şehir panoraması, ütopya (kodla çizilen şehrin yerine geçer, yatayda tekrar eder; kenarları birleşebilir olsun) | 470 px yükseklik | 6.7 | ✅ (1896×830, 01.11) | 31.10 |
-| `manzara-kotu.png` | Aynı panorama, distopya (denge düştükçe belirir; yoksa iyi hâl karartılır) | 470 px | 6.7 | ✅ (1895×830, 01.11) | 31.10 |
+| `oda-yasam.png` | Yaşam Alanı arka planı (duvarın üstüne biner; **pencereyi şeffaf bırakın**, dışarısı görünsün) | 640×280'e gerilir | 6.6 | ✅ rework (1916×821, magenta camlar şeffaf, 01.11) | 31.10 |
+| `oda-enerji.png` | Enerji Odası arka planı | 640×280 | 6.6 | ✅ rework (1916×821, magenta camlar şeffaf, 01.11) | 31.10 |
+| `oda-su.png` | Su Arıtma arka planı | 640×280 | 6.6 | ✅ rework (1916×821, magenta camlar şeffaf, 01.11) | 31.10 |
+| `oda-sera.png` | Sera arka planı | 640×280 | 6.6 | ✅ rework (1916×821, magenta camlar şeffaf, 01.11) | 31.10 |
+| `oda-geri.png` | Geri Dönüşüm arka planı | 640×280 | 6.6 | ✅ rework (1916×821, magenta camlar şeffaf, 01.11) | 31.10 |
+| `manzara-iyi.png` | Şehir panoraması, ütopya (kodla çizilen şehrin yerine geçer, yatayda tekrar eder; kenarları birleşebilir olsun) | 470 px yükseklik | 6.7 | ✅ rework (1916×821, 01.11) | 31.10 |
+| `manzara-kotu.png` | Aynı panorama, distopya (denge düştükçe belirir; yoksa iyi hâl karartılır) | 470 px | 6.7 | ✅ rework (1916×821, 01.11) | 31.10 |
 
 > **Karaktere özel sakin görselleri (`sakin-<id>.png`, 💤):** Varsa o kişi sahnede kendi görseliyle görünür (genel `sakin-1..4` yerine). Yoksa genel görseller sırayla kullanılır. Özel görselli sakine genel yürüme/bekleme animasyonu uygulanmaz.
 
@@ -180,12 +182,12 @@ Kaynak: `src/data/animations.js` (`ANIMASYONLAR`). Kareler 1'den başlar: `oyunc
 | `oyuncu-bekle` | `oyuncu-bekle-1..4.png` | 4 | 4 | döngü | Oyuncu dururken (nefes alma) | 72 px | ✅ (2×2 sheet'ten kesildi) | 01.11 |
 | `oyuncu-yuru` | `oyuncu-yuru-1..6.png` | 6 | 10 | döngü | Oyuncu yürürken (gelince kodla zıplama kapanır) | 72 px | ✅ (512×768, 01.11) | 01.11 |
 | `oyuncu-calis` | `oyuncu-calis-1..4.png` | 4 | 8 | bir kez | Panelle etkileşimde (tuşlara basma) | 72 px | ✅ (2×2 sheet'ten kesildi) | 01.11 |
-| `sakin-1-bekle` … `sakin-4-bekle` | `sakin-N-bekle-1..2.png` | 2 (×4 sakin) | 2 | döngü | Sakin dururken | 64 px | ⏳ | 01.11 |
-| `sakin-1-yuru` … `sakin-4-yuru` | `sakin-N-yuru-1..4.png` | 4 (×4 sakin) | 8 | döngü | Sakin yürürken | 64 px | ⏳ | 01.11 |
+| `sakin-1-bekle` … `sakin-4-bekle` | `sakin-N-bekle-1..2.png` | 2 (×4 sakin) | 2 | döngü | Sakin dururken | 105 px | sakin-1, sakin-2 ✅ (2×3 sheet'ten) · sakin-3, sakin-4 ⏳ | 01.11 |
+| `sakin-1-yuru` … `sakin-4-yuru` | `sakin-N-yuru-1..4.png` | 4 (×4 sakin) | 8 | döngü | Sakin yürürken | 105 px | sakin-1, sakin-2 ✅ (2×3 sheet'ten) · sakin-3, sakin-4 ⏳ | 01.11 |
 | `kapi-ac` | `kapi-ac-1..4.png` | 4 | 10 | bir kez | Ziyaretçi içeri alınınca (kapalı → açık) | 120 px | ✅ (2×2 sheet'ten kesildi) | 01.11 |
 | `panel-calis` | `panel-calis-1..3.png` | 3 | 6 | döngü | Makinenin operatörü varken; boş makinede durur | 100 px | ✅ (2×2 sheet'ten kesildi) | 01.11 |
 
-| `panel-enerji-calis`, `panel-su-calis`, `panel-sera-calis`, `panel-geri-calis` | `panel-<oda>-calis-1..3.png` | 3 (×4) | 6 | döngü | Odaya özel panel çalışırken (genel `panel-calis` odaya özel panelin yerine geçmez) | 93 px | ⏳ | 01.11 |
+| `panel-enerji-calis`, `panel-su-calis`, `panel-sera-calis`, `panel-geri-calis` | `panel-<oda>-calis-1..3.png` | 3 (×4) | 6 | döngü | Odaya özel panel çalışırken (1. kare aynı zamanda `panel-<oda>.png` sabit görseli) | 93 px | ✅ (2×2 sheet, yarı saydam zemin silindi) | 01.11 |
 
 **Toplam:** 17 animasyon, 71 kare (oyuncu 14, sakinler 24, kapı 4, panel 3). Öncelik önerisi: `oyuncu-yuru` → `oyuncu-bekle` → `panel-calis` → sakinler.
 
@@ -209,6 +211,49 @@ Oyunda `GameScene.js` → `dekorCiz()` / `evCiz()` içinde kodla çiziliyor. Gö
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `animasyon-duzeltme`
+
+- **Prompt:** Panel asset'leri çok küçük kaldı; boyutlandırmaları her nesneye uygulanabilecek bir standarda oturtalım (oyun içi cetvel değil, asset üretim aşamasında).
+- **Yapılan değişiklik:** Rework odaları spesifikasyondan ~%20 büyük ölçekte çizilmiş (tezgâh/yatak/tank ölçümleri: duvar dibinde ~70 px/m) → `PX_METRE` 62 → 75 kalibre edildi; panel 1,5 m'ye geri alındı (tek tek büyütmek yerine ölçek düzeltildi; ekran görüntüsünde panel, insan ve tezgâh orantılı). Geçici eklenen oyun içi ölçü cetveli kullanıcı isteğiyle kaldırıldı. Üretim standardı: "ölçek dizisi" yöntemi (tüm nesneler tek görselde, tek taban, referans oyuncu yanında; kesimde boy referanstan otomatik), şablon + prompt.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/assets.js` | `PX_METRE` 75, standart açıklaması; panel 1,5 m |
+| `docs/olcek-standardi.md`, `docs/olcek-sablonu.png` | Yeni |
+| `CLAUDE.md` | 6.13 Ölçek standardı |
+
+- **Debt:** Yok. Commit atılmadı.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `animasyon-duzeltme`
+
+- **Prompt:** Yeni asset'ler attım, geneli rework asset'leri.
+- **Yapılan değişiklik:** 13 dosya işlendi (orijinaller `assets-orijinal/rework/1..13.png`, önceki sürümler `assets-orijinal/eski/`): 5 oda (magenta camlar kenar yumuşatmalı şeffaf; sera %20 cam), 2 manzara, çatı şeridi (`cati.png`, 120 px), çöp yığını, 4 oda paneli "çalışıyor" sheet'i (yarı saydam zemin + ızgara çizgileri silindi, 3 kare; 1. kare odanın sabit panel görseli oldu → çalışınca tasarım değişmiyor). Kod: oda genişliği 797 (yeni oran, kırpma yok); rework odalarının zemin çizgileri farklı (%74–%82) olduğu için odaya özel `duvar` oranı ve hepsi aynı yürüme çizgisine hizalı; görselli odada kodla çizilen duvar/pencere/lamba çizilmiyor (camlardan manzara görünüyor); nesne konumları yeni görsellerin boş alanlarına (yaşam: kapı %17, radyo koltuk yanı %74,5, ayaklı pano ön zeminde %7,5; enerji paneli %61, duman yeni bacadan; su paneli %65,5 + yeni gösterge camları; sera paneli %85; geri dönüşüm paneli %52, çöp %13). 5 odanın ekran görüntüsüyle doğrulandı, hata yok.
+
+| Dosya | Açıklama |
+|---|---|
+| `public/assets/oda-*.png`, `manzara-*.png`, `cati.png`, `cop-yigini.png`, `panel-<oda>.png` | Rework sürümleri |
+| `public/assets/anim/panel-<oda>-calis-1..3.png` | 12 yeni kare |
+| `src/data/rooms.js` | `ODA_GENISLIK` 797, `YURUME_PAYI`, odalara `duvar`, yeni `nesneOran`/`suGostergeleri`/`duman`, `onde` |
+| `src/scenes/GameScene.js` | Oda başına zemin hizası, ön zemin nesneleri, görselli odada kod duvarı yok |
+| `src/data/assets.js` | `cati` 120 px; panel boyları 1,5 → 1,9 m (kullanıcı: paneller çok küçük kalıyordu; artık yanındaki insanla aynı boyda) |
+
+- **Asset durumu:** 25/35 görsel, 15/15 arayüz, 13/17 animasyon. Eksik: `sakin-3/4` animasyonları, `bitki-solgun` hariç isteğe bağlı `sakin-<id>` görselleri.
+- **Debt:** D14 sürüyor (oda görselleri PNG ~2,5 MB). Yeni not: odaların zemin çizgileri ve alt kenarları farklı olduğundan ön zemindeki ızgara çizgisi odalar arasında birkaç piksel kayıyor, bazı odaların altında koyu temel şeridi görünüyor (sonraki rework'te tüm odalarda zemin %74,5'te olmalı). Commit atılmadı.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `animasyon-duzeltme`
+
+- **Prompt:** Yatağa girince karakter yürüme animasyonundaysa yürümeye devam ediyor; iki yeni animasyon dosyası attım, onları da yap.
+- **Yapılan değişiklik:** Hata: pencere açıkken/gün geçişinde `update()` erken çıktığı için oyuncunun animasyonu ve zıplaması son hâlinde kalıyordu → `oyuncuDurdur()` ile duruş (bekleme animasyonu, zemine iniş); `oyuncu-calis` bir kez oynarken araya girmez. Headless test: ok tuşu basılıyken E → pencere açıldı, animasyon `oyuncu-yuru` → `oyuncu-bekle`, y=470. Yeni dosyalar 2×3 sheet (üst satır bekle 2 kare, alt iki satır yürü 4 kare): yaşlı işçi → `sakin-1-bekle/yuru`, örgülü kadın → `sakin-2-bekle/yuru`; gövde merkezi + ayak hizalamasıyla kesildi, ≤600 px. Orijinal sheet'ler `assets-orijinal/anim/`. Sahnede doğrulandı.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/scenes/GameScene.js` | `oyuncuDurdur()`; `update()` erken çıkışta çağırıyor |
+| `public/assets/anim/sakin-1-*.png`, `sakin-2-*.png` | 12 yeni kare |
+| `PROJECT_LOG.md` | Asset Listesi D, harita, bu kayıt |
+
+- **Asset durumu:** 9/17 animasyon. Eksik: `sakin-3/4` bekle+yürü, 4 oda paneli "çalışıyor".
+- **Debt:** Yok. Commit atılmadı.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `sakin-gorselleri` → `main`
 

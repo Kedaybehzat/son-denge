@@ -743,6 +743,10 @@ ROOM: recycling and repair workshop. Against the back wall draw sorted scrap cra
 
 **Teslim sonrası:** ölçekleme/kırpma yapmayın; sadece magenta camları silip şeffaf yapın (remove.bg'de değil, bir görsel düzenleyicide "renk seç → sil"), dosyayı `oda-<tip>.png` adıyla `public/assets/`'e koyun. Konumlar değiştiyse `src/data/rooms.js` → `ODALAR[].gorsel` oranlarını güncelleyin.
 
+### 6.13 Ölçek standardı (asset üretiminde tek ölçü)
+
+Tüm nesne/karakterler **ölçek dizisi** yöntemiyle üretilir: aynı kategorideki nesneler tek görselde, tek taban çizgisinde, 1. yuvada referans oyuncu (1,75 m) ile yan yana çizilir; kesimde referansa göre gerçek boy otomatik çıkar ve `src/data/assets.js`'e metre olarak yazılır. Oyun tek ölçek kullanır: `PX_METRE` (oda görsellerinden kalibre, şu an 75 px/m ön zeminde; duvar dibinde ×0,9). Ayrıntı, kurallar, prompt: `docs/olcek-standardi.md`; şablon: `docs/olcek-sablonu.png`.
+
 ---
 
 ## 7. Sunum notları

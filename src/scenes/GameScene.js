@@ -6,7 +6,7 @@
 //  kodla çizilmiş yer tutucu üretir.
 // =============================================================
 import Phaser from 'phaser';
-import { ODALAR, ODA_GENISLIK, TAVAN_Y, ZEMIN_Y, GORSEL_ZEMIN_ORANI, GORSEL_DUVAR_ORANI, ARKA_OLCEK } from '../data/rooms.js';
+import { ODALAR, ODA_GENISLIK, TAVAN_Y, ZEMIN_Y, GORSEL_ZEMIN_ORANI, GORSEL_DUVAR_ORANI, ARKA_OLCEK, YURUME_PAYI } from '../data/rooms.js';
 import { PANELLER } from '../data/panels.js';
 import { ASSETLER } from '../data/assets.js';
 import { assetVar } from '../assetListesi.js';
@@ -458,15 +458,19 @@ export default class GameScene extends Phaser.Scene {
     const x0 = i * ODA_GENISLIK;
     const kaynak = this.textures.get(anahtar).getSourceImage();
     const oran = kaynak.width / kaynak.height;
+    // Ölçek tüm odalarda aynı (nesneler orantılı kalsın); her odanın kendi zemin
+    // çizgisi ortak yürüme çizgisine (ZEMIN_Y) hizalanır
+    const duvar = oda.gorsel?.duvar ?? GORSEL_DUVAR_ORANI;
+    const yurume = duvar + YURUME_PAYI;
     let H = (ZEMIN_Y - TAVAN_Y) / GORSEL_ZEMIN_ORANI;
     let W = H * oran;
     if (W < ODA_GENISLIK) { W = ODA_GENISLIK; H = W / oran; }
-    const ust = ZEMIN_Y - GORSEL_ZEMIN_ORANI * H;
+    const ust = ZEMIN_Y - yurume * H;
     const sol = x0 - (W - ODA_GENISLIK) / 2;
     const img = this.add.image(sol, ust, anahtar).setOrigin(0).setDisplaySize(W, H).setDepth(0.5);
     const olcek = W / kaynak.width;
     img.setCrop((x0 - sol) / olcek, 0, ODA_GENISLIK / olcek, kaynak.height);
-    const yer = { sol, ust, W, H, alt: ust + H };
+    const yer = { sol, ust, W, H, alt: ust + H, duvarY: ust + duvar * H };
     // Görsel üzerindeki oran koordinatını dünyaya çevirir
     yer.nokta = (fx, fy) => ({ x: sol + fx * W, y: ust + fy * H });
     this.odaYerlesimi[oda.tip] = yer;
@@ -641,6 +645,10 @@ export default class GameScene extends Phaser.Scene {
       const py = ust + 40;
       const ph = 110;
 
+      // Oda görseli varsa kodla çizilen duvar/pencere/lamba çizilmez: görselin
+      // şeffaf camlarından doğrudan dış dünya (manzara) görünür
+      const gorselVar = this.gercekAsset('oda-' + oda.tip);
+      if (!gorselVar) {
       // Duvar = pencere etrafındaki 4 parça (pencereden dışarısı görünür)
       g.fillStyle(oda.duvar);
       g.fillRect(x0, ust, ODA_GENISLIK, py - ust);
@@ -654,6 +662,7 @@ export default class GameScene extends Phaser.Scene {
 
       // Süpürgelik
       g.fillStyle(0x000000, 0.12).fillRect(x0, alt - 16, ODA_GENISLIK, 16);
+      }
 
       // Oda arka planı görseli varsa kodla çizilen duvarın üstüne biner
       const yer = this.odaGorseliYerlestir(oda, i);
@@ -669,7 +678,7 @@ export default class GameScene extends Phaser.Scene {
 
       // Tavan lambası (enerjiye göre parlar)
       const lx = x0 + ODA_GENISLIK / 2 + (oda.pencereX > ODA_GENISLIK / 2 ? -150 : 150);
-      g.fillStyle(0x444444).fillRect(lx - 1, ust, 2, 22).fillRect(lx - 14, ust + 22, 28, 8);
+      if (!gorselVar) g.fillStyle(0x444444).fillRect(lx - 1, ust, 2, 22).fillRect(lx - 14, ust + 22, 28, 8);
       const isik = this.add.image(lx, ust + 60, 'isik').setScale(1.6, 1.3).setDepth(1).setBlendMode(Phaser.BlendModes.ADD);
       this.lambalar.push(isik);
 
@@ -682,9 +691,10 @@ export default class GameScene extends Phaser.Scene {
         const ad = n.tip === 'panel' ? n.panel : n.tip;
         const oranX = yer ? oda.gorsel?.nesneOran?.[ad] : null;
         const nx = oranX != null ? yer.sol + oranX * yer.W - x0 : n.x;
-        const ny = yer && n.arka ? yer.ust + GORSEL_DUVAR_ORANI * yer.H + 4 : alt;
-        const s = this.add.sprite(x0 + nx, ny, anahtar).setOrigin(0.5, 1).setDepth(3);
-        if (yer && n.arka) s.ekOlcek = ARKA_OLCEK;
+        const arkada = n.arka && !oda.gorsel?.onde?.includes(ad);
+        const ny = yer && arkada ? yer.duvarY + 4 : alt;
+        const s = this.add.sprite(x0 + nx, ny, anahtar).setOrigin(0.5, 1).setDepth(arkada || !yer ? 3 : 6);
+        if (yer && arkada) s.ekOlcek = ARKA_OLCEK;
         this.olcekle(s, anahtar);
         // Görselde zaten çizili nesne: sprite görünmez, etkileşim ve ipucu kalır
         if (yer && oda.gorsel?.gorseldeVar?.includes(n.tip)) s.setAlpha(0);
@@ -856,6 +866,17 @@ export default class GameScene extends Phaser.Scene {
       duration: 1100, ease: 'Sine.easeInOut',
       onComplete: () => this.sakinIdleBaslat(s),
     });
+  }
+
+  // Oyuncuyu duruş hâline alır: zemine indirir, bekleme animasyonu (yoksa sabit görsel).
+  // 'oyuncu-calis' bir kez oynarken (panele dokunma) araya girmez.
+  oyuncuDurdur(simdi = performance.now()) {
+    const p = this.oyuncu;
+    if (!p) return;
+    p.y = ZEMIN_Y;
+    this.yurumeTozSayac = 0;
+    if (simdi < this.oyuncuMesgulBitis) return;
+    if (!this.animOynat(p, 'oyuncu-bekle')) this.animDurdur(p, 'oyuncu');
   }
 
   // Sakin hareket ediyorsa yürü, duruyorsa bekle animasyonu (varsa)
@@ -1178,6 +1199,7 @@ export default class GameScene extends Phaser.Scene {
     this.sakinAnimGuncelle(); // pencere açıkken de sakinler yürümeye devam eder
     if (ui.acikMi() || this.gecisVar || state.bitti) {
       this.ipucu.setVisible(false);
+      this.oyuncuDurdur(simdi); // pencere açıkken yürüme animasyonu/zıplama sürmesin
       return;
     }
 

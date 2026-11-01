@@ -13,10 +13,17 @@
 
 import { ZIYARETCILER, KURUCULAR } from './visitors.js';
 
-// Ölçek: oda görsellerindeki mobilyalara göre 1 metre = 62 oyun pikseli
-// (yatak başlığı ~1 m ≈ 66 px, pencere ~1,25 m ≈ 78 px ölçüldü). Nesne boyları
-// gerçek metre değerinden hesaplanır ki arka planla orantılı dursunlar.
-export const PX_METRE = 62;
+// =============================================================
+//  ÖLÇÜ STANDARDI (CLAUDE.md bölüm 6.13)
+//  1) Her nesne/karakter boyu GERÇEK METRE ile tanımlanır (aşağıdaki tablo).
+//  2) Tek ölçek: PX_METRE = ön zeminde (yürüme çizgisi) 1 metrenin oyun pikseli.
+//     Oda görsellerindeki bilinen nesnelerden kalibre edilir (tezgâh 0,9 m,
+//     yatak 0,9 m, tank 2,4 m → duvar dibinde ~70 px/m, ön zeminde ~75 px/m).
+//     Oda görselleri değişirse SADECE bu sayı güncellenir.
+//  3) Duvar dibindeki nesneler ayrıca ARKA_OLCEK (rooms.js, %90) ile küçülür.
+//  Üretim standardı (ölçek dizisi yöntemi): CLAUDE.md 6.13, docs/olcek-sablonu.png
+// =============================================================
+export const PX_METRE = 75;
 const m = (metre) => Math.round(metre * PX_METRE);
 
 export const ASSETLER = {
@@ -48,7 +55,7 @@ export const ASSETLER = {
   'oda-geri':          { dosya: 'oda-geri.png', yukseklik: 280, arka: true },
   'manzara-iyi':       { dosya: 'manzara-iyi.png', yukseklik: 470, arka: true },
   'manzara-kotu':      { dosya: 'manzara-kotu.png', yukseklik: 470, arka: true },
-  cati:                { dosya: 'cati.png', yukseklik: 70, arka: true },  // yatayda döşenen çatı şeridi (güneş panelleri)
+  cati:                { dosya: 'cati.png', yukseklik: 120, arka: true },  // yatayda döşenen çatı şeridi (güneş panelleri)
 };
 
 // Karaktere özel sakin görseli: sakin-<id>.png (ör. sakin-selin.png, sakin-tamirci.png).
