@@ -12,7 +12,7 @@
 
 // Oda genişliği oda görsellerinin oranına göre (1891×831 görsel, TAVAN_Y..ZEMIN_Y
 // yüksekliğinde ve yürüme çizgisi %82'de iken 776 px): görsel kırpılmadan sığar.
-export const ODA_GENISLIK = 797; // rework görselleri 1916×821 (2,33:1)
+export const ODA_GENISLIK = 739; // oda görselleri: 9042×836 tek şeridin beşte biri (1808×836, 2,16:1)
 export const TAVAN_Y = 190;  // odaların üst sınırı
 export const ZEMIN_Y = 470;  // karakterin bastığı zemin
 
@@ -30,6 +30,7 @@ export const ZEMIN_Y = 470;  // karakterin bastığı zemin
 //    duvar      : bu görselde duvar–zemin çizgisi (yükseklik oranı); yürüme çizgisi
 //                 duvar + YURUME_PAYI. Odalar arası fark bu çizgiyle hizalanır.
 //    onde       : duvar dibine değil ön zemine konacak nesneler (ör. ayaklı pano)
+//    nesneY     : duvara monte nesnenin ALT kenarı (yükseklik oranı); etkileşim/ışık oraya göre
 //    (gösterge ve duman koordinatları görsel boyutuna göre ORAN, 0..1)
 // -------------------------------------------------------------
 export const GORSEL_ZEMIN_ORANI = 0.82;  // yürüme çizgisi: zeminin ortası
@@ -50,7 +51,7 @@ export const ODALAR = [
       { tip: 'yatak', x: 606, etiket: 'Yatak (günü bitir)', arka: true },
     ],
     // Görselde kitaplık (sol), yatak (orta-sol), sandık (orta-sağ), koltuk (sağ) var
-    gorsel: { duvar: 0.739, nesneOran: { kapi: 0.17, radyo: 0.745, yatak: 0.473, pano: 0.075 }, gorseldeVar: ['yatak'], onde: ['pano'] },
+    gorsel: { duvar: 0.755, nesneOran: { kapi: 0.757, radyo: 0.630, yatak: 0.423, pano: 0.915 }, nesneY: { pano: 0.53, radyo: 0.595 } },
   },
   {
     ad: 'Enerji Odası',
@@ -59,7 +60,7 @@ export const ODALAR = [
     pencereX: 558,
     nesneler: [{ tip: 'panel', panel: 'enerji', x: 315, etiket: 'Enerji Paneli', arka: true }],
     // Görselde jeneratör (sol), tezgâh (orta), inverter dolapları, batarya rafı (sağ)
-    gorsel: { duvar: 0.816, nesneOran: { enerji: 0.61 }, duman: [0.151, 0.205] },
+    gorsel: { duvar: 0.755, nesneOran: { enerji: 0.722 }, nesneY: { enerji: 0.475 }, duman: [0.149, 0.13] },
   },
   {
     ad: 'Su Arıtma',
@@ -68,7 +69,7 @@ export const ODALAR = [
     pencereX: 218,
     nesneler: [{ tip: 'panel', panel: 'su', x: 461, etiket: 'Arıtma Paneli', arka: true }],
     // Görselde iki büyük tank (gösterge camlarında su seviyesi), filtreler, havuz
-    gorsel: { duvar: 0.801, nesneOran: { su: 0.655 }, suGostergeleri: [[0.3716, 0.38, 0.380, 0.643], [0.5313, 0.38, 0.5418, 0.643]] },
+    gorsel: { duvar: 0.762, nesneOran: { su: 0.694 }, nesneY: { su: 0.59 }, suGostergeleri: [[0.376, 0.33, 0.393, 0.575], [0.529, 0.33, 0.549, 0.575]] },
   },
   {
     ad: 'Sera',
@@ -77,7 +78,7 @@ export const ODALAR = [
     pencereX: 388,
     pencereGenis: true,
     nesneler: [{ tip: 'panel', panel: 'sera', x: 679, etiket: 'Sera Paneli', arka: true }],
-    gorsel: { duvar: 0.806, nesneOran: { sera: 0.85 }, bitkiOran: [0.08, 0.085], copOran: null },
+    gorsel: { duvar: 0.765, nesneOran: { sera: 0.08 }, nesneY: { sera: 0.53 }, bitkiOran: [0.14, 0.075], copOran: null },
   },
   {
     ad: 'Geri Dönüşüm',
@@ -85,6 +86,6 @@ export const ODALAR = [
     duvar: 0xcdbfae,
     pencereX: 570,
     nesneler: [{ tip: 'panel', panel: 'geriDonusum', x: 364, etiket: 'Geri Dönüşüm Paneli', arka: true }],
-    gorsel: { duvar: 0.767, nesneOran: { geriDonusum: 0.52 }, copOran: 0.13 },
+    gorsel: { duvar: 0.765, nesneOran: { geriDonusum: 0.29 }, duman: [0.946, 0.51], copOran: 0.10 },
   },
 ];

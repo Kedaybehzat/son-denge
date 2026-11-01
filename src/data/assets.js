@@ -23,7 +23,7 @@ import { ZIYARETCILER, KURUCULAR } from './visitors.js';
 //  3) Duvar dibindeki nesneler ayrıca ARKA_OLCEK (rooms.js, %90) ile küçülür.
 //  Üretim standardı (ölçek dizisi yöntemi): CLAUDE.md 6.13, docs/olcek-sablonu.png
 // =============================================================
-export const PX_METRE = 75;
+export const PX_METRE = 74; // oda şeridi: kapı 2,1 m ≈ 375 px → 180 px/m görsel, oyunda ×0,41
 const m = (metre) => Math.round(metre * PX_METRE);
 
 export const ASSETLER = {

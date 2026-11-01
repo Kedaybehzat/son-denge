@@ -106,13 +106,13 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | D10 | Yorgunluk ayarlarıyla dinlendirme stratejisi kötü: herkes 0'dan başlayıp 4. gece aynı anda riske giriyor; riskteki herkesi dinlendiren akıllı stil iyi sonu %82 → %20 düşürüyor. Öneri: kurucuları farklı yorgunlukla başlatmak ya da dinlenmeyi −3 / eşiği 5 yapmak (karar bekliyor) | `AYAR.yorgunluk*`, `KURUCULAR` | 2026-11-01 |
 | D12 | Hazırlıklı olaylarla zararlı olaylar ~1,6 kat sertleştirildi (hazırlık bir eylem değerinde olsun diye). Toplam zorluk arttı: akıllı+herkesi al iyi son %83 → %61 (hazırlanarak; hazırlıksız %62). 1,3 katta hazırlık bazen kötü seçim çıkıyordu. Dengeleme D10 ile birlikte yapılmalı | `events.js`, `AYAR` | 2026-11-01 |
 | D14 | Oda + manzara görselleri PNG olarak 19 MB; açılış ~35 MB. WebP'ye çevirmek yüklemeyi hızlandırır | `public/assets/oda-*`, `manzara-*`, `assets.js` | 2026-11-01 |
-| D15 | Orijinal odaların ölçekleri farklı (145–205 px/m); oda başına ölçek normalizasyonu + yeni etkileşim konumları (düzenlenmiş görseller gelince) | `rooms.js`, `GameScene.js` | 2026-11-01 |
 
 ---
 
 ## Asset Listesi
 
 > Kopyası `docs/asset-listesi.md` · prompt `docs/asset-promptu.md` · rehber `docs/asset-rehberi.pdf`.
+> **Durum (1 Kasım, yeni set işlendi):** ✅ 1–8 (odalar tek şeritten, manzara, çatı), 14–17 (yeni oyuncu + 3 animasyon), 18–21 (sakinler), 23 (örgülü kadın anim), 25 (gezgin anim), 26–28 (çöp, iki saksı), 29 (Deniz) · eski hâli: 9–13 hikaye/kapak, 30–38 portreler · ⏳ 22 (yaşlı sakin anim) ve 24 (usta anim): gelen setlerde opak "duman" hale var, kullanılmadı.
 
 Toplam **38 görsel** üretilecek (22–25 bekleme + yürüme animasyonunu tek görselde içerir; oyunda 42 dosyaya ayrılır). Odalar `docs/asset-rehberi.pdf`'teki orijinal oda görselleri ve planlarına göre, etkileşimli nesneler sahnenin içine çizili olarak üretilir. Prompt: `docs/asset-promptu.md`.
 
@@ -162,6 +162,21 @@ Toplam **38 görsel** üretilecek (22–25 bekleme + yürüme animasyonunu tek g
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-promptu-2` → `main`
+
+- **Prompt:** Yeni yüklediğim asset'leri incele, iyi olanları kullan (önceki mesaj: PR #9 merge'ü gelen asset'lerle birlikte).
+- **Yapılan değişiklik:** 30 dosya incelendi (orijinaller `assets-orijinal/yeni2/`). Odalar: `son-denge-tum-odalar-sutunlu-ultra-genis.png` (9042×836, 5 oda + geçiş sütunları, nesneler sahnede çizili) beşe bölündü → `oda-<tip>-tam.png`, magenta camlar şeffaf; tek şerit olduğundan ölçek ve zemin her odada aynı, geçişler dikişsiz. Kod: `ODA_GENISLIK` 739 (dilim oranı), yeni etkileşim konumları (`nesneOran`), duvara monte nesneler için `nesneY`, su göstergeleri, duman noktaları (jeneratör bacası, varil), kodla çizilen kolonlar birleşik şeritte kapalı, `PX_METRE` 74 (kapı 2,1 m ölçümü). Karakterler: yeni oyuncu (sırt çantalı) + bekle/yürü/çalış, sakin-1..4 yeni, örgülü kadın ve şapkalı gezgin bekle+yürü (ayak hizalı kesim). Ayrıca çöp yığını, iki saksı, Deniz portresi, iyi/kötü manzara, çatı. Kullanılmayanlar: yaşlı sakin ve usta yürüme setleri (opak hale, temizlenemedi; eski yaşlı işçi animasyonu da kaldırıldı), kampçı vanı (listede yok), tek tek oda görselleri ve sütunsuz şerit (sütunlu şerit seçildi), geçiş sütunu (şeritte var). Eski dosyalar `assets-orijinal/eski2/`. Doğrulama: 5 oda ekran görüntüsü, 8 etkileşimin ipucu, konsol hatası yok, derleme temiz.
+
+| Dosya | Açıklama |
+|---|---|
+| `public/assets/oda-*-tam.png` (yeni), `oda-*.png` (kaldırıldı) | Birleşik odalar |
+| `public/assets/*`, `public/assets/anim/*` | Yeni karakter, animasyon ve nesneler |
+| `src/data/rooms.js` | `ODA_GENISLIK` 739, `nesneY`, yeni oranlar |
+| `src/data/assets.js` | `PX_METRE` 74 |
+| `src/scenes/GameScene.js` | `nesneY` desteği; birleşik şeritte kod kolonu yok |
+
+- **Debt:** D15 kapandı (tek şerit, tek ölçek). Eksik: yaşlı sakin ve usta animasyonları, portrelerin (Deniz dışında) yeni stilde sürümleri.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-promptu-2`
 
