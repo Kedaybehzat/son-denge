@@ -91,6 +91,21 @@ body { display: grid; place-items: center; }
 /* Tam ekranda browser varsayılan siyah arkaplanı 16:9 oran korunarak kalır */
 #sahne:fullscreen { max-height: 100vh; }
 
+/* Ana menü ve ayarlar düğme sırası */
+.menu-butonlar { display: flex; gap: 1cqw; justify-content: center; margin: 1.5cqw 0 1cqw; flex-wrap: wrap; }
+.menu-butonlar button { min-width: 14cqw; }
+.kontrol-ozet { font-size: 0.95cqw; opacity: 0.75; text-align: center; }
+.kontrol-ozet kbd { margin: 0 0.1cqw; }
+
+/* Ayarlar kartı */
+.ayarlar { display: flex; flex-direction: column; gap: 1cqw; margin: 0.5cqw 0 1cqw; }
+.ayarlar .kontroller { background: var(--terminal-ekran); padding: 1cqw 1.4cqw; border-radius: 0.5cqw; border: 0.08cqw solid #ffffff14; }
+.ayarlar .kontroller h3 { margin: 0 0 0.6cqw; font-size: 1.2cqw; letter-spacing: 0.15em; text-transform: uppercase; color: var(--terminal-dim); }
+.kontrol-liste { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5cqw 1.2cqw; font-size: 1.05cqw; color: var(--terminal-metin); }
+
+/* HUD'daki küçük ayarlar düğmesi */
+.yonetim-erisim .ayarlar-btn { padding: 0.3cqw 0.6cqw; font-size: 1.4cqw; line-height: 1; min-width: 2.4cqw; }
+
 #oyun, #oyun canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
 
 /* =============================================================
