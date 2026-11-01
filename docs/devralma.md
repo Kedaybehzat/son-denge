@@ -155,3 +155,11 @@ Açılış artık salgın yerine iklim baskısı, kaynak güvenliği ve dayanı�
 - Son ekranındaki açıklamalar ölçülmüş öğrenme sonucu değildir. Kaynak/karbon puanları 0–100 oyun modeli ve zaman hızlandırılmıştır.
 - Bilgi kartları: birincil kaynak URL/tarih `facts.js`; düzeltme notları `docs/bilgi-kaynaklari.md`. Kaynak bağlantıları yeni sekmede açılır. Salgın kartı genel havuzdan çıkarıldı; `uyum` eklendi.
 - Test: `tools/ogrenme-test.mjs` (`npm test`): hatalı eylem, gerçek kapasite farkı, kart/eylem ayrımı, mod geri alma, eski/yeni kayıt ve kaynak metadata kontrolü. Kaynak sayıları/üretim dengesi değişmedi.
+
+## Edge / yüksek yenileme hızında performans
+
+1 Kasım 2026 yerel optimizasyonu: `main.js` Phaser döngüsünü 60 FPS ile sınırlar (varsayılan limit yoktu); 2× tuval/netlik korunarak ek WebGL MSAA kapatılır. `powerPreference: high-performance` tarayıcıya GPU tercihi bildirir, Windows uygulama tercihini zorla değiştirmez. Modalın hareketli WebGL arkasına uyguladığı tam ekran backdrop blur kaldırılır; koyu arka plan ve çerçeve kalır. `sesler.js` üç kanallı efekt havuzlarıyla adım/tıklama başına Audio tahsisini önler. Oyun denge/hız sayıları değişmedi.
+
+Kullanıcı raporunda 240 Hz ekran ve Edge’in AMD 610M üzerinden çizmesi görüldü; makinede ayrı NVIDIA GPU bulunması tarayıcının onu kullandığını garanti etmez. Windows uygulama bazında GPU seçimi için Microsoft’un Grafik Ayarları rehberi kullanılabilir; sistem ayarı bu çalışmada değiştirilmedi.
+
+**Test ortamı kuralı:** Yazılımsal SwiftShader kullanan başsız tarayıcı, bu makinede yüksek CPU tüketti. Test bitince kendi tarayıcınızı `finally` ile kapatın; profilleme süresini sınırlayın. Açık bırakılan test tarayıcısı kapatıldı. WSL başsız FPS sonuçları Windows donanım FPS’si gibi sunulmamalı; kontrollü Windows karşılaştırması henüz yok. `npm test` ve iki build geçti; efekt havuzu için anlamlı regresyonlar eklendi. Yeni asset yok.

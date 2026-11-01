@@ -169,15 +169,18 @@ export const sakinler = {
         // Karaktere özel görsel varsa o, yoksa sırayla genel sakin-1..4
         const ozel = 'sakin-' + kaynakSakin.id;
         const sakinDoku = gorsel.anahtar;
-        const sprite = this.olcekle(this.add.sprite(hedefX, ZEMIN_Y - 55, sakinDoku)
+        // Gün 0'da gelen kurucu kapıdan girip çalışma odasına yürür
+        const kapi = state.gun === 0 ? this.kapiSpritesi() : null;
+        const baslangicX = kapi ? kapi.x : hedefX;
+        const sprite = this.olcekle(this.add.sprite(baslangicX, ZEMIN_Y - 55, sakinDoku)
           .setOrigin(0.5, 1).setDepth(5).setAlpha(0), sakinDoku);
         sprite.setVisible(kaynakSakin.gorev !== 'kesif');
-        const yeni = { uid: kaynakSakin.uid, id: kaynakSakin.id, gorev: kaynakSakin.gorev, sprite, hedefX, wander: null, tip: gorsel.tip, oncekiX: hedefX,
+        const yeni = { uid: kaynakSakin.uid, id: kaynakSakin.id, gorev: kaynakSakin.gorev, sprite, hedefX, wander: null, tip: gorsel.tip, oncekiX: baslangicX,
           doku: sakinDoku, ozelDoku: sakinDoku === ozel };
         this.tweens.add({ targets: sprite, alpha: 1, duration: 350 });
         this.tweens.add({
           targets: sprite, y: ZEMIN_Y, duration: 720, ease: 'Bounce.easeOut',
-          onComplete: () => this.sakinIdleBaslat(yeni),
+          onComplete: () => (kapi ? this.sakinTasi(yeni, hedefX) : this.sakinIdleBaslat(yeni)),
         });
         this.sakinler.push(yeni);
       }

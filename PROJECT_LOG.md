@@ -68,12 +68,15 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Görsel yükleme (public/assets) ve yer tutucular | Liste + hedef yükseklik: `src/data/assets.js` → `ASSETLER`; yükleme: `GameScene.js` + `game/` modülleri → `preload()`; yer tutucu: `dokulariUret()` / `dokuUret()`; ölçek: `olcekle()`, `dokuAnahtari()`, `gercekAsset()`; dosyalar: `public/assets/` |
 | Dışarısı, şehir silueti | `GameScene.js` + `game/` modülleri → `disariCiz()`, `sehirBoya()` |
 | Ev/oda çizimi, oda dekorları | `GameScene.js` + `game/` modülleri → `evCiz()`, `dekorCiz()` |
+| Edge render / efekt havuzu | `main.js` → fps/render; `style.css` → #modal; `sesler.js` → `efektHavuzlari`, `sesCal`; `tools/ses-test.mjs`; `docs/devralma.md` son bölüm |
 | GameScene performansı / restart | `GameScene.js` + `game/` modülleri → `gorselGuncelle` (state eşleme), `gorselUygula` (geçiş), `sehirBoya` / `etiketZeminiCiz` (çizim önbelleği), `update` (tek geçiş yakın sakin), `create` / shutdown (dinleyici/text temizliği) |
 | Oyuncu, hareket, etkileşim (E tuşu) | `GameScene.js` + `game/` modülleri → `oyuncuOlustur()`, `update()`, `oyuncuDurdur()` (pencere açıkken duruş), sabitler `HIZ`, `KOSU_CARPANI` (Shift, ×1,65), `ETKILESIM_MESAFE` |
 | Sakinlerin sayısı/hareketi | `GameScene.js` + `game/` modülleri → `sakinGuncelle()`, `sakinIdleBaslat()`, `sakinTasi()`, `sakinAnimGuncelle(dt)`; `SAKIN_HIZI` (85 px/sn), mesafeye bağlı süre ve hıza bağlı animasyon |
 | Ütopya ↔ distopya görsel dönüşümü | `GameScene.js` + `game/` modülleri → `gorselGuncelle()`, `gorselUygula()`, `renkGecis()` |
 | Arayüz asset eşlemeleri ve kontrolü | `src/data/assets.js` → `ARAYUZ_IKONLARI`, `KARAR_GORSELLERI`, `SON_GORSELLERI`, `ARAYUZ_DOSYALARI`; `ui.js` → `arayuzIkonu()`, `arayuzGorseli()`; `style.css` → 9-dilim çerçeve/buton/HUD, menü ortamı |
-| HUD (kaynak barları) | `src/ui/ui.js` → `hudKur()`, `hudGuncelle()` |
+| HUD (kaynak barları) | `src/ui/ui.js` → `hudKur()` (kaynak adı etiketi `.kaynak-ad`, `--hud-h` ölçümü), `hudGuncelle()`; `style.css` sonu: HUD z-index, `#modal` padding-top ile kart HUD altında |
+| Gün 0 öğreticisi (eğitim seçimi, sıralı kurucular, panel rehberi, pano turu) | Veri: `src/data/gun0.js`; kurallar: `state.js` → `sifirla({ gun0 })`, `gun0Aktif`, `gun0EkipTamam`, `gun0BekleyenPanel`, `gun0Tamam`, `gun0KapiyaGel`, `gun0Karsila`, `gun0PanelIncele`, `gun0PanoGor`, `gun0Bitir`; UI: `ui.js` → `oyunuBaslat`, `yeniOyunSecimi`, `gun0Giris`, `gun0PanelGoster`, `gun0PanelRehberi`, `gun0PanoTuru`, `gun0KapiGoster`, `gun0Kapanis`, `gun0HedefGuncelle`; sahne: `GameScene.js` → `gun0Planla`, `gun0BitirAkisi`, `yeniOyun`, `etkilesim`; `sakinler.js` → `sakinGuncelle` (kapıdan giriş); test: `tools/gun0-test.mjs` |
+| Test paneli (F9 / Ayarlar) | `src/ui/testPaneli.js` → `testPaneliToggle`; `state.js` → `testDegistir`; sahne olayları `oyun:testGunuBitir/testSon/testKart/testYeniOyun` (`GameScene.js`) |
 | Panel penceresi | `ui.js` → `panelAc()`, `panelCiz()` |
 | Radyo, sabah raporu, kapı kartı | `ui.js` → `olayGoster()`, `gunBaslangici()`, `sabahGoster()`, `ziyaretciGoster()` |
 | Hikaye, başlangıç ve son ekranları | `ui.js` → `girisHikayesi()`, `baslangicEkrani()`, `SONLAR`, `sonGoster()` |
@@ -112,6 +115,9 @@ src/scenes/game/dunya.js   Odalar, dış dünya, dekor, çatı/yapı çizimleri
 src/scenes/game/sakinler.js NPC eşleme, rutin, hareket ve çalışma
 src/scenes/game/efektler.js Eylem/ziyaretçi, gün başlığı, atmosfer ve etiket çizimi
 src/ui/ui.js               HTML/CSS arayüz katmanı
+src/ui/testPaneli.js       F9 test paneli (durum düzenleme, olay/kart/son tetikleme)
+src/data/gun0.js           Gün 0 öğretici metinleri (kurucu tanıtımları, panel rehberi, pano turu)
+tools/gun0-test.mjs        Gün 0 akış regresyonları
 src/style.css              Arayüz stili (cqw ile ölçekleme)
 src/data/*.js              İçerik verisi (panels, events, visitors, facts, story, rooms, research, assets, animations, cards, exploration)
 public/assets/             Oyun görselleri (CLAUDE.md 6.3 adlarıyla; eksikse yer tutucu)
@@ -164,6 +170,7 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | D6 | Simülasyon artık görev atama + araştırma seçimini kullanıyor; akıllı stilde ortalama 1.66 araştırma açılıyor. Güncel tam oyun insan playtesti eksik; tarayıcıda yönetim/inşaat/keşif akışları doğrulandı | `tools/simulasyon.mjs` | 2026-10-31 |
 | D10 | Tarihsel simülasyon bulgusu (güncel kodda ayrılma eşiği 5 ve pay %20; aşağıdaki eski oranlar yeniden ölçülmeli): Yorgunluk ayarlarıyla dinlendirme stratejisi kötü: herkes 0'dan başlayıp 4. gece aynı anda riske giriyor; riskteki herkesi dinlendiren akıllı stil iyi sonu %82 → %20 düşürüyor. Öneri: kurucuları farklı yorgunlukla başlatmak ya da dinlenmeyi −3 / eşiği 5 yapmak (karar bekliyor) | `AYAR.yorgunluk*`, `KURUCULAR` | 2026-11-01 |
 | D12 | Tarihsel denge bulgusu (güncel 36.000 oyunluk sonuçlar CLAUDE.md 4.11'de; aşağıdaki eski karşılaştırma yeniden ölçülmeli): Hazırlıklı olaylarla zararlı olaylar ~1,6 kat sertleştirildi (hazırlık bir eylem değerinde olsun diye). Toplam zorluk arttı: akıllı+herkesi al iyi son %83 → %61 (hazırlanarak; hazırlıksız %62). 1,3 katta hazırlık bazen kötü seçim çıkıyordu. Dengeleme D10 ile birlikte yapılmalı | `events.js`, `AYAR` | 2026-11-01 |
+| D15 | Gün 0 öğreticisi ve test paneli headless Chromium betiğiyle uçtan uca denendi; gerçek tarayıcıda insan playtesti ve küçük ekran (mobil) yerleşimi kontrol edilmedi. Test paneli herkese açık (F9); yayında gizlemek istenirse bayrak gerekir | `src/ui/testPaneli.js`, `src/data/gun0.js` | 2026-11-01 |
 | D14 | Oda/manzara PNG'leri ve eklenen UI seti yükleme maliyetini artırıyor; UI seti 28,1 → 13,9 MB küçültüldü. WebP ve ihtiyaç halinde yükleme iyileştirmesi açık; güncel açılış boyutu ayrıca ölçülmeli | `public/assets/oda-*`, `manzara-*`, `assets.js` | 2026-11-01 |
 
 ---
@@ -277,6 +284,60 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · HUD görünürlüğü, Gün 0 öğreticisi, test paneli
+
+- **Prompt:** Panel açılınca üst kaynak şeridi örtülüyor; kaynak adları barların üstünde yazsın. Gün 0 eklensin: sığınak boş, makineler kullanılamaz, kurucular teker teker gelip kendi alanlarına yönlendirilsin, mekanikler (paneller, Sığınak Yönetimi) ayrıntılı tanıtılsın. Yeni oyun düğmesi eğitimi yap/atla sorsun. Oyun içi test paneli. Karartma kesik görünmesin.
+- **Yapılan değişiklik:** HUD modalın üstüne alındı ve kart HUD altındaki alanda ortalanıyor (karartma tam ekran); kaynak adları eklendi; Gün 0 öğretici akışı (kapı → panel rehberi → sıradaki kurucu → pano turu → yatak → Gün 1), eğitim seçimi ve F9 test paneli eklendi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/gun0.js` | Yeni: kurucu tanıtımları/dersleri, panel ipuçları, ortak panel rehberi bölümleri, pano turu, Gün 0 metinleri |
+| `src/state.js` | `sifirla({ gun0 })`, Gün 0 kural fonksiyonları, `testDegistir` |
+| `src/ui/ui.js` | HUD kaynak etiketleri ve `--hud-h`; Gün 0 hedef şeridi, kullanılamaz panel, panel rehberi, pano turu, kapı kartı, kapanış; `yeniOyunSecimi`, `oyunuBaslat`; Gün 0'da pano/konuşma korumaları; Ayarlar'a test paneli düğmesi |
+| `src/ui/testPaneli.js` | Yeni: kaynak/memnuniyet/insanlık/eylem/gün/malzeme/batarya, sakin görev/yorgunluk, ziyaretçi, olay, kart, araştırma, yapı, günü bitir, son, yeni oyun, kayıt sil |
+| `src/scenes/GameScene.js` | Gün 0 kapı/radyo/yatak etkileşimleri, `gun0Planla`, `gun0BitirAkisi`, `yeniOyun`, test olayları |
+| `src/scenes/game/sakinler.js` | Gün 0'da gelen kurucu kapıdan girip odasına yürür |
+| `src/scenes/game/efektler.js` | Kapı "!" işareti Gün 0 kurucusu için de çıkar |
+| `src/main.js` | Başlangıç `ui.oyunuBaslat()` üzerinden |
+| `src/style.css` | HUD/modal katmanı, kaynak adı, Gün 0 şeridi/kullanılamaz/rehber, test paneli stilleri |
+| `tools/gun0-test.mjs`, `package.json` | Yeni Gün 0 regresyonu `npm test` içinde |
+| `CLAUDE.md`, `PROJECT_LOG.md` | 4.24 bölümü, F9 kontrolü, harita/borç/log |
+
+- **Doğrulama:** `npm test` (yeni gun0 testi dahil) ve `npm run build` geçti; headless Chromium ile menü → eğitim seçimi → 4 kurucu + panel rehberleri → pano turu → Gün 1 ve test paneli (kaynak, ziyaretçi alma, kart, araştırma, günü bitir, son) konsol hatası olmadan denendi; test tarayıcısı ve preview sunucusu kapatıldı.
+- **Debt:** D15 eklendi. Gün 0 sayıları değiştirmez (Gün 1 aynı başlangıçla açılır), simülasyon etkilenmez. Yeni görsel gerekmedi.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Sistem takılması devam ediyor
+
+- **Prompt:** Tarayıcı düzeldi ama sistem genelinde takılma sürüyor.
+- **Yapılan değişiklik:** Salt okunur ikinci tanı yapıldı: yaklaşık 23 saniyelik 18 örnekte toplam CPU %1–12, kullanılabilir bellek yaklaşık 14 GB, disk kuyruğu 17 örnekte sıfır/1 örnekte bir; okuma ortalamaları yaklaşık 0,15–2,56 ms, yazma 0,16–1,95 ms. Sistem genelinde kaynak tükenmesi bu aralıkta görülmedi; kısa donma yakalandığı iddia edilmez. Tek çekirdekte kesme yükü gözlendi, fakat hangi sürücü veya gecikme süresi bu sayaçlarla belirlenemez. Windows çalışma süresi yaklaşık 204,5 saat; uygulama geçmişinde tek WSL host donması ve ofis bileşeni hatası görüldü, tek başına neden sayılmadı. GPU tarafında OBS kodlama/3D ve masaüstü bileşimi etkin; kayıt/yayın durumu ve takılmanın biçimi kullanıcıya soruldu.
+- **Dosya / Açıklama:** `PROJECT_LOG.md` — ayrı kullanıcı isteği, tanı ve sınırlar. Geçici betik/ham sonuç yalnız `/tmp/gameup-pc-*` altında; kişisel sistem dökümü repoya taşınmadı. Oyun kodunda bu isteğe bağlı değişiklik yok.
+- **Debt:** Kök neden henüz doğrulanmadı. Yeniden başlatma veya OBS durdurma yapılmadı. Bu oturum yönetici değil; sürücü bazında DPC/ISR gecikmesini bağlamak için gerekirse takılma anında yükseltilmiş WPR/ETW kaydı gerekir. Güç/GPU/güvenlik/sürücü ayarları değiştirilmedi; kullanıcı uygulaması kapatılmadı. Önceki oyun performans ekleri yerel dalda korunuyor.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Windows genel takılma incelemesi
+
+- **Prompt:** PC genelinde de takılma var; sebebini araştır.
+- **Yapılan değişiklik:** Windows donanım/yük/güç/depolama ve sınırlı olay kaydı kontrolleri salt okunur yapıldı. WSL’de asistanın açık bıraktığı SwiftShader test tarayıcısı yaklaşık 974% süreç CPU’suyla (yaklaşık on mantıksal çekirdek eşdeğeri, Windows toplam yüzdesi değil) bulundu ve yalnız bu sahip olunan test tarayıcısı kapatıldı. Sonraki dört Windows örneği CPU %12/%27/%4/%5, yaklaşık 8,6–9 GB boş RAM; kuyruk çoğunlukla sıfır. SSD sağlık durumu Healthy, yaklaşık 176 GB boş. Bunlar tam donanım sağlık/ısı/latans testi değildir.
+- **Dosya / Açıklama:** `PROJECT_LOG.md`, `docs/devralma.md` — tanı özeti, test tarayıcısı yaşam döngüsü ve doğrulama sınırı. Ham süreç/kişisel sistem dökümü repoya eklenmedi; geçici salt okunur betikler `/tmp` altında.
+- **Debt:** Kullanıcı tarafında kapanış sonrası takılmanın geçip geçmediği henüz doğrulanmadı; tek kök neden iddia edilmez. CPU sıcaklığı/termal kısma ölçülmedi. Kullanıcı uygulaması kapatılmadı; Windows güç/GPU/sürücü ayarları değiştirilmedi.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Edge oyun performansı
+
+- **Prompt:** Windows’ta oyun genelinde takılıyor; optimizasyonu incele. Ek bilgi: Edge, RTX 5070 Laptop/32 GB; GPU raporunda aktif AMD 610M ve 240 Hz ekran.
+- **Yapılan değişiklik:** Sınırsız RAF render yerine 60 FPS sınırı; 2× tuval korunarak ek WebGL MSAA kapatma ve yüksek performans GPU tercihi; tam ekran modal blur kaldırma; tekrar eden efektlerde üç kanallı Audio havuzu eklendi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/main.js` | FPS limiti ve WebGL render tercihleri |
+| `src/style.css` | Hareketli tuval üzerinde backdrop blur maliyeti kaldırıldı |
+| `src/sesler.js` | Aynı efekt için en çok üç kanal, tekrar kullanım ve geç gelen play yanıtlarına karşı kullanım numarası |
+| `tools/ses-test.mjs` | 100 tekrar/kanal sınırı, havuz yeniden kullanımı ve susturma regresyonları |
+| `SOUNDS.md`, `docs/devralma.md`, `PROJECT_LOG.md` | Havuz ve render davranışı, test sınırları ve tanı kayıtları |
+
+- **Doğrulama:** `npm test`, normal/tek build ve diff kontrolü geçti. Kısa başsız profillerde WebGL/SwiftShader doğrulandı; gerçek Windows hız artışı iddiası yapılmaz. Efekt testinde 100 tekrar sonrası aynı efekt hâlâ üç Audio kanalıyla sınırlı. Önceki öğrenme paketi PR #14 ile merge ve Pages yayını başarılı (`1d0f58a`).
+- **Debt:** Bu performans ekleri ayrı yerel `duzeltme/edge-performans` dalında; henüz yayınlanmadı. GPU tercihi bir ipucudur; Windows seçimini zorlamaz. Windows kullanıcı testi ve GPU tercihi sonrası karşılaştırma bekleniyor. Büyük bundle ve 73 MB görsel/16 MB ses yükü borcu sürüyor; yeni asset yok.
+
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Öğrenme paketini güncel repoyla yayınlama
 

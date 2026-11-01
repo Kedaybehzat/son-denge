@@ -26,6 +26,8 @@ try {
 let aktifLoop = null;
 let bekleyen = null;
 const birDefa = new Set();
+const efektHavuzlari = new Map();
+const EFEKT_KANAL_SINIRI = 3;
 const fadeZamanlayicilari = new Map();
 const yol = (ad) => SES_YOLU + ad + '.mp3';
 
@@ -95,14 +97,31 @@ export function muzikDurdur() {
 
 export function sesCal(ad, { ses = 0.7 } = {}) {
   if (!sesAcik || !ad) return;
-  const audio = new Audio(yol(ad));
+  let havuz = efektHavuzlari.get(ad);
+  if (!havuz) { havuz = []; efektHavuzlari.set(ad, havuz); }
+  let audio = havuz.find(a => !birDefa.has(a));
+  if (!audio) {
+    // Çok hızlı tıklamalarda sınırsız Audio/decode işi açma.
+    if (havuz.length >= EFEKT_KANAL_SINIRI) return;
+    audio = new Audio(yol(ad));
+    audio.kullanim = 0;
+    audio.addEventListener('ended', () => birDefa.delete(audio));
+    audio.addEventListener('error', () => birDefa.delete(audio));
+    havuz.push(audio);
+  }
+  const kullanim = ++audio.kullanim;
+  audio.currentTime = 0;
+  audio.muted = false;
   audio.volume = efektifEfekt(ses);
   birDefa.add(audio);
-  audio.addEventListener('ended', () => birDefa.delete(audio), { once: true });
-  audio.addEventListener('error', () => birDefa.delete(audio), { once: true });
   audio.play().then(() => {
+    // Önceki kullanımın gecikmiş yanıtı yeni sesi susturmasın.
+    if (audio.kullanim !== kullanim) return;
     if (!sesAcik || !birDefa.has(audio)) sustur(audio);
-  }).catch(() => { sustur(audio); birDefa.delete(audio); });
+  }).catch(() => {
+    if (audio.kullanim !== kullanim) return;
+    sustur(audio); birDefa.delete(audio);
+  });
 }
 
 export function sesAcikMi() { return sesAcik; }
@@ -155,6 +174,7 @@ if (import.meta.hot) import.meta.hot.dispose(() => {
   muzikDurdur();
   for (const audio of birDefa) sustur(audio);
   birDefa.clear();
+  efektHavuzlari.clear();
   window.removeEventListener('pointerdown', etkilesimCozucu, { capture: true });
   window.removeEventListener('keydown', etkilesimCozucu, { capture: true });
 });

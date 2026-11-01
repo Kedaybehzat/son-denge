@@ -41,6 +41,10 @@ window.oyun = new Phaser.Game({
   width: 960 * CIZIM_OLCEGI,
   height: 540 * CIZIM_OLCEGI,
   backgroundColor: '#0a0814',
+  // 120/144/240 Hz ekranlarda gereksiz render yükü oluşturma.
+  fps: { target: 60, limit: 60 },
+  // 2× tuval netliği korur; ikinci MSAA geçişi gereksiz GPU yüküdür.
+  render: { powerPreference: 'high-performance', antialias: true, antialiasGL: false },
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   scene: [GameScene],
 });
@@ -51,6 +55,4 @@ window.addEventListener('oyun:kayitYuklendi', (e) => {
   sahne.scene.restart();
 });
 
-ui.girisHikayesi(() => ui.baslangicEkrani(() => {
-  ui.gunBasligi(state.gun, state.olay.baslik, () => ui.olayGoster(state.olay));
-}));
+ui.girisHikayesi(() => ui.baslangicEkrani(() => ui.oyunuBaslat()));
