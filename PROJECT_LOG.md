@@ -163,6 +163,17 @@ Toplam **38 görsel** üretilecek (22–25 bekleme + yürüme animasyonunu tek g
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
 
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-temizlik` → `main`
+
+- **Prompt:** Önce dosyaları düzenle; sonra push'la ve hepsini merge et.
+- **Yapılan değişiklik:** Yarıda kesilen bir push, ham yükleme dosyalarıyla (30 dosya, ~75 MB) birlikte eski commit'i göndermiş ve PR #9 onu merge etmişti. Bu commit ham dosyaları `public/assets/`'ten kaldırır (yedekleri `assets-orijinal/yeni2/`, git dışı); oyunun kullandığı dosyalar değişmez.
+
+| Dosya | Açıklama |
+|---|---|
+| `public/assets/*` (30 ham dosya) | Silindi |
+
+- **Debt:** Ham dosyalar git geçmişinde kalıyor (repo boyutu); temizlemek için geçmişi yeniden yazmak gerekir, yapılmadı.
+
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-promptu-2` → `main`
 
 - **Prompt:** Yeni yüklediğim asset'leri incele, iyi olanları kullan (önceki mesaj: PR #9 merge'ü gelen asset'lerle birlikte).
