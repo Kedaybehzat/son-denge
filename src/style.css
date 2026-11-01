@@ -86,7 +86,10 @@ body { display: grid; place-items: center; }
   container-type: inline-size;
   overflow: hidden;
   box-shadow: 0 2cqw 6cqw #000a, 0 0 0 1px #ffffff10 inset;
+  background: #000;
 }
+/* Tam ekranda browser varsayılan siyah arkaplanı 16:9 oran korunarak kalır */
+#sahne:fullscreen { max-height: 100vh; }
 
 #oyun, #oyun canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
 

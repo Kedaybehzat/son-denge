@@ -7,6 +7,21 @@ import './style.css';
 sifirla();
 ui.hudKur();
 
+// Tam ekran: F tuşuyla ya da ayarlar menüsünden çağrılır. Browser native
+// Fullscreen API — Esc ile çıkış tarayıcı tarafından halledilir.
+const sahneKok = document.getElementById('sahne');
+export function tamEkranToggle() {
+  if (!document.fullscreenElement) sahneKok?.requestFullscreen?.().catch(() => {});
+  else document.exitFullscreen?.();
+}
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'f' || e.key === 'F') {
+    e.preventDefault();
+    tamEkranToggle();
+  }
+});
+window.tamEkranToggle = tamEkranToggle;
+
 // Canvas yazıları oluşturulmadan önce yerel fontlar hazır olsun.
 await Promise.all([
   document.fonts.load('400 16px "Nunito Sans"'),
