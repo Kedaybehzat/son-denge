@@ -26,11 +26,21 @@ export const AYAR = {
   dengeEsigi: 60,          // sonlar: denge bu ve üstü = "ayakta"
   insanlikEsigi: 50,       // sonlar: insanlık bu ve üstü = "kapı açık"
   baslangicInsanlik: 50,
-  // Yorgunluk: her gece çalışırsa +1, dinlenirse -2. 3+ uyarı, 4+ ayrılma riski.
-  yorgunlukUyari: 3,       // bu puandan itibaren pano'da uyarı
-  yorgunlukAyrilmaEsigi: 4,// bu puandan itibaren ayrılma şansı
-  yorgunlukAyrilmaPay: 0.25, // şans = (yorgunluk - esik + 1) * pay
+  // Yorgunluk: her gece çalışırsa +1, dinlenirse -2. 4+ uyarı, 5+ ayrılma riski.
+  yorgunlukUyari: 4,       // bu puandan itibaren pano'da uyarı
+  yorgunlukAyrilmaEsigi: 5,// bu puandan itibaren ayrılma şansı
+  yorgunlukAyrilmaPay: 0.20, // şans = (yorgunluk - esik + 1) * pay
   ayrilmaInsanlikCezasi: 8,
+  // Uzman olmayan sakin makineyi daha az verimli kullanır (makine üretimine çarpan).
+  // Uzman '*' (her yerde) ve uzmanlık yerindeki sakin tam verim alır.
+  uzmanOlmayanVerim: 0.90,
+  // Enerji düşükken makineler kademeli olarak kapanır. Kapatma sırası:
+  // en kritik olmayan önce (geriDonusum → sera → su → enerji). Eşikler kaynak enerjisi
+  // bu değerin ALTINDAYSA listedeki makineler o gece çalışmaz; operatör dinlenmiş sayılır.
+  makineKapatmaEsikleri: [
+    { enerji: 10, kapali: ['geriDonusum', 'sera'] },
+    { enerji: 25, kapali: ['geriDonusum'] },
+  ],
   // Hafif siyaset (GDD bölüm 11): memnuniyet yalnızca sürdürülebilirlik kararlarına bağlı
   baslangicMemnuniyet: 60,
   itirazEsigi: 35,          // altında itiraz kartı çıkabilir
@@ -319,6 +329,16 @@ export const makineOperatoru = (makine) => state.sakinler.find((s) => s.gorev ==
 export const makineCalisiyorMu = (makine) => !!makineOperatoru(makine) || state.oyuncuMakineler.includes(makine);
 export const bosMakineler = () => Object.keys(MAKINELER).filter((m) => !makineCalisiyorMu(m));
 
+// Enerji seviyesine göre bu gece KAPALI olacak makinelerin listesi.
+// Eşikler artan sırada; ilk eşleşme döndürülür.
+export function kapaliMakineler(enerji = state.kaynak.enerji) {
+  for (const esik of AYAR.makineKapatmaEsikleri) {
+    if (enerji < esik.enerji) return [...esik.kapali];
+  }
+  return [];
+}
+export const makineKapali = (makine) => kapaliMakineler().includes(makine);
+
 function kosulAktif(z, gorev) {
   const k = z.kosul;
   if (!k) return false;
@@ -334,10 +354,24 @@ export function sakinCiktisi(s, kosullar = true) {
   const sonuc = { etki: { ...(z.ekTuketim || {}) }, puan: 0, eylem: 0, kosul: false };
   if (!s.gorev || s.gorev === 'bosta') return sonuc;
   let etki = {};
-  if (MAKINELER[s.gorev]) etki = { ...MAKINELER[s.gorev].uretim };
-  else if (s.gorev === 'arastirma') sonuc.puan = GOREVLER.arastirma.puan * (z.uzman === 'arastirma' ? 2 : 1);
-  // Uzmanlık yerinde (ya da '*' her yerde) kişisel katkı eklenir; keşifteyken yok
-  if (s.gorev !== 'kesif' && (z.uzman === s.gorev || z.uzman === '*')) {
+  const uzmanBurada = z.uzman === s.gorev || z.uzman === '*';
+  const makineKapaliMi = MAKINELER[s.gorev] && kapaliMakineler().includes(s.gorev);
+  if (MAKINELER[s.gorev]) {
+    if (makineKapaliMi) {
+      // Enerji yetersiz: makine çalışmaz, operatör dinleniyor sayılır
+      sonuc.kapali = true;
+    } else {
+      etki = { ...MAKINELER[s.gorev].uretim };
+      // Uzman olmayan sakin makineyi daha az verimli kullanır
+      if (!uzmanBurada) {
+        for (const ad of Object.keys(etki)) etki[ad] = Math.round(etki[ad] * AYAR.uzmanOlmayanVerim);
+      }
+    }
+  } else if (s.gorev === 'arastirma') {
+    sonuc.puan = GOREVLER.arastirma.puan * (z.uzman === 'arastirma' ? 2 : 1);
+  }
+  // Uzmanlık yerinde (ya da '*' her yerde) kişisel katkı eklenir; keşifteyken ve kapalı makinede yok
+  if (s.gorev !== 'kesif' && uzmanBurada && !makineKapaliMi) {
     etki = topla(etki, z.gunlukKatki);
     sonuc.eylem = z.eylemArtisi || 0;
   }
@@ -362,8 +396,9 @@ function sakinlerToplami(kosullar = true) {
     puan += c.puan;
     eylem += c.eylem;
   }
-  // Oyuncunun bugün kendisi çalıştığı makineler de üretir
-  for (const m of state.oyuncuMakineler) etki = topla(etki, MAKINELER[m].uretim);
+  // Oyuncunun bugün kendisi çalıştığı makineler de üretir (kapalı değilse)
+  const kapali = kapaliMakineler();
+  for (const m of state.oyuncuMakineler) if (!kapali.includes(m)) etki = topla(etki, MAKINELER[m].uretim);
   return { etki, puan, eylem };
 }
 
@@ -600,7 +635,12 @@ function sonucBelirle() {
 //  Çalışan (makine ya da laboratuvar) her gece +1, dinlenen -2 (en az 0).
 //  yorgunlukAyrilmaEsigi ve üstünde: ayrılma şansı = (y - esik + 1) * pay.
 // ---------------------------------------------------------------
-const calisiyor = (s) => !!s.gorev && s.gorev !== 'bosta';
+// Bir sakin bu gece gerçekten çalışıyor mu? Kapalı makinedeki operatör dinleniyor sayılır.
+const calisiyor = (s) => {
+  if (!s.gorev || s.gorev === 'bosta') return false;
+  if (MAKINELER[s.gorev] && kapaliMakineler().includes(s.gorev)) return false;
+  return true;
+};
 
 // Bu gecenin sonunda sakinin yorgunluğu ne olur
 export function yarinkiYorgunluk(s) {
