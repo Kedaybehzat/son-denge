@@ -7,7 +7,7 @@
     "build": "vite build",
     "build:tek": "vite build --mode tek",
     "preview": "vite preview",
-    "test": "node tools/mekanik-test.mjs && node tools/uretim-test.mjs && node tools/ilerleme-test.mjs && node tools/ses-test.mjs"
+    "test": "node tools/mekanik-test.mjs && node tools/uretim-test.mjs && node tools/ilerleme-test.mjs && node tools/ogrenme-test.mjs && node tools/ses-test.mjs"
   },
   "keywords": [],
   "author": "",

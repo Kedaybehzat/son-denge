@@ -79,21 +79,14 @@ Bu dosyayı bir yapay zeka asistanına veriyorsan, asistan şunları bilmeli:
 
 ## 3. Hikaye
 
-Oyun açılışta 4 ekranla anlatılıyor (`src/data/story.js`). "Geç" butonuyla atlanabiliyor.
+Dört açılış ekranı `src/data/story.js` içinde; Geç ile atlanır. Tarihler kurmaca gelecek senaryosudur, iklim tahmini değildir.
 
-- **2030'lar · Dünya ısınıyordu:** Her yaz bir öncekinden sıcaktı. Raporlar yazıldı, zirveler toplandı, uyarılar yapıldı. Ama fabrikalar çalışmaya, tüketim artmaya devam etti.
-- **2040'lar · Buz çözüldü:** Kuzeyde on binlerce yıldır donmuş toprak çözülmeye başladı. Buzla birlikte, insanlığın hiç karşılaşmadığı eski bir virüs de uyandı.
-- **2050'ler · Büyük Sessizlik:** Virüs birkaç yıl içinde dünya nüfusunun büyük kısmını yok etti. Şehirler boşaldı, tedarik zincirleri koptu. Hayatta kalanlara kuraklık, seller ve kıt kaynaklar kaldı.
-- **2071 · Yeşilvadi:** Hayatta kalanlar aynı hatayı bir daha yapmamaya yemin etti ve Yeşilvadi'yi kurdu: her damla suyun, her kilovatın hesabının tutulduğu küçük bir ütopya. Sığınağın bakımı artık sana emanet.
+- **2030'lar · Dünya ısınıyordu:** Sıcak dalgaları, su/enerji ihtiyacı ve yetersiz hazırlık.
+- **2040'lar · Su azaldı, yollar değişti:** Kuraklık, seller, altyapı hasarı ve yeni yuva arayan topluluklar.
+- **2050'ler · Büyük Sessizlik:** Afet/tedarik kesintileriyle boşalan yerleşimler ve susan üretim merkezleri.
+- **2071 · Yeşilvadi:** Su yeniden kullanımı, dikkatli enerji üretimi, onarım ve dayanışma üzerine kurulan topluluk; beş günlük yönetim oyuncuya emanet.
 
-**Nedensellik zinciri (sunumda vurgulanmalı):** Isınma → donmuş topraklar (permafrost) çözülüyor → içinde saklı eski bir virüs uyanıyor → "Büyük Sessizlik": nüfusun büyük kısmı yok oluyor → kaynaklar kıt, iklim felaketleri sürüyor → hayatta kalanlar Yeşilvadi'yi kuruyor.
-
-**Gerçeklik bağı:** Permafrostun çözülmesiyle eski mikropların ortaya çıkması bilimsel olarak tartışılan gerçek bir risk. 2016'da Sibirya'da çözülen topraktaki bir rengeyiği leşinden şarbon salgını çıktı. Araştırmacılar permafrosttan on binlerce yıllık virüsleri laboratuvarda yeniden canlandırdı. Bu yüzden "bilimkurgu ama dayandığı risk gerçek" denebilir.
-
-**Ton:** Karanlık ama umutlu. Virüs sadece arka plan; oyunun asıl konusu iklim ve kaynaklar. Salgın oyunu değil.
-
-**İlk gün radyo mesajı:**
-> "Günaydın Yeşilvadi. Bugün gökyüzü açık, rüzgar hafif. Merkez hatırlatıyor: Büyük Sessizlik'ten önceki dünya israf yüzünden çöktü. Kaynaklarınızı dengede tutun." Odaları gez ve panelleri tanı. Her gün sınırlı eylem hakkın var. Günü bitirmek için yatağa git. Yarından itibaren kapıya sığınacak yer arayanlar gelebilir. Kimi içeri alacağına sen karar vereceksin.
+**Anlatının odağı:** İklim baskısı → kaynak ve altyapı sorunları → uyum ve dayanışma kararları. Virüs/salgın açıklaması kaldırıldı. Eski `hikaye-2.png` donmuş toprak/hasarlı altyapı görseli olarak korunur; yeni görsel üretilmedi. Çocuklar afetler sırasında ailelerinden ayrı düşmüştür. İlk radyo mesajı hazırlık ve paylaşımı vurgular; mevcut ekranda ilk gün rehberi gösterilir.
 
 ---
 
@@ -197,7 +190,7 @@ Zararlı olaylar hazırlık mekaniğiyle ~1,6 kat sertleştirildi (eski: sıcak 
 | 🛠️ Deniz, mühendis (`muhendis`) | 1 | Kuzeydeki enerji santralinde çalışıyormuş. Santral sel altında kalınca günlerce yürüyerek yola çıkmış. | Her gün +1 eylem hakkı | +10 | −15 |
 | 🌱 Hasan ve kızı Elif (`ciftci`) | 2 | Kuraklık tarlalarını kurutmuş. Yanlarında bir avuç tohumdan başka bir şey yok. | Seraya yardım: her gece +5 gıda | +12 | −18 |
 | 🔬 Dr. Leyla (`bilim`) | 1 | Büyük Sessizlik'ten önce iklim araştırmacısıymış. Çantası hava filtresi çizimleriyle dolu. | Hava filtresi: her gece −4 karbon | +10 | −15 |
-| 🧒 Mert ve Ada (`cocuklar`) | 2 | İki kardeş. Ailelerini salgında kaybetmişler, haftalardır yalnız yürüyorlar. | Hiçbir şey getirmiyorlar. Sadece bir gelecek. | +20 | −25 |
+| 🧒 Mert ve Ada (`cocuklar`) | 2 | İki kardeş. Afetler sırasında ailelerinden ayrı düşmüşler, haftalardır yalnız yürüyorlar. | Hiçbir şey getirmiyorlar. Sadece bir gelecek. | +20 | −25 |
 | 🔧 Kemal, tamirci (`tamirci`) | 1 | Sırtında koca bir alet çantası var. Bozuk ne varsa onarabileceğini söylüyor. | Hemen +10 enerji, her gece −4 atık | +10 | −15 |
 | 🌊 Sahil kasabasından bir aile (`kafile`) | 4 | Yükselen deniz evlerini yutmuş. Dört kişiler, çok yorgunlar ama çalışmaya hazırlar. | Her gece +3 gıda, +3 su | +15 | −22 |
 
@@ -214,25 +207,29 @@ Zararlı olaylar hazırlık mekaniğiyle ~1,6 kat sertleştirildi (eski: sıcak 
 Son ekranında denge, insanlık, nüfus, geri çevrilen kişi sayısı, memnuniyet ile bir bilgi kartı gösterilir.
 
 ### 4.9 "Biliyor muydun?" kartları
-Her gece bir kart gösterilir. Öncelik sırası: o gün yapılan **kirli** seçim → o gün yapılan diğer seçimler (kapı kararı dahil) → genel bilgiler. Bir oyunda aynı kart iki kez çıkmaz. **Sunumdan önce rakamları kaynaklarından tekrar kontrol edin.**
 
-| Anahtar | Bilgi | Kaynak |
+Gece seçimlerine bağlı kartlar; genel havuz `permafrost`, `uyum`, `gidaisraf`. Tıklanabilir birincil kaynak ve 1 Kasım 2026 doğrulama tarihi `src/data/facts.js` içinde. Kapsam/düzeltme notları `docs/bilgi-kaynaklari.md`. Oyun puanları gerçek ölçüm değildir.
+
+| Anahtar | Güncel bilgi | Kaynak |
 |---|---|---|
-| `fosil` | Kömür, petrol ve doğalgaz gibi fosil yakıtlar, küresel sera gazı salımlarının dörtte üçünden fazlasından ve karbondioksit salımlarının yaklaşık %90'ından sorumlu. | Birleşmiş Milletler |
-| `gunes` | Güneş panellerinin üzerindeki toz ve kir verimi belirgin şekilde düşürür. Çölleşen ve tozlu bölgelerde düzenli temizlik bu yüzden kritik. | Genel bilgi |
-| `ruzgar` | Rüzgar ve güneş santralleri çalışırken neredeyse hiç sera gazı salmaz. Ömürleri boyunca saldıkları gazın büyük kısmı üretim ve kurulum aşamasından gelir. | IPCC |
-| `tatlisu` | Dünyadaki suyun yalnızca yaklaşık %2,5'i tatlı su ve bunun da büyük kısmı buzullarda ve yer altında. Bugün 2 milyardan fazla insan güvenli içme suyuna erişemiyor. | USGS, DSÖ / UNICEF |
-| `suenerji` | Suyu arıtmak, pompalamak ve taşımak ciddi miktarda enerji gerektirir. Su tasarrufu, aynı zamanda enerji tasarrufu demektir. | Uluslararası Enerji Ajansı |
-| `sulama` | Dünyada çekilen tatlı suyun yaklaşık %70'i tarımda kullanılıyor. Damla sulama gibi yöntemler aynı hasadı çok daha az suyla sağlayabilir. | FAO |
-| `metan` | Çöp sahalarında çürüyen organik atık metan üretir. Metan, 20 yıllık sürede karbondioksitten yaklaşık 80 kat daha güçlü bir sera gazıdır. Kompost bu salımı büyük ölçüde önler. | IPCC, UNEP |
-| `agac` | Bir ağacın tuttuğu karbon yıllar içinde artar. Yeni dikilen fidanlar ilk yıllarda az karbon tutar; bu yüzden mevcut ormanları korumak, yenilerini dikmek kadar önemlidir. | FAO |
-| `plastik` | Dünyada üretilen plastik atığın yalnızca yaklaşık %9'u geri dönüştürülüyor. Geri kalanı çöp sahalarına, yakma tesislerine ya da doğaya gidiyor. | OECD |
-| `hiyerarsi` | Sıfır atık yaklaşımında sıra şöyledir: önce azalt, sonra yeniden kullan ve onar, en son geri dönüştür. Onarılan bir eşya, yeniden üretilen bir eşyadan çok daha az kaynak harcar. | Sıfır Atık yaklaşımı |
-| `yakma` | Atık yakmak bir miktar enerji üretse de karbondioksit ve hava kirliliğine yol açar. Atık hiyerarşisinde yakma, azaltma ve geri dönüşümden sonra gelir. | UNEP |
-| `goc` | Dünya Bankası'na göre önlem alınmazsa 2050'ye kadar 216 milyon insan iklim değişikliği yüzünden kendi ülkesi içinde göç etmek zorunda kalabilir. | Dünya Bankası, Groundswell raporu |
-| `permafrost` (genel) | Kuzey yarımküredeki donmuş topraklar (permafrost), atmosferdekinin yaklaşık iki katı kadar karbon tutuyor. Çözüldükçe bu karbon salınmaya başlıyor. | NASA, IPCC |
-| `sibirya` (genel) | 2016'da Sibirya'da sıcak hava dalgası permafrostu çözünce, onlarca yıl önce ölmüş bir rengeyiğinden şarbon bakterisi yayıldı ve bir salgına yol açtı. | Yamal 2016 salgını haberleri (BBC, Reuters) |
-| `gidaisraf` (genel) | Dünyada üretilen gıdanın yaklaşık üçte biri kayboluyor ya da israf ediliyor. Gıda israfı, küresel sera gazı salımlarının yaklaşık %8–10'undan sorumlu. | FAO, UNEP |
+| `erkenuyari` | WMO’ya göre fırtına veya sıcak hava dalgasından 24 saat önce uyarı verilmesi olası zararı yaklaşık %30 azaltabilir. Bu, her olayda aynı sonuç alınacağı anlamına gelmez. | [WMO · Weather forecasts and early warnings (2025)](https://public.wmo.int/site/science-action/weather-forecasts-and-early-warnings) |
+| `batarya` | Güneş ve rüzgârın üretimi değişkendir. Bataryalar elektrik üretimi ile ihtiyaç arasındaki zaman farkını yönetmeye ve kısa süreli enerji güvenliğine katkı sağlar. | [IEA · Batteries and Secure Energy Transitions (2024)](https://www.iea.org/reports/batteries-and-secure-energy-transitions/executive-summary) |
+| `grisu` | Duş ve lavabo gibi kaynaklardan gelen gri su, uygun arıtmayla tuvalet rezervuarı ve sulama gibi içme suyu gerektirmeyen işlerde kullanılabilir. Kullanım amacına uygun arıtma gerekir. | [US EPA · Onsite Non-Potable Water Reuse Resources](https://www.epa.gov/waterreuse/onsite-non-potable-water-reuse-resources) |
+| `fosil` | BM’nin iklim açıklamasına göre fosil yakıtlar, küresel sera gazı salımlarının %75’inden fazlasıyla ve karbondioksit salımlarının yaklaşık %90’ıyla ilişkilidir. | [Birleşmiş Milletler · Causes and Effects of Climate Change (2022)](https://www.un.org/en/climatechange/causes-and-effects-climate-change) |
+| `gunes` | Güneş panelinde biriken toz ve kir, hücrelere ulaşan ışığı azaltabilir. Kaybın büyüklüğü birikime ve yerel koşullara bağlıdır; uygun temizlik ve bakım önemlidir. | [Sandia National Laboratories · PV Performance Modeling Collaborative](https://pvpmc.sandia.gov/modeling-guide/1-weather-design-inputs/shading-soiling-and-reflection-losses/soiling-losses/) |
+| `ruzgar` | Rüzgâr ve güneş gibi yenilenebilir kaynaklar, elektrik üretimi sırasında çok az sera gazı salar veya hiç salmaz. Enerji kaynağı seçimi iklim kararlarının bir parçasıdır. | [Birleşmiş Milletler · Renewable energy](https://www.un.org/en/climatechange/raising-ambition/renewable-energy) |
+| `tatlisu` | Dünya suyunun yaklaşık %2,5’i tatlı sudur. Bunun büyük bölümü buzullarda veya yer altında bulunur; göl ve nehirlerdeki payı küçüktür. | [NOAA · The water cycle](https://www.noaa.gov/education/resource-collections/freshwater/water-cycle) |
+| `suenerji` | Suyu çıkarmak, pompalamak, arıtmak ve kullanıcılara ulaştırmak enerji gerektirir. Su ve enerji güvenliği bu yüzden birlikte düşünülmelidir. | [IEA · Energy and Water](https://www.iea.org/topics/energy-and-water) |
+| `sulama` | FAO’ya göre tarım, küresel tatlı su çekimlerinin yaklaşık %72’sini oluşturur; başlıca etken sulamadır. Gıda üretiminde suyu dikkatli yönetmek önemlidir. | [FAO · Agricultural water management](https://www.fao.org/land-water/water/agricultural-water-management/water-scarcity/) |
+| `metan` | Organik atıklar çöp sahasında oksijensiz ayrışırken metan oluşabilir. Uygun kompostlama, bu atıkları toprağı destekleyen bir malzemeye çevirerek çöp sahalarından gelen metanı azaltabilir. | [US EPA · Composting](https://www.epa.gov/sustainable-management-food/composting) |
+| `agac` | Ağaçların karbon tutması türüne, yaşına ve yetişme koşullarına bağlıdır. Genç ormanlar büyürken karbon biriktirir; yaşlı ormanlarda ise daha büyük bir karbon stoğu bulunabilir. Bu süreç yıllara yayılır. | [USDA Climate Hubs · Understanding Northwest Forest Carbon](https://www.climatehubs.usda.gov/hubs/northwest/topic/understanding-northwest-forest-carbon) |
+| `plastik` | OECD’nin 2019 küresel plastik atık verilerine göre yalnızca %9’u geri dönüştürüldü. Bu oran tüm atık türlerini veya bugünün her ülkesini temsil etmez. | [OECD · Global Plastics Outlook (2022), 2019 verileri](https://www.oecd.org/en/publications/global-plastics-outlook_de747aef-en/full-report/component-6.html) |
+| `hiyerarsi` | Atık yönetiminde öncelik, atığın oluşmasını azaltmak ve eşyaları yeniden kullanmaktır. Geri dönüşüm ve kompostlama bunları izler; her malzeme aynı biçimde yönetilemez. | [US EPA · Materials and Waste Management Hierarchy](https://www.epa.gov/smm/sustainable-materials-management-non-hazardous-materials-and-waste-management-hierarchy) |
+| `yakma` | Atıktan enerji elde etmek, atık hiyerarşisinde azaltma, yeniden kullanım ve geri dönüşümün arkasında yer alır. Enerji geri kazanımı, atık oluşumunu önlemenin yerine geçmez. | [US EPA · Energy Recovery from Combustion of MSW](https://www.epa.gov/smm/energy-recovery-combustion-municipal-solid-waste-msw) |
+| `goc` | Dünya Bankası’nın 2021 Groundswell çalışması, olumsuz senaryoda altı bölgede 2050’ye kadar 216 milyon kişinin ülke içinde iklim nedeniyle göç edebileceğini öngörüyor. Bu kaçınılmaz bir sonuç değil; iklim ve kalkınma eylemleri riski azaltabilir. | [Dünya Bankası · Groundswell (2021)](https://www.worldbank.org/en/news/press-release/2021/09/13/climate-change-could-force-216-million-people-to-migrate-within-their-own-countries-by-2050) |
+| `permafrost` | Kuzeydeki donmuş topraklar büyük miktarda karbon depolar. Çözülme, bu karbonun karbondioksit ve metan gibi sera gazlarıyla atmosfere geçmesine yol açabilir. | [NASA · Thawing Permafrost (2024)](https://www.nasa.gov/earth/nasa-helps-find-thawing-permafrost-adds-to-near-term-global-warming/) |
+| `uyum` | Erken uyarı, yaklaşan tehlikeyi öğrenmenin yanında harekete geçmeyi de gerektirir. Hazırlık ve dayanıklı altyapı, toplulukların hava ve iklim tehlikelerine karşı korunmasına yardımcı olur. | [WMO · Weather forecasts and early warnings](https://public.wmo.int/site/science-action/weather-forecasts-and-early-warnings) |
+| `gidaisraf` | UNEP’in 2024 raporuna göre gıda kaybı ve israfı, küresel sera gazı salımlarının yaklaşık %8–10’uyla ilişkilidir. Gereksiz gıda kaybını önlemek, üretim için harcanan kaynakları da korur. | [UNEP · Food Waste Index Report 2024](https://wedocs.unep.org/bitstream/handle/20.500.11822/45275/Food-Waste-Index-2024-key-messages.pdf) |
 
 ### 4.10 Ütopya ↔ distopya görsel dönüşümü
 Denge düştükçe dünya kodla değişiyor:
@@ -834,7 +831,7 @@ Tüm nesne/karakterler **ölçek dizisi** yöntemiyle üretilir: aynı kategorid
 ## 9. Sözlük
 
 - **Yeşilvadi:** Büyük Sessizlik'ten sonra kurulan ütopya sığınağı. Oyunun geçtiği yer.
-- **Büyük Sessizlik:** Eriyen buzullardan çıkan virüsün nüfusun büyük kısmını yok ettiği dönem (2050'ler).
+- **Büyük Sessizlik:** Kurmaca gelecekte afet ve tedarik kesintileriyle üretim merkezlerinin sustuğu, yerleşimlerin boşaldığı dönem (2050'ler).
 - **Denge:** 0–100 arası ütopya/distopya göstergesi. Kaynakların ağırlıklı ortalaması.
 - **İnsanlık:** Oyuncuya gizli 0–100 puan. Kapı kararlarına göre değişir, sonu belirler.
 - **Eylem hakkı:** Günlük panel işlemi sayısı (3, mühendis içeri alınırsa 4).
@@ -848,3 +845,7 @@ Aşamalı keşif ve pompa planı → yağmur suyu araştırması → depo; dinle
 ### 4.22 Sahne modülleri (1 Kasım 2026)
 
 GameScene 362 satırdır; çizim/doku/animasyon/NPC/efekt yöntemleri `src/scenes/game/` altına taşındı. Güncel yöntem sahipleri PROJECT_LOG Project Map'te, bağlam/ömür sözleşmesi `docs/devralma.md` → GameScene modülleri bölümünde. Sahne dışı yöntem düzenlemek için önce bu haritayı kullanın. Yöntemler GameScene prototype'ına eklenir, `this` Phaser sahnesidir; modüller ana sahneyi import etmez. Doku önbelleği restart boyunca korunur. Yeni asset veya mekanik sayı değişikliği yoktur.
+
+### 4.23 Seçimlerin öğrenme geri bildirimi (1 Kasım 2026)
+
+`state.kararGecmisi` başarılı panel eylemlerinin gerçek kaynak/malzeme değişimini, seçilen kartın kendi sonuç metnini, hazırlığı ve gece gerçekten çalışan makinelerin son üretim modunu saklar. İnceleme kayıtları yalnız ilk gün rehberine hizmet eder. `src/ogrenme.js` bir gece/son özeti için en çok üç kayıt seçer. Önizleme, başarısız işlem veya vazgeçilen üretim modu gerçekleşmiş tercih sayılmaz. Eski kayıtta geçmiş yoksa boş başlar; geçmiş uydurulmaz. Gece raporundaki seçim anı değişimleri gece tüketimine tekrar eklenmez. Son ekranda oyun puanı/zaman ölçeği açıklanır. `tools/ogrenme-test.mjs`, `npm test` içindedir. Bu özellik öğrenme fırsatı sağlar; öğrenme kazanımının oyuncularla ölçüldüğü iddia edilmez.

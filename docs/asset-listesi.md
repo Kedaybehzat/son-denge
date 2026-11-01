@@ -15,7 +15,7 @@
 | 7 | `manzara-kotu.png` | Aynı panorama, kirli | 2172×724 | — | ✅ |  |
 | 8 | `cati.png` | Çatı şeridi, güneş panelleri | 3200×1024, şeffaf | — | ✅ |  |
 | 9 | `hikaye-1.png` | Hikaye ekranı: Dünya ısınıyordu | 3:2 yatay | — | ✅ | İlk setten; istenirse yeni stilde yenilenir |
-| 10 | `hikaye-2.png` | Hikaye ekranı: Buz çözüldü | 3:2 yatay | — | ✅ | İlk setten; istenirse yeni stilde yenilenir |
+| 10 | `hikaye-2.png` | Hikaye ekranı: Su azaldı, yollar değişti (mevcut altyapı görseli) | 3:2 yatay | — | ✅ | İlk setten; istenirse yeni stilde yenilenir |
 | 11 | `hikaye-3.png` | Hikaye ekranı: Büyük Sessizlik | 3:2 yatay | — | ✅ | İlk setten; istenirse yeni stilde yenilenir |
 | 12 | `hikaye-4.png` | Hikaye ekranı: Yeşilvadi | 3:2 yatay | — | ✅ | İlk setten; istenirse yeni stilde yenilenir |
 | 13 | `kapak.png` | Sunum kapağı | 3:2 yatay | — | ✅ | İlk setten |

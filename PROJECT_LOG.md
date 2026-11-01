@@ -21,6 +21,8 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | `game/sakinler.js` | `sakinGuncelle`, `sakinIdleBaslat`, `sakinTasi`, `sakinAnimGuncelle`, `sakinNoktayaGit`, `sakinIsBaslat`, `sakinRutinDurdur`, `npcNoktalariGoster` |
 | `game/efektler.js` | `gorselGuncelle`, `gorselUygula`, `renkGecis`, `etiketZeminiCiz`, `efektZiyaretci` |
 | Sahne sabitleri / doku ömrü | `game/ayarlar.js`: hız/ölçek/koordinat; `game/dokuOnbellegi.js`: restart boyunca yaşayan doku kümeleri ve içerik ölçümü |
+| Öğrenme geri bildirimi / ilk gün rehberi | `src/ogrenme.js`; `state.js` → `kararGecmisi`, `kararKaydet`, `panelIncelendi`; `ui.js` → `secimDersleriHtml`, `ilkGunRehberiHtml`, `ilkGunRehberiBagla`; `tools/ogrenme-test.mjs` |
+| Bilgi kaynağı doğrulaması | `src/data/facts.js` → `url`, `dogrulama`; `docs/bilgi-kaynaklari.md`; `ui.js` → `bilgiHtml` |
 | Denge sayıları, başlangıç değerleri, eşikler | `src/state.js` → `AYAR`, `BASLANGIC`, `AGIRLIK` |
 | Gece tüketimi, gün sonu, sonların belirlenmesi | `src/state.js` → `nufusTuketimi()`, `gunuBitir()`, `sonucBelirle()` |
 | Gece tahmini, ziyaretçinin net gece etkisi | `src/state.js` → `geceHesapla()` (tek gece hesabı), `geceTahmini()`, `ziyaretciNetEtki()` |
@@ -122,6 +124,9 @@ src/data/production.js    Çalışma modları, ek tüketim ve bakım ayarları
 src/data/dialogues.js     Sakin konuşma metinleri ve seçenekleri
 src/data/scenario.js      İsteğe bağlı topluluk hedefleri
 src/kayit.js              Sürümlü gün başı localStorage kaydı
+src/ogrenme.js            Gerçek seçimlerden gece/son öğrenme açıklamaları
+tools/ogrenme-test.mjs    Karar geçmişi, uyumluluk, kaynak regresyonları
+docs/bilgi-kaynaklari.md  Birincil kaynak doğrulaması ve kapsam notları
 tools/ilerleme-test.mjs   Keşif/plan/söz/hava/hedef/kayıt regresyonları
 docs/hackathon-uyum-analizi.md  İki slayta göre tema ve kriter kanıtları
 src/data/activities.js    Oda görsellerinden işaretlenen 25 NPC çalışma hedefi
@@ -156,7 +161,6 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | # | Borç | Yer | Eklenme |
 |---|---|---|---|
 | D2 | Temel mekanik regresyonları `npm test` ile mevcut; tüm oyun kuralları ve görsel akışlar henüz kalıcı otomatik testlerle kapsanmıyor | `tools/simulasyon.mjs` | 2026-10-31 |
-| D3 | "Biliyor muydun?" rakamları kaynaklarından kontrol edilmedi (kaynak etiketleri 2026-11-01'de 1. el'e çekildi; sayıların doğruluğu hâlâ sunum öncesi doğrulanmalı) | `src/data/facts.js` | 2026-10-31 |
 | D6 | Simülasyon artık görev atama + araştırma seçimini kullanıyor; akıllı stilde ortalama 1.66 araştırma açılıyor. Güncel tam oyun insan playtesti eksik; tarayıcıda yönetim/inşaat/keşif akışları doğrulandı | `tools/simulasyon.mjs` | 2026-10-31 |
 | D10 | Tarihsel simülasyon bulgusu (güncel kodda ayrılma eşiği 5 ve pay %20; aşağıdaki eski oranlar yeniden ölçülmeli): Yorgunluk ayarlarıyla dinlendirme stratejisi kötü: herkes 0'dan başlayıp 4. gece aynı anda riske giriyor; riskteki herkesi dinlendiren akıllı stil iyi sonu %82 → %20 düşürüyor. Öneri: kurucuları farklı yorgunlukla başlatmak ya da dinlenmeyi −3 / eşiği 5 yapmak (karar bekliyor) | `AYAR.yorgunluk*`, `KURUCULAR` | 2026-11-01 |
 | D12 | Tarihsel denge bulgusu (güncel 36.000 oyunluk sonuçlar CLAUDE.md 4.11'de; aşağıdaki eski karşılaştırma yeniden ölçülmeli): Hazırlıklı olaylarla zararlı olaylar ~1,6 kat sertleştirildi (hazırlık bir eylem değerinde olsun diye). Toplam zorluk arttı: akıllı+herkesi al iyi son %83 → %61 (hazırlanarak; hazırlıksız %62). 1,3 katta hazırlık bazen kötü seçim çıkıyordu. Dengeleme D10 ile birlikte yapılmalı | `events.js`, `AYAR` | 2026-11-01 |
@@ -183,7 +187,7 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | 7 | `manzara-kotu.png` | Aynı panorama, kirli | 2172×724 | — | ✅ |  |
 | 8 | `cati.png` | Çatı şeridi, güneş panelleri | 3200×1024, şeffaf | — | ✅ |  |
 | 9 | `hikaye-1.png` | Hikaye ekranı: Dünya ısınıyordu | 3:2 yatay | — | ✅ | İlk setten; istenirse yeni stilde yenilenir |
-| 10 | `hikaye-2.png` | Hikaye ekranı: Buz çözüldü | 3:2 yatay | — | ✅ | İlk setten; istenirse yeni stilde yenilenir |
+| 10 | `hikaye-2.png` | Hikaye ekranı: Su azaldı, yollar değişti (mevcut altyapı görseli) | 3:2 yatay | — | ✅ | İlk setten; istenirse yeni stilde yenilenir |
 | 11 | `hikaye-3.png` | Hikaye ekranı: Büyük Sessizlik | 3:2 yatay | — | ✅ | İlk setten; istenirse yeni stilde yenilenir |
 | 12 | `hikaye-4.png` | Hikaye ekranı: Yeşilvadi | 3:2 yatay | — | ✅ | İlk setten; istenirse yeni stilde yenilenir |
 | 13 | `kapak.png` | Sunum kapağı | 3:2 yatay | — | ✅ | İlk setten |
@@ -273,6 +277,47 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Öğrenme paketini güncel repoyla yayınlama
+
+- **Prompt:** Son değişiklikleri push ve merge et; önce güncel repoyu kontrol et.
+- **Yapılan değişiklik:** Uzak repo ve açık PR'lar kontrol edildi. `main`, yerelden iki commit ileride: `a056a6d` ses efekti entegrasyonu, `390a8bd` on MP3 ve gitignore düzeltmesi. Açık PR yok; bu değişiklikler korunarak öğrenme paketi ayrı dalda güncel main ile birleştirilecek.
+- **Dosya / Açıklama:** Öğrenme paketinin kapsamı önceki kayıtta; `PROJECT_LOG.md` — repo kontrolü ve yayın talimatı.
+- **Doğrulama:** Önceki yerel test/build/tarayıcı sonuçlarına ek olarak güncel main ile birleşmiş sürüm yeniden doğrulanacak; merge için GitHub CI beklenecek.
+- **Debt:** Bu kaydın commit anında PR ve yayın henüz tamamlanmadı; kesin sonuç GitHub PR/Actions ve kullanıcıya son yanıtta verilir. Yeni ses efektlerinin dokümantasyonu ayrıca bu entegrasyonda kontrol edilir.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · İklim odağı ve öğrenme adımları
+
+- **Prompt:** Açılışı virüsten çıkar; diğer önerileri adım adım uygula.
+- **Durum:** Açılış, geri bildirim, son özeti, ilk gün rehberi ve kaynak doğrulaması uygulandı; yerel test, derleme ve tarayıcı doğrulaması tamamlandı.
+- **Yapılan değişiklik:** Kurmaca iklim/uyum/dayanışma açılışı; gerçek kararlardan neden-sonuç ve kişisel son özeti; mevcut panellerde ilk gün yönlendirmesi; birincil kaynak/tarih ve kapsamı düzeltilmiş bilgi kartları.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/story.js`, `events.js`, `visitors.js` | Virüs/salgın odağı çıkarıldı, radyo ve çocukların anlatımı iklim odağıyla eşleşti |
+| `src/state.js`, `src/kayit.js` | Gerçek seçim geçmişi, kapasite sonrası farklar, eski kayıtlarla uyum |
+| `src/ogrenme.js`, `src/ui/ui.js`, `src/style.css` | Gece/son açıklamaları, ilk gün rehberi ve salt okunur tahmin, tıklanabilir kaynaklar |
+| `src/data/facts.js`, `docs/bilgi-kaynaklari.md` | 18 bilgi kartı birincil kaynaklarla eşleştirildi; tarihsiz/bağlamsız oranlar daraltıldı, salgın kartı yerine uyum |
+| `tools/ogrenme-test.mjs`, `package.json` | Karar/kart ayrımı, kapasite/başarısızlık, mod geri alma ve kayıt testleri |
+| `AGENTS.md`, `CLAUDE.md`, `docs/devralma.md`, `docs/asset-listesi.md`, `docs/asset-rehberi.pdf`, `docs/hackathon-uyum-analizi.md`, `PROJECT_LOG.md` | Hikâye, kaynaklar, veri ömrü, harita ve mevcut asset açıklaması |
+
+- **Doğrulama:** npm test ve normal/tek build geçti. Chromium: açılış, radyo→panel→salt okunur tahmin, gün/eylem değişmemesi, gerçek +5 enerji/+18 karbon eylem farkıyla gece açıklaması, kaynak linki ve kişisel son özeti doğrulandı; 1440×900 ve 900×600 rehber yatay taşma yok, JS exception yok. Asset PDF 17 sayfa olarak yenilendi. Bilimsel kaynaklar WMO, IEA, BM, NOAA, FAO, EPA, OECD, NASA, USDA ve Dünya Bankası'nın birincil sayfalarından kontrol edildi (adresler kaynak belgesinde).
+- **Debt:** Kapandı: D3 (bilgi kartı sayıları/kapsamları birincil kaynakla eşleştirildi). İnsanlarla öğrenme testi yapılmadı. Eski kayıtlarda olmayan seçimler yeniden kurulmaz. Yeni PNG/animasyon yok; mevcut ekranların içeriği genişletildi. Otomatik simülasyon dengesini değiştiren sayı yok.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Yayın sonrası gamejam analizine dönüş
+
+- **Prompt:** Analiz kısmına yeniden dönelim.
+- **Yapılan değişiklik:** Mevcut analiz; giriş hikâyesi, bilgi kartı ve son ekranı koduyla karşılaştırıldı. Tema odağı, karar-sonuç açıklaması ve kişisel öğrenme özeti önceliklendirildi; yeni mekanik uygulanmadı. PR #12/#13 ve başarılı Pages yayını analizde güncellendi; resmî GameUP bağlamı tekrar kontrol edildi.
+
+| Dosya | Açıklama |
+|---|---|
+| `docs/hackathon-uyum-analizi.md` | Yayın sonrası durum, beş öncelik, mevcut veri toplama sınırları ve sunum cümlesi |
+| `PROJECT_LOG.md` | Bu istek için ayrı değerlendirme kaydı |
+
+- **Debt:** Önerilen hikâye/geri bildirim/öğrenme özeti henüz uygulanmadı. Bilgi kartlarının bilimsel rakam doğrulaması ve öğrenme testi bu turda yapılmadı. Kişisel son özet için gerçek eylem geçmişi eklenmeli; bilgi kartı geçmişinden eylem sayısı türetilmemeli. Kod değişmedi, test gerektiren mekanik değişikliği yok.
+
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · PR #12 incelemesi ve çakışma çözümü
 

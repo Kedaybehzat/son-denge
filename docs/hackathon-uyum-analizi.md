@@ -5,7 +5,7 @@
 ## Zorunlu çerçeve
 
 - **İklim değişikliğine odaklanma:** Kararlar enerji, su, gıda, atık ve karbonu etkiliyor. Hava, üretim ve hazırlıkla etkileşiyor. Tema oynanışın parçası; yalnız dekor değil.
-- **Demo aşaması:** Yerel sürümde beş günlük oynanabilir döngü, kararlar ve sonlar var. Normal ve tek HTML build üretildi. Bu, son yerel değişikliklerin yayınlandığı veya teslim edildiği anlamına gelmez.
+- **Demo aşaması:** Yerel sürümde beş günlük oynanabilir döngü, kararlar ve sonlar var. Normal ve tek HTML build üretildi. PR #13 ve #12 main’e merge edildi; `070c7cc` için GitHub Pages yayını başarılı. Bu, organizasyon formunun teslim edildiği anlamına gelmez.
 - **Teslim:** Slaytta 1 Kasım Pazar 23.59, WhatsApp formundan oyun sunumu yazıyor. Form teslimi ve sunum bu çalışma kapsamında yapılmadı; ekip kontrol etmeli. Depodaki sunum şablonu/katılım oranı bilgileri bu iki slaytta görünmüyor; organizasyon mesajından ayrıca doğrulanmalı.
 
 ## Odak alanlarının oyundaki karşılığı
@@ -35,13 +35,13 @@ En açık odak: kaynak tüketimi, döngüsel kullanım, gıda/su güvenliği ve 
 | Etkili iletişim | Türkçe açıklamalar, tahmin ve gece raporları | Yeni oyuncu ekran kalabalığında ana ikilemi bulabiliyor mu? Kısa gözlem testi gerekir |
 | Oyun tasarımı | Üretim → tüketim → aşınma/bakım; keşif → plan → araştırma → inşaat döngüleri | Sunumda bu döngülerin öğrettiği iklim ilişkisi açıklanmalı |
 | Oynanabilirlik | Tarayıcıda karar, diyalog, inşaat, kayıt/devam akışları doğrulandı | İlk kez oynayanın öğreticisiz deneyimi ve teslim cihazında tam oyun testi |
-| Teknik işlevsellik | Mekanik/üretim/ilerleme/ses testleri, iki build ve tarayıcı testi geçti | Yayın URL'sinde güncel sürüm, farklı tarayıcı ve ses/tam ekran son kontrolü |
+| Teknik işlevsellik | Mekanik/üretim/ilerleme/ses testleri, iki build ve tarayıcı testi geçti | Güncel sürüm Pages’e yayınlandı; farklı tarayıcı ve teslim cihazında son kontrol gerekli |
 
 ## Eğitim anlatımında kritik ayrım
 
 Oyuncunun kaynağı artırması tek başına iklimi öğrendiğini göstermez. Savunulabilir üç hedef: (1) kısa vadeli kirli üretimin karbon bedelini açıklayabilmek, (2) kuraklık/sıcaklığa karşı su ve üretim kararını gerekçelendirmek, (3) onarım ve yeniden kullanımın yeni kaynak ihtiyacını azaltmasını fark etmek. İki farklı kararı aynı durumdan gösterip sonuçlarını karşılaştırmak, yalnız bilgi kartı okumaktan daha net kanıt sunar. Birkaç yeni oyuncuya oyun öncesi/sonrası kısa soru sorulabilir; henüz yapılmış gibi raporlanmamalı.
 
-2071 ve Büyük Sessizlik kurmaca bağlamdır. Özellikle donmuş topraktan patojen anlatısı bir iklim tahmini veya kesinleşmiş nedensellik diye sunulmamalı. Karbon puanı ve hava çarpanları pedagojik oyun değerleridir; bilimsel ölçüm değildir. Yeni hava etkileri radyo olayının genel zararından ayrı, çalışan makineye uygulanır; arayüz bunu gösterir.
+2071 ve Büyük Sessizlik kurmaca bağlamdır. Önceki donmuş toprak/patojen anlatısı kullanıcı onayıyla açılıştan çıkarıldı; yeni senaryo da gerçek bir gelecek tahmini diye sunulmamalı. Karbon puanı ve hava çarpanları pedagojik oyun değerleridir; bilimsel ölçüm değildir. Yeni hava etkileri radyo olayının genel zararından ayrı, çalışan makineye uygulanır; arayüz bunu gösterir.
 
 ## Sunuma önerilen kısa akış
 
@@ -52,3 +52,23 @@ Oyuncunun kaynağı artırması tek başına iklimi öğrendiğini göstermez. S
 5. Öğrenme hedefi ve basitleştirmenin sınırı; ekip rolleri ve çalışan demo bağlantısı.
 
 **Yargı:** İklim odaklı oynanabilir prototip çerçevesine içerik açısından güçlü bir uyum var. En büyük açık yeni mekanik eksikliği değil; eğitim kazanımını, takım sürecini ve teslim/sunum kanıtını görünür kılmak. Bu değerlendirme resmî uygunluk onayı değildir.
+
+## Yayın sonrası önceliklendirme — 1 Kasım 2026
+
+Bu bölümdeki beş öneri daha sonra kullanıcı onayıyla uygulandı; aşağıdaki gerekçeler tasarım kararını açıklar. Güncel uygulama durumu belgenin sonundadır. Değerlendirme, kullanıcı slaytlarındaki odak tema/eğitim/etkili iletişim kriterlerini mevcut kodla karşılaştırır; jüri puanı tahmini değildir.
+
+1. **Açılıştaki ana nedeni görünür kıl:** `story.js` girişinde dört ekranın ikisi virüs ve nüfus kaybına ayrılıyor. Bu, oyuncunun oyunu salgın sonrası hayatta kalma olarak yorumlaması riskini doğuruyor. Kuraklık, aşırı hava olayları, su/gıda baskısı ve dayanışmayı girişin merkezine almak; virüsü koruyacaksak kısa kurmaca arka planına çekmek tema odağını güçlendirir. Bu bir anlatım değerlendirmesidir, patojenler hakkında yeni bilimsel iddia değildir.
+2. **Karar → sonuç → iklim ilişkisi:** Gece raporuna gerçekten yapılan bir seçimden kısa açıklama eklenmesi önerilir. Örneğin jeneratör enerji açığını kapattı ama karbon puanını artırdı; panel bakımı daha az hızlı enerji sağladı. Ham toplamlar, tek başına hangi seçimin hangi bedeli yarattığını öğretmeyebilir. Bilgi kartlarıyla bağlantı kurulmalı; varsayımsal alternatif sonuç hesaplanmamışsa gerçek ölçüm gibi yazılmamalı.
+3. **Son ekranında kişisel öğrenme özeti:** Şu an son ekranı toplam istatistik + bir bilgi kartı gösteriyor. Kayıtlı gerçek kararlardan üretilecek 2–3 gözlem önerilir: kirli enerji kullanımı, geri kazanım, hazırlık/uyum tercihi. Önce eylem geçmişi tutulması gerekir; `bugunBilgi` her gün sıfırlanır, `gosterilenBilgiler` ise eylem sayacı değildir. Tarihsel veriden yapılmamış eylem uydurulmamalı.
+4. **İlk gün için kısa yönlendirme:** Bir makineyi incele, gece tahminine bak, bir tercih yap, sonucunu gör. Yeni modal/panel sayısını artırmadan mevcut akışı işaretlemek, altı yönetim paneli arasında amaç kaybını azaltabilir.
+5. **Bilgi kartlarının kaynak doğrulaması:** Mevcut kurum isimleri tıklanabilir kaynakça değildir. Birincil sayfa/rapor, kapsam ve tarih doğrulaması yapılmalı; doğrulanmadan sayısal iddialar sunumda kanıt diye kullanılmamalı. Bu turda bilimsel rakamların doğrulaması yapılmadı.
+
+İlk üç adım önceliklidir. Hedeflenen öğrenme: kısa vadeli üretimin çevresel bedelini, iklim etkilerine hazırlanmanın değerini ve yeniden kullanımın kaynak baskısını nasıl azalttığını oyuncunun kendi kararıyla açıklayabilmesi. Bu hedef henüz kullanıcı testiyle doğrulanmadı.
+
+Sunumun tek cümlesi için öneri: “Son Denge, iklim baskısı altındaki bir toplulukta enerji, su ve gıdayı yönetirken sürdürülebilirlik ile dayanışmanın birlikte düşünülmesini sağlayan kısa bir karar oyunudur.” Ana vurgu kaynak yönetimi üzerinden iklim uyumu ve emisyon azaltımı olabilir. Okyanus mekaniği veya COP31 logosu eklemek için yeni kapsam açmak gerekli görülmedi; slaytta bütün alanları kapsama zorunluluğu yazmıyor.
+
+## Öğrenme adımları uygulandı — 1 Kasım 2026
+
+Açılışın virüs odağı kaldırıldı; Büyük Sessizlik kurmaca afet/tedarik kesintileri dönemi olarak yeniden anlatıldı. Gece raporu ile son ekranına gerçek tercihlerden açıklamalar eklendi. Geçmiş; eylem/kart/hazırlık ve gecelik son üretim modunu saklar; önizleme veya başarısız eylemden sonuç üretilmez. İlk gün mevcut radyo/üretim panelleri üzerinden kısa rehber ve salt okunur tahmin var. Kaynaklar `docs/bilgi-kaynaklari.md` içinde; 18 kart birincil adreslerle kapsam/tarih bakımından eşleştirildi. Salgın genel kartı yerine iklim uyumu kartı kullanılır.
+
+Testler ve iki build geçti; tarayıcıda açılış, rehberin kaynak/eylem harcamaması, gerçek +5 enerji kapasite farkını gösteren rapor, kaynak bağlantısı ve kişisel son özeti doğrulandı. 1440×900 ve 900×600 rehber yatay taşma kontrolü geçti. İnsanlarla öğrenme testi hâlâ yapılmadı. Bu son ekler henüz yayınlanmadı; önceki sürümün PR #12/#13 yayınıyla karıştırılmamalı.

@@ -1,84 +1,114 @@
-// =============================================================
-//  "BİLİYOR MUYDUN?" KARTLARI
-//  Gün sonunda, o gün yapılan seçimlere bağlı gerçek bir bilgi gösterilir.
-//  Panel eylemleri (panels.js) ve kapı kararları "bilgi" anahtarıyla buraya bağlanır.
-//  Sunumdan önce rakamları kaynaklarından bir kez daha kontrol edin.
-// =============================================================
-
+// Birincil kaynak bağlantıları 1 Kasım 2026 tarihinde içerikle eşleştirildi.
+// Gerçek dünya bilgileri oyun puanlarının bilimsel ölçüm olduğu anlamına gelmez.
 export const BILGILER = {
-  erkenuyari: {
-    metin: 'Bir fırtına ya da sıcak hava dalgasının yalnızca 24 saat önceden haber verilmesi, yol açacağı zararı yaklaşık %30 azaltabilir. Erken uyarı sistemleri iklim uyumunun en ucuz araçlarından biridir.',
-    kaynak: 'Küresel Uyum Komisyonu (Global Commission on Adaptation), 2019',
+  "erkenuyari": {
+    "metin": "WMO’ya göre fırtına veya sıcak hava dalgasından 24 saat önce uyarı verilmesi olası zararı yaklaşık %30 azaltabilir. Bu, her olayda aynı sonuç alınacağı anlamına gelmez.",
+    "kaynak": "WMO · Weather forecasts and early warnings (2025)",
+    "url": "https://public.wmo.int/site/science-action/weather-forecasts-and-early-warnings",
+    "dogrulama": "2026-11-01"
   },
-  batarya: {
-    metin: 'Güneş ve rüzgar üretimi hava durumuna göre değişir. Bataryalar fazla elektriği saklayıp üretimin düştüğü saatlerde kullanır; bu yüzden enerji dönüşümünde depolama, üretim kadar önemlidir.',
-    kaynak: 'IEA',
+  "batarya": {
+    "metin": "Güneş ve rüzgârın üretimi değişkendir. Bataryalar elektrik üretimi ile ihtiyaç arasındaki zaman farkını yönetmeye ve kısa süreli enerji güvenliğine katkı sağlar.",
+    "kaynak": "IEA · Batteries and Secure Energy Transitions (2024)",
+    "url": "https://www.iea.org/reports/batteries-and-secure-energy-transitions/executive-summary",
+    "dogrulama": "2026-11-01"
   },
-  grisu: {
-    metin: 'Lavabo, duş ve çamaşırdan gelen "gri su" arıtılarak sulama ve tuvalet için yeniden kullanılabilir. Böylece temiz içme suyu yalnızca gerçekten gereken yerde harcanır.',
-    kaynak: 'US EPA',
+  "grisu": {
+    "metin": "Duş ve lavabo gibi kaynaklardan gelen gri su, uygun arıtmayla tuvalet rezervuarı ve sulama gibi içme suyu gerektirmeyen işlerde kullanılabilir. Kullanım amacına uygun arıtma gerekir.",
+    "kaynak": "US EPA · Onsite Non-Potable Water Reuse Resources",
+    "url": "https://www.epa.gov/waterreuse/onsite-non-potable-water-reuse-resources",
+    "dogrulama": "2026-11-01"
   },
-  fosil: {
-    metin: 'Kömür, petrol ve doğalgaz gibi fosil yakıtlar, küresel sera gazı salımlarının dörtte üçünden fazlasından ve karbondioksit salımlarının yaklaşık %90\'ından sorumlu.',
-    kaynak: 'Birleşmiş Milletler',
+  "fosil": {
+    "metin": "BM’nin iklim açıklamasına göre fosil yakıtlar, küresel sera gazı salımlarının %75’inden fazlasıyla ve karbondioksit salımlarının yaklaşık %90’ıyla ilişkilidir.",
+    "kaynak": "Birleşmiş Milletler · Causes and Effects of Climate Change (2022)",
+    "url": "https://www.un.org/en/climatechange/causes-and-effects-climate-change",
+    "dogrulama": "2026-11-01"
   },
-  gunes: {
-    metin: 'Güneş panellerinin üzerindeki toz ve kir verimi belirgin şekilde düşürür. Çölleşen ve tozlu bölgelerde düzenli temizlik bu yüzden kritik.',
-    kaynak: 'NREL (ABD Ulusal Yenilenebilir Enerji Laboratuvarı)',
+  "gunes": {
+    "metin": "Güneş panelinde biriken toz ve kir, hücrelere ulaşan ışığı azaltabilir. Kaybın büyüklüğü birikime ve yerel koşullara bağlıdır; uygun temizlik ve bakım önemlidir.",
+    "kaynak": "Sandia National Laboratories · PV Performance Modeling Collaborative",
+    "url": "https://pvpmc.sandia.gov/modeling-guide/1-weather-design-inputs/shading-soiling-and-reflection-losses/soiling-losses/",
+    "dogrulama": "2026-11-01"
   },
-  ruzgar: {
-    metin: 'Rüzgar ve güneş santralleri çalışırken neredeyse hiç sera gazı salmaz. Ömürleri boyunca saldıkları gazın büyük kısmı üretim ve kurulum aşamasından gelir.',
-    kaynak: 'IPCC',
+  "ruzgar": {
+    "metin": "Rüzgâr ve güneş gibi yenilenebilir kaynaklar, elektrik üretimi sırasında çok az sera gazı salar veya hiç salmaz. Enerji kaynağı seçimi iklim kararlarının bir parçasıdır.",
+    "kaynak": "Birleşmiş Milletler · Renewable energy",
+    "url": "https://www.un.org/en/climatechange/raising-ambition/renewable-energy",
+    "dogrulama": "2026-11-01"
   },
-  tatlisu: {
-    metin: 'Dünyadaki suyun yalnızca yaklaşık %2,5\'i tatlı su ve bunun da büyük kısmı buzullarda ve yer altında. Bugün 2 milyardan fazla insan güvenli içme suyuna erişemiyor.',
-    kaynak: 'USGS, DSÖ / UNICEF',
+  "tatlisu": {
+    "metin": "Dünya suyunun yaklaşık %2,5’i tatlı sudur. Bunun büyük bölümü buzullarda veya yer altında bulunur; göl ve nehirlerdeki payı küçüktür.",
+    "kaynak": "NOAA · The water cycle",
+    "url": "https://www.noaa.gov/education/resource-collections/freshwater/water-cycle",
+    "dogrulama": "2026-11-01"
   },
-  suenerji: {
-    metin: 'Suyu arıtmak, pompalamak ve taşımak ciddi miktarda enerji gerektirir. Su tasarrufu, aynı zamanda enerji tasarrufu demektir.',
-    kaynak: 'Uluslararası Enerji Ajansı',
+  "suenerji": {
+    "metin": "Suyu çıkarmak, pompalamak, arıtmak ve kullanıcılara ulaştırmak enerji gerektirir. Su ve enerji güvenliği bu yüzden birlikte düşünülmelidir.",
+    "kaynak": "IEA · Energy and Water",
+    "url": "https://www.iea.org/topics/energy-and-water",
+    "dogrulama": "2026-11-01"
   },
-  sulama: {
-    metin: 'Dünyada çekilen tatlı suyun yaklaşık %70\'i tarımda kullanılıyor. Damla sulama gibi yöntemler aynı hasadı çok daha az suyla sağlayabilir.',
-    kaynak: 'FAO',
+  "sulama": {
+    "metin": "FAO’ya göre tarım, küresel tatlı su çekimlerinin yaklaşık %72’sini oluşturur; başlıca etken sulamadır. Gıda üretiminde suyu dikkatli yönetmek önemlidir.",
+    "kaynak": "FAO · Agricultural water management",
+    "url": "https://www.fao.org/land-water/water/agricultural-water-management/water-scarcity/",
+    "dogrulama": "2026-11-01"
   },
-  metan: {
-    metin: 'Çöp sahalarında çürüyen organik atık metan üretir. Metan, 20 yıllık sürede karbondioksitten yaklaşık 80 kat daha güçlü bir sera gazıdır. Kompost bu salımı büyük ölçüde önler.',
-    kaynak: 'IPCC, UNEP',
+  "metan": {
+    "metin": "Organik atıklar çöp sahasında oksijensiz ayrışırken metan oluşabilir. Uygun kompostlama, bu atıkları toprağı destekleyen bir malzemeye çevirerek çöp sahalarından gelen metanı azaltabilir.",
+    "kaynak": "US EPA · Composting",
+    "url": "https://www.epa.gov/sustainable-management-food/composting",
+    "dogrulama": "2026-11-01"
   },
-  agac: {
-    metin: 'Bir ağacın tuttuğu karbon yıllar içinde artar. Yeni dikilen fidanlar ilk yıllarda az karbon tutar; bu yüzden mevcut ormanları korumak, yenilerini dikmek kadar önemlidir.',
-    kaynak: 'FAO',
+  "agac": {
+    "metin": "Ağaçların karbon tutması türüne, yaşına ve yetişme koşullarına bağlıdır. Genç ormanlar büyürken karbon biriktirir; yaşlı ormanlarda ise daha büyük bir karbon stoğu bulunabilir. Bu süreç yıllara yayılır.",
+    "kaynak": "USDA Climate Hubs · Understanding Northwest Forest Carbon",
+    "url": "https://www.climatehubs.usda.gov/hubs/northwest/topic/understanding-northwest-forest-carbon",
+    "dogrulama": "2026-11-01"
   },
-  plastik: {
-    metin: 'Dünyada üretilen plastik atığın yalnızca yaklaşık %9\'u geri dönüştürülüyor. Geri kalanı çöp sahalarına, yakma tesislerine ya da doğaya gidiyor.',
-    kaynak: 'OECD',
+  "plastik": {
+    "metin": "OECD’nin 2019 küresel plastik atık verilerine göre yalnızca %9’u geri dönüştürüldü. Bu oran tüm atık türlerini veya bugünün her ülkesini temsil etmez.",
+    "kaynak": "OECD · Global Plastics Outlook (2022), 2019 verileri",
+    "url": "https://www.oecd.org/en/publications/global-plastics-outlook_de747aef-en/full-report/component-6.html",
+    "dogrulama": "2026-11-01"
   },
-  hiyerarsi: {
-    metin: 'Sıfır atık yaklaşımında sıra şöyledir: önce azalt, sonra yeniden kullan ve onar, en son geri dönüştür. Onarılan bir eşya, yeniden üretilen bir eşyadan çok daha az kaynak harcar.',
-    kaynak: 'US EPA · Waste Management Hierarchy',
+  "hiyerarsi": {
+    "metin": "Atık yönetiminde öncelik, atığın oluşmasını azaltmak ve eşyaları yeniden kullanmaktır. Geri dönüşüm ve kompostlama bunları izler; her malzeme aynı biçimde yönetilemez.",
+    "kaynak": "US EPA · Materials and Waste Management Hierarchy",
+    "url": "https://www.epa.gov/smm/sustainable-materials-management-non-hazardous-materials-and-waste-management-hierarchy",
+    "dogrulama": "2026-11-01"
   },
-  yakma: {
-    metin: 'Atık yakmak bir miktar enerji üretse de karbondioksit ve hava kirliliğine yol açar. Atık hiyerarşisinde yakma, azaltma ve geri dönüşümden sonra gelir.',
-    kaynak: 'UNEP',
+  "yakma": {
+    "metin": "Atıktan enerji elde etmek, atık hiyerarşisinde azaltma, yeniden kullanım ve geri dönüşümün arkasında yer alır. Enerji geri kazanımı, atık oluşumunu önlemenin yerine geçmez.",
+    "kaynak": "US EPA · Energy Recovery from Combustion of MSW",
+    "url": "https://www.epa.gov/smm/energy-recovery-combustion-municipal-solid-waste-msw",
+    "dogrulama": "2026-11-01"
   },
-  goc: {
-    metin: 'Dünya Bankası\'na göre önlem alınmazsa 2050\'ye kadar 216 milyon insan iklim değişikliği yüzünden kendi ülkesi içinde göç etmek zorunda kalabilir.',
-    kaynak: 'Dünya Bankası, Groundswell raporu',
+  "goc": {
+    "metin": "Dünya Bankası’nın 2021 Groundswell çalışması, olumsuz senaryoda altı bölgede 2050’ye kadar 216 milyon kişinin ülke içinde iklim nedeniyle göç edebileceğini öngörüyor. Bu kaçınılmaz bir sonuç değil; iklim ve kalkınma eylemleri riski azaltabilir.",
+    "kaynak": "Dünya Bankası · Groundswell (2021)",
+    "url": "https://www.worldbank.org/en/news/press-release/2021/09/13/climate-change-could-force-216-million-people-to-migrate-within-their-own-countries-by-2050",
+    "dogrulama": "2026-11-01"
   },
-  // Genel bilgiler: o gün eşleşen bir bilgi yoksa bunlardan biri gösterilir
-  permafrost: {
-    metin: 'Kuzey yarımküredeki donmuş topraklar (permafrost), atmosferdekinin yaklaşık iki katı kadar karbon tutuyor. Çözüldükçe bu karbon salınmaya başlıyor.',
-    kaynak: 'NASA, IPCC',
+  "permafrost": {
+    "metin": "Kuzeydeki donmuş topraklar büyük miktarda karbon depolar. Çözülme, bu karbonun karbondioksit ve metan gibi sera gazlarıyla atmosfere geçmesine yol açabilir.",
+    "kaynak": "NASA · Thawing Permafrost (2024)",
+    "url": "https://www.nasa.gov/earth/nasa-helps-find-thawing-permafrost-adds-to-near-term-global-warming/",
+    "dogrulama": "2026-11-01"
   },
-  sibirya: {
-    metin: '2016\'da Sibirya\'da sıcak hava dalgası permafrostu çözünce, onlarca yıl önce ölmüş bir rengeyiğinden şarbon bakterisi yayıldı ve bir salgına yol açtı.',
-    kaynak: 'WHO · 2016 Yamal şarbon raporu',
+  "uyum": {
+    "metin": "Erken uyarı, yaklaşan tehlikeyi öğrenmenin yanında harekete geçmeyi de gerektirir. Hazırlık ve dayanıklı altyapı, toplulukların hava ve iklim tehlikelerine karşı korunmasına yardımcı olur.",
+    "kaynak": "WMO · Weather forecasts and early warnings",
+    "url": "https://public.wmo.int/site/science-action/weather-forecasts-and-early-warnings",
+    "dogrulama": "2026-11-01"
   },
-  gidaisraf: {
-    metin: 'Dünyada üretilen gıdanın yaklaşık üçte biri kayboluyor ya da israf ediliyor. Gıda israfı, küresel sera gazı salımlarının yaklaşık %8–10\'undan sorumlu.',
-    kaynak: 'FAO, UNEP',
-  },
+  "gidaisraf": {
+    "metin": "UNEP’in 2024 raporuna göre gıda kaybı ve israfı, küresel sera gazı salımlarının yaklaşık %8–10’uyla ilişkilidir. Gereksiz gıda kaybını önlemek, üretim için harcanan kaynakları da korur.",
+    "kaynak": "UNEP · Food Waste Index Report 2024",
+    "url": "https://wedocs.unep.org/bitstream/handle/20.500.11822/45275/Food-Waste-Index-2024-key-messages.pdf",
+    "dogrulama": "2026-11-01"
+  }
 };
 
-export const GENEL_BILGILER = ['permafrost', 'sibirya', 'gidaisraf'];
+export const GENEL_BILGILER = ['permafrost', 'uyum', 'gidaisraf'];
