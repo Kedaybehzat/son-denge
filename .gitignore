@@ -7,5 +7,5 @@ assets-orijinal/
 .DS_Store
 **/.DS_Store
 
-# Local ses yedekleri (işlenmişleri public/sounds'ta)
-sounds/
+# Local ses yedekleri — yalnızca root'taki orijinal klasör (public/sounds commit'lenir)
+/sounds/
