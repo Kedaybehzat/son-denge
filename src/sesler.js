@@ -34,14 +34,21 @@ function fadeIptal(audio) {
   fadeZamanlayicilari.delete(audio);
 }
 
-function sustur(audio) {
+// Hafif duraklat: src'yi tutar, pause + mute. Ses toggle'da kullanılır ki
+// açıldığında aynı Audio tekrar oynatılabilsin.
+function duraklat(audio) {
   fadeIptal(audio);
   audio.muted = true;
   audio.volume = 0;
-  audio.loop = false; // loop açık kalırsa src temizlense bile hazır olduğunda tekrar başlar
-  // play() Promise'i async: pause tek başına yetmez, async play tamamlanınca
-  // ses tekrar başlayabilir. src'yi boşaltıp load() ile tüm playback'i iptal et.
   try { audio.pause(); } catch {}
+}
+
+// Ağır sustur: parça başka müzikle değiştiriliyorsa src'yi temizle, loop'u kapa.
+// play() Promise async olduğundan sadece pause yetmez, bir sonraki parça
+// başlamadan önce eski Audio bu şekilde kesin iptal edilmeli.
+function sustur(audio) {
+  duraklat(audio);
+  audio.loop = false; // loop açık kalırsa src temizlense bile hazır olduğunda tekrar başlar
   try { audio.currentTime = 0; } catch {}
   try { audio.removeAttribute('src'); audio.load(); } catch {}
 }
@@ -142,10 +149,15 @@ export function sesToggle() {
   try { localStorage.setItem(DEPO_ANAHTAR, sesAcik ? 'acik' : 'kapali'); } catch {}
   bekleyen = null;
   if (!sesAcik) {
-    if (aktifLoop) sustur(aktifLoop.audio);
-    for (const audio of birDefa) sustur(audio);
+    // Toggle kapatma: Audio'nun src'sini silme, hafif duraklat yap ki
+    // açıldığında aynı parça kalınan yerden/baştan devam edebilsin.
+    if (aktifLoop) duraklat(aktifLoop.audio);
+    for (const audio of birDefa) duraklat(audio);
     birDefa.clear();
-  } else if (aktifLoop) muzikBaslat(aktifLoop);
+  } else if (aktifLoop) {
+    // src hâlâ dolu; muzikBaslat yeni deneme no'suyla play eder.
+    muzikBaslat(aktifLoop);
+  }
   return sesAcik;
 }
 
