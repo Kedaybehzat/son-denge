@@ -1134,61 +1134,71 @@ export default class GameScene extends Phaser.Scene {
     this.gorselUygula();
   }
 
-  // Çatı: cati.png panel karoları + boş alanlar düz dolgun çatı malzemesi
-  // ile doldurulur. Panel sayısı: 2 + state.yapilar'daki her 'ekPanel' için +2.
+  // Çatı: cati.png tüm dünya genişliğinde tile edilir (asset ile uyumlu).
+  // Ek Güneş Paneli yapı inşa edildikçe çatıya ek "takviye paneller" yerleştirilir.
+  // Başlangıç: sadece cati.png'nin içindeki paneller görünür.
   _cizCatiPanelleri() {
-    const ekPanelSayisi = (state.yapilar || []).filter((y) => y === 'ekPanel').length;
-    const hedefKaro = 2 + ekPanelSayisi * 2;
-    if (!this.catiPaneller) this.catiPaneller = [];
-    if (this.catiPaneller.length === hedefKaro && this.catiBos) return;
-    for (const sp of this.catiPaneller) sp.destroy();
-    if (this.catiBos) this.catiBos.destroy();
-    this.catiPaneller = [];
     const ust = TAVAN_Y;
-    const kaynak = this.gercekAsset('cati') ? this.textures.get('cati').getSourceImage() : null;
-    const h = kaynak ? ASSETLER.cati.yukseklik : 32;
-    const scale = kaynak ? h / kaynak.height : 1;
-    const karoGenislik = kaynak ? kaynak.width * scale : 140;
-    const toplamGenislik = hedefKaro * karoGenislik;
-    const startX = Math.max(80, (this.dunyaG - toplamGenislik) / 2);
-    // Önce boş alanlar için dolgun çatı malzemesi (koyu, panelsiz yan kısım)
-    const bos = this.add.graphics().setDepth(0.55);
-    const kiremitUst = ust - h + 6;
-    const kiremitAlt = ust - 2;
-    const ciz = (x1, x2) => {
-      if (x2 - x1 < 4) return;
-      // Çatı malzemesi (ana koyu kahverengi)
-      bos.fillStyle(0x4b3d2d).fillRect(x1, kiremitUst, x2 - x1, kiremitAlt - kiremitUst);
-      // Üst saçak çizgisi (metal profil)
-      bos.fillStyle(0x2d2318).fillRect(x1, kiremitUst, x2 - x1, 3);
-      // Alt saçak (gölge)
-      bos.fillStyle(0x3a2e22).fillRect(x1, kiremitAlt - 3, x2 - x1, 3);
-      // Dikey kiremit/panel şeritleri (hafif)
-      bos.lineStyle(1, 0x5e4e3c, 0.55);
-      for (let x = x1 + 14; x < x2; x += 28) bos.lineBetween(x, kiremitUst + 4, x, kiremitAlt - 4);
-      // Yüzeyde hafif yatay nokta deseni (açık doku)
-      bos.fillStyle(0x6a5944, 0.5);
-      for (let x = x1 + 7; x < x2 - 2; x += 10) bos.fillRect(x, kiremitUst + Math.round((kiremitAlt - kiremitUst) / 2), 2, 1);
-    };
-    ciz(-20, startX);
-    ciz(startX + toplamGenislik, this.dunyaG + 20);
-    this.catiBos = bos;
-    // Sonra panel karoları (üstünde)
-    for (let i = 0; i < hedefKaro; i++) {
-      const x = startX + i * karoGenislik;
-      let sp;
-      if (kaynak) {
-        sp = this.add.image(x, ust - h, 'cati').setOrigin(0, 0).setDepth(0.6).setScale(scale);
+    // Çatı tabanı: cati.png varsa tam dünya genişliğinde tile et (eski davranış)
+    if (!this.catiTemel) {
+      if (this.gercekAsset('cati')) {
+        const h = ASSETLER.cati.yukseklik;
+        const kaynak = this.textures.get('cati').getSourceImage();
+        this.catiTemel = this.add.tileSprite(-20, ust - h, this.dunyaG + 40, h, 'cati')
+          .setOrigin(0).setDepth(0.6).setTileScale(h / kaynak.height, h / kaynak.height);
       } else {
+        // Yer tutucu (asset yoksa): kodla çizilen eğik güneş panelleri her 180 px
         const g = this.add.graphics().setDepth(0.6);
-        const taban = ust - 2;
-        g.fillStyle(0x3a3a36).fillRect(x + 18, taban - 14, 4, 14).fillRect(x + 88, taban - 22, 4, 22);
-        g.fillStyle(0x23314f).fillPoints([{ x, y: taban - 12 }, { x: x + 110, y: taban - 28 }, { x: x + 110, y: taban - 20 }, { x, y: taban - 4 }], true);
-        g.lineStyle(2, 0x5b6470, 1).strokePoints([{ x, y: taban - 12 }, { x: x + 110, y: taban - 28 }, { x: x + 110, y: taban - 20 }, { x, y: taban - 4 }], true);
-        g.lineStyle(1, 0x7fa6d8, 0.5).lineBetween(x + 37, taban - 17, x + 37, taban - 9).lineBetween(x + 73, taban - 23, x + 73, taban - 15);
+        for (let x = 60; x < this.dunyaG; x += 180) {
+          const taban = ust - 30;
+          g.fillStyle(0x3a3a36).fillRect(x + 18, taban - 14, 4, 14).fillRect(x + 88, taban - 22, 4, 22);
+          g.fillStyle(0x23314f).fillPoints([{ x, y: taban - 12 }, { x: x + 110, y: taban - 28 }, { x: x + 110, y: taban - 20 }, { x, y: taban - 4 }], true);
+          g.lineStyle(2, 0x5b6470, 1).strokePoints([{ x, y: taban - 12 }, { x: x + 110, y: taban - 28 }, { x: x + 110, y: taban - 20 }, { x, y: taban - 4 }], true);
+          g.lineStyle(1, 0x7fa6d8, 0.5).lineBetween(x + 37, taban - 17, x + 37, taban - 9).lineBetween(x + 73, taban - 23, x + 73, taban - 15);
+        }
+        this.catiTemel = g;
+      }
+    }
+    // Ek Güneş Paneli yapı: her inşa için çatıya 2 "takviye panel" ekle
+    const ekPanelSayisi = (state.yapilar || []).filter((y) => y === 'ekPanel').length;
+    const hedefEk = ekPanelSayisi * 2;
+    if (!this.catiEkPaneller) this.catiEkPaneller = [];
+    if (this.catiEkPaneller.length === hedefEk) return;
+    for (const sp of this.catiEkPaneller) sp.destroy();
+    this.catiEkPaneller = [];
+    if (hedefEk === 0) return;
+    // ikon-ek-panel.png varsa küçük sprite olarak çatının farklı yerlerine yerleştir
+    const ikon = this.gercekAsset('ikon-ek-panel') ? 'ikon-ek-panel' : null;
+    const h = this.gercekAsset('cati') ? ASSETLER.cati.yukseklik : 32;
+    const yerler = [];
+    for (let i = 0; i < hedefEk; i++) {
+      // Ek paneller cati.png'nin arasında kalmayacak şekilde çatının üstüne (daha yukarı) konur
+      const x = (this.dunyaG / (hedefEk + 1)) * (i + 1);
+      yerler.push(x);
+    }
+    for (const x of yerler) {
+      let sp;
+      if (ikon) {
+        sp = this.add.image(x, ust - h + 8, ikon).setOrigin(0.5, 1).setDepth(0.65);
+        // ~40 px genişlikte göster
+        const im = this.textures.get(ikon).getSourceImage();
+        sp.setScale(42 / im.width);
+      } else {
+        const g = this.add.graphics().setDepth(0.65);
+        const taban = ust - h + 8;
+        // Küçük yatık panel
+        g.fillStyle(0x1c2b4a).fillPoints([
+          { x: x - 22, y: taban - 10 }, { x: x + 22, y: taban - 16 },
+          { x: x + 22, y: taban - 10 }, { x: x - 22, y: taban - 4 },
+        ], true);
+        g.lineStyle(1.5, 0x6a7a8c).strokePoints([
+          { x: x - 22, y: taban - 10 }, { x: x + 22, y: taban - 16 },
+          { x: x + 22, y: taban - 10 }, { x: x - 22, y: taban - 4 },
+        ], true);
+        g.lineStyle(1, 0x8fb3e8, 0.55).lineBetween(x, taban - 13, x, taban - 7);
         sp = g;
       }
-      this.catiPaneller.push(sp);
+      this.catiEkPaneller.push(sp);
     }
   }
 
