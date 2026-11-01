@@ -2,10 +2,14 @@ import Phaser from 'phaser';
 import GameScene, { CIZIM_OLCEGI } from './scenes/GameScene.js';
 import { sifirla, state } from './state.js';
 import * as ui from './ui/ui.js';
+import { muzikCal } from './sesler.js';
 import './style.css';
 
 sifirla();
 ui.hudKur();
+
+// Ana menü müziği (autoplay engeli ilk tıklamada çözülür)
+muzikCal('muzik-ana');
 
 // Tam ekran: F tuşuyla ya da ayarlar menüsünden çağrılır. Browser native
 // Fullscreen API — Esc ile çıkış tarayıcı tarafından halledilir.

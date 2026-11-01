@@ -16,6 +16,7 @@ import { KESIF_NOKTALARI } from '../data/exploration.js';
 import { KURUCULAR } from '../data/visitors.js';
 import { portreDosyasi, hikayeDosyasi, ARAYUZ_ASSET_KLASORU, ARAYUZ_IKONLARI, KARAR_GORSELLERI, SON_GORSELLERI } from '../data/assets.js';
 import { assetVar } from '../assetListesi.js';
+import { muzikCal, sesAcikMi, sesToggle } from '../sesler.js';
 
 const hud = document.getElementById('hud');
 const modal = document.getElementById('modal');
@@ -411,6 +412,7 @@ function bilgiHtml(b) {
 
 // Gün geçişi iki adım: önce gece raporu + bilgi kartı, sonra sabah radyosu
 export function gunBaslangici({ insaatBitti = null, rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj, ayrilanlar = [], sefer = null, memnuniyet = null }) {
+  muzikCal('muzik-gece-gecis');
   const gitti = gidenZiyaretci
     ? `<p class="uyari">🚪 ${kacis(gidenZiyaretci.ad)} kapıda beklemekten vazgeçip gitti.</p>`
     : '';
@@ -944,6 +946,7 @@ export function baslangicEkrani(basla) {
   kart.querySelector('[data-basla]').addEventListener('click', () => {
     hud.style.visibility = '';
     modalKapat();
+    muzikCal('muzik-umut');
     basla();
   });
   kart.querySelector('[data-ayarlar]').addEventListener('click', () => ayarlarAc(() => baslangicEkrani(basla)));
@@ -953,6 +956,7 @@ export function baslangicEkrani(basla) {
 // `donus` → kapatınca nereye dönülecek. Boş geçilirse sadece kapatılır.
 export function ayarlarAc(donus) {
   const tamEkranDa = !!document.fullscreenElement;
+  const sesDa = sesAcikMi();
   modalAc(`
     <div class="panel-ust"><span class="etiket">▸ AYARLAR<i class="led"></i></span><h2>Ayarlar</h2></div>
     <div class="ayarlar">
@@ -960,6 +964,11 @@ export function ayarlarAc(donus) {
         <span class="no">${tamEkranDa ? '◧' : '⛶'}</span>
         <span class="govde"><span class="ad">Tam ekran</span><span class="chipler"><span class="chip ${tamEkranDa ? 'iyi' : ''}">${tamEkranDa ? 'Açık' : 'Kapalı'}</span></span></span>
         <span class="maliyet">F tuşu</span>
+      </button>
+      <button class="eylem" data-ses>
+        <span class="no">${sesDa ? '🔊' : '🔇'}</span>
+        <span class="govde"><span class="ad">Ses ve müzik</span><span class="chipler"><span class="chip ${sesDa ? 'iyi' : 'kotu'}">${sesDa ? 'Açık' : 'Kapalı'}</span></span></span>
+        <span class="maliyet">${sesDa ? 'kapat' : 'aç'}</span>
       </button>
       <div class="kontroller">
         <h3>Kontroller</h3>
@@ -979,8 +988,11 @@ export function ayarlarAc(donus) {
     </div>`, { sinif: 'bilgi ayarlar-kart', kapatma: !donus });
   kart.querySelector('[data-tamekran]').addEventListener('click', () => {
     window.tamEkranToggle?.();
-    // Kısa gecikme sonrası durumu yansıtmak için yeniden çiz
     setTimeout(() => ayarlarAc(donus), 120);
+  });
+  kart.querySelector('[data-ses]').addEventListener('click', () => {
+    sesToggle();
+    ayarlarAc(donus);
   });
   if (donus) {
     // Dönüş yolu belli (ör. ana menü): Kapat tuşu modalKapat yerine donus'u çağırır
@@ -1019,8 +1031,17 @@ const SONLAR = {
   },
 };
 
+const SON_MUZIKLERI = {
+  gercekUtopya: 'son-gercek-utopya',
+  yalnizUtopya: 'son-yalniz-utopya',
+  kapimizAcikti: 'son-kapimiz-acikti',
+  cokus: 'son-isiklar-sondu',
+  guvenKaybi: 'son-guven-oylamasi',
+};
+
 export function sonGoster({ tip, bilgi }, tekrar) {
   const s = SONLAR[tip];
+  if (SON_MUZIKLERI[tip]) muzikCal(SON_MUZIKLERI[tip]);
   modalAc(`
     <div class="son ${s.sinif}">
       ${arayuzGorseli('son', SON_GORSELLERI[tip], 'son-gorsel')}
@@ -1040,6 +1061,7 @@ export function sonGoster({ tip, bilgi }, tekrar) {
     </div>`, { kapatma: false, sinif: 'son-ekrani' });
   kart.querySelector('[data-tekrar]').addEventListener('click', () => {
     modalKapat();
+    muzikCal('muzik-umut');
     tekrar();
   });
 }

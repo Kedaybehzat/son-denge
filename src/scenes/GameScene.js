@@ -14,6 +14,7 @@ import { ANIMASYONLAR, animKareAnahtari, animKareDosyasi } from '../data/animati
 import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet,
   KAYNAKLAR, MAKINELER, makineOperatoru, makineCalisiyorMu, sakinTanimi } from '../state.js';
 import * as ui from '../ui/ui.js';
+import { muzikCal } from '../sesler.js';
 
 const HIZ = 240;
 const KOSU_CARPANI = 1.65;
@@ -1291,6 +1292,13 @@ export default class GameScene extends Phaser.Scene {
     // 1 = ütopya, 0 = distopya. 30 altı tamamen karanlık, 80 üstü tamamen aydınlık.
     const t = Phaser.Math.Clamp((this.gorsel.d - 30) / 50, 0, 1);
     const k = state.kaynak;
+
+    // Oyun içi müzik: memnuniyet düşük veya denge düşükse gerilim, aksi halde umut.
+    // Modal açıkken (gece raporu vs.) oradaki müziği bozmayalım.
+    if (!state.bitti && !ui.acikMi()) {
+      const gerilim = (state.memnuniyet != null && state.memnuniyet < 35) || state.denge < 30;
+      muzikCal(gerilim ? 'muzik-gerilim' : 'muzik-umut');
+    }
 
     this.gokyuzu.fillColor = renkGecis(0xb5774a, 0x8fd3ff, t);
     this.gunes.fillColor = renkGecis(0xff9a4a, 0xfff3b0, t);
