@@ -18,7 +18,7 @@ import { KESIF_NOKTALARI } from '../data/exploration.js';
 import { KURUCULAR } from '../data/visitors.js';
 import { portreDosyasi, hikayeDosyasi, ARAYUZ_ASSET_KLASORU, ARAYUZ_IKONLARI, KARAR_GORSELLERI, SON_GORSELLERI, sakinGorselTanimi } from '../data/assets.js';
 import { assetVar } from '../assetListesi.js';
-import { muzikCal, sesCal, sesAcikMi, sesToggle } from '../sesler.js';
+import { muzikCal, sesCal, sesAcikMi, sesToggle, muzikSeviyesi, efektSeviyesi, muzikSeviyeAyarla, efektSeviyeAyarla } from '../sesler.js';
 
 const hud = document.getElementById('hud');
 const modal = document.getElementById('modal');
@@ -1089,6 +1089,8 @@ export function baslangicEkrani(basla) {
 export function ayarlarAc(donus) {
   const tamEkranDa = !!document.fullscreenElement;
   const sesDa = sesAcikMi();
+  const mz = Math.round(muzikSeviyesi() * 100);
+  const ef = Math.round(efektSeviyesi() * 100);
   modalAc(`
     <div class="panel-ust"><span class="etiket">▸ AYARLAR<i class="led"></i></span><h2>Ayarlar</h2></div>
     <div class="ayarlar">
@@ -1102,6 +1104,18 @@ export function ayarlarAc(donus) {
         <span class="govde"><span class="ad">Ses ve müzik</span><span class="chipler"><span class="chip ${sesDa ? 'iyi' : 'kotu'}">${sesDa ? 'Açık' : 'Kapalı'}</span></span></span>
         <span class="maliyet">${sesDa ? 'kapat' : 'aç'}</span>
       </button>
+      <div class="ses-seviyeleri${sesDa ? '' : ' pasif'}">
+        <label class="ses-slider">
+          <span class="ad">🎵 Müzik</span>
+          <input type="range" min="0" max="100" step="1" value="${mz}" data-muzik-seviye ${sesDa ? '' : 'disabled'} aria-label="Müzik sesi">
+          <span class="deger" data-muzik-deger>${mz}</span>
+        </label>
+        <label class="ses-slider">
+          <span class="ad">🔔 Efektler</span>
+          <input type="range" min="0" max="100" step="1" value="${ef}" data-efekt-seviye ${sesDa ? '' : 'disabled'} aria-label="Efekt sesi">
+          <span class="deger" data-efekt-deger>${ef}</span>
+        </label>
+      </div>
       <div class="kontroller">
         <h3>Kontroller</h3>
         <div class="kontrol-liste">
@@ -1125,6 +1139,26 @@ export function ayarlarAc(donus) {
   kart.querySelector('[data-ses]').addEventListener('click', () => {
     sesToggle();
     ayarlarAc(donus);
+  });
+  const mSlider = kart.querySelector('[data-muzik-seviye]');
+  const mDeger = kart.querySelector('[data-muzik-deger]');
+  const eSlider = kart.querySelector('[data-efekt-seviye]');
+  const eDeger = kart.querySelector('[data-efekt-deger]');
+  let efektOrnek = 0;
+  mSlider?.addEventListener('input', () => {
+    const v = Number(mSlider.value) / 100;
+    muzikSeviyeAyarla(v);
+    mDeger.textContent = mSlider.value;
+  });
+  eSlider?.addEventListener('input', () => {
+    const v = Number(eSlider.value) / 100;
+    efektSeviyeAyarla(v);
+    eDeger.textContent = eSlider.value;
+    // Yeni seviyeyi hissettirmek için ara ara küçük bir örnek ses
+    if (performance.now() - efektOrnek > 150) {
+      efektOrnek = performance.now();
+      sesCal('ses-tiklama', { ses: 0.6 });
+    }
   });
   if (donus) {
     // Dönüş yolu belli (ör. ana menü): Kapat tuşu modalKapat yerine donus'u çağırır
