@@ -105,3 +105,17 @@ export const ARAYUZ_DOSYALARI = [...new Set([
   ...Object.values(KARAR_GORSELLERI).map((ad) => `kart-${ad}.png`),
   ...Object.values(SON_GORSELLERI).map((ad) => `son-${ad}.png`),
 ])];
+
+// Sahnede ve arayüzde aynı kişi için aynı kaynak. Özel tam-boy asset yoksa
+// kimliğe sabit genel sprite kullanılır; sıra değişince karakter değişmez.
+export const SAKIN_GORSEL_TIPLERI = {
+  selin: 1, burak: 2, nur: 1, can: 3,
+  muhendis: 1, ciftci: 0, bilim: 1, tamirci: 2, kafile: 3, cocuklar: 3,
+};
+export function sakinGorselTanimi(id, dosyaVar = () => false) {
+  const tip = SAKIN_GORSEL_TIPLERI[id] ?? 0;
+  const ozel = `sakin-${id}`;
+  return dosyaVar(`${ozel}.png`)
+    ? { tip, anahtar: ozel, dosya: `${ozel}.png`, ozel: true }
+    : { tip, anahtar: `sakin${tip}`, dosya: `sakin-${tip + 1}.png`, ozel: false };
+}

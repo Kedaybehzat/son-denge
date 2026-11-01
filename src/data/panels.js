@@ -57,8 +57,8 @@ export const PANELLER = {
     aciklama: 'Atıkları ayrıştır ya da yak. Yakmak hızlıdır ve biraz enerji verir, ama karbon salar.',
     gosterge: ['atik', 'karbon'],
     eylemler: [
-      { ad: 'Atıkları ayrıştır', etki: { atik: -20 }, mesaj: 'Cam, plastik, metal: her şey yerli yerinde.', bilgi: 'plastik' },
-      { ad: 'Malzemeleri onarıp yeniden kullan', etki: { atik: -10, enerji: +5 }, mesaj: 'Eski parçalar yeni işe yaradı.', bilgi: 'hiyerarsi' },
+      { ad: 'Atıkları ayrıştır', geriKazanim: 6, etki: { atik: -20 }, mesaj: 'Cam, plastik, metal: her şey yerli yerinde.', bilgi: 'plastik' },
+      { ad: 'Malzemeleri onarıp yeniden kullan', geriKazanim: 3, etki: { atik: -10, enerji: +5 }, mesaj: 'Eski parçalar yeni işe yaradı.', bilgi: 'hiyerarsi' },
       { ad: 'Atıkları yak', etki: { atik: -35, enerji: +8, karbon: +15 }, kirli: true, mesaj: 'Atık gitti, duman kaldı.', bilgi: 'yakma' },
     ],
   },

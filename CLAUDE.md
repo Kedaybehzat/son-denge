@@ -383,15 +383,15 @@ Veri: `src/data/structures.js` (`YAPILAR`), `src/data/research.js` (Seviye II ar
 - 🥬 **Hidroponik Tarım** (12 puan): her gece +3 gıda, −1 su
 - 🫁 **Hava Filtresi** (12 puan): her gece −3 karbon
 
-**İnşaat:** Aynı anda tek yapı kurulur. Eylem ve malzeme başlangıçta ödenir; yeterli kaynak yoksa başlayamaz. İnşaat 1 gece sürer; tamamlanana kadar bonus vermez, ertesi gün aktif olur. Son gün yeni inşaat başlatılamaz. Odalar panelinden ilgili odanın iyileştirmelerine geçilebilir. Atık, geri kazanılabilir yapı malzemesi olarak harcanır.
+**İnşaat:** Aynı anda tek yapı kurulur. Eylem ve malzeme başlangıçta ödenir; yeterli kaynak yoksa başlayamaz. İnşaat 2 iş puanı ister; iş gücüne bağlı ilerler (bölüm 4.20), tamamlanana kadar bonus vermez. Son gün yeni inşaat başlatılamaz. Odalar panelinden ilgili odanın iyileştirmelerine geçilebilir. Ayrı malzeme stoğu harcanır; atıktan kazanım bölüm 4.20'de.
 
 | Yapı | Oda | Başlangıç maliyeti | Kalıcı etki |
 |---|---|---|---|
-| Yalıtım Tesisi | Yaşam | 1 eylem, 8 atık | Sıcak hava ve toz zararı yarıya |
-| Sel Bariyeri | Sera | 1 eylem, 6 atık | Sel zararı yarıya |
-| Ek Güneş Paneli | Enerji | 2 eylem, 12 atık, 6 enerji; +3 karbon | Her gece +3 enerji |
-| Su Geri Kazanım Hattı | Su | 1 eylem, 10 atık, 6 enerji | Her gece +3 su, −1 enerji |
-| Onarım Tezgâhı | Geri dönüşüm | 1 eylem, 10 atık, 6 enerji | Her gece −3 atık |
+| Yalıtım Tesisi | Yaşam | 1 eylem, 6 malzeme | Sıcak hava ve toz zararı yarıya |
+| Sel Bariyeri | Sera | 1 eylem, 5 malzeme | Sel zararı yarıya |
+| Ek Güneş Paneli | Enerji | 2 eylem, 10 malzeme, 6 enerji; +3 karbon | Her gece +3 enerji |
+| Su Geri Kazanım Hattı | Su | 1 eylem, 8 malzeme, 6 enerji | Her gece +3 su, −1 enerji |
+| Onarım Tezgâhı | Geri dönüşüm | 1 eylem, 8 malzeme, 6 enerji | Her gece −3 atık |
 
 Yapı etkisi hazırlık çarpanıyla birleşir. Gece raporunda tamamlanan inşaat bildirilir. Simülasyon yapı kurmayı seçmez; bu karar ayrı mekanik testlerinde doğrulanır.
 
@@ -408,6 +408,18 @@ Sayılar `src/state.js` → `AYAR` (`baslangicMemnuniyet`, `itirazEsigi`, `guven
 - **İtiraz kartı:** Memnuniyet 35'in altına inince "Sakinlerin itirazı" kartı çıkar (Kemal içerideyse onun ağzından; eleştirmen kötü karakter değildir). Toplantı (1 eylem, +15) · Uzlaş (herkesin yorgunluğu −2, +10, bu gece −6 enerji −4 gıda) · Kararlarımın arkasındayım (−8). Baskıcı seçenek yoktur.
 - **Güven oylaması:** Memnuniyet **üst üste 2 gece** 10 veya altında kalırsa oyun "Güven oylaması" sonuyla biter. İlk gecede raporda açık uyarı çıkar.
 - "Yenilenebilir enerji sözü" kartındaki "Süre iste" artık memnuniyeti düşürür (−10).
+
+### 4.20 Üretim derinliği, konuşma ve oda rutinleri (güncel)
+
+Önceki inşaat açıklamasındaki doğrudan atık harcama / bir gecede otomatik tamamlama davranışının yerini şu sistem aldı:
+- Ayrı **malzeme** stoğu: başlangıç 8, üst sınır 100. Ayrıştırma gerçek 20 atık başına 6; onarma 10 atık başına 3 verir; eksik miktarda oransal, sıfır atıkta sıfır. Malzeme denge puanına dahil değildir.
+- Yapılar **2 iş** ister. İşçi +1/gece; mühendis/tamirci +2. Oyuncu günde bir kez 1 eylemle +1 iş sağlar. İşçi kendi makinesi/laboratuvarında çalışamaz. Duraklat/iptal var; iptalde kalan iş oranına göre malzemenin yarısı döner. Tamamlanınca önceki göreve dönüş yapılır; doluysa dinlenilir.
+- Oda modları: Tasarruf ×0,65 üretim, +0 yorgunluk/aşınma; Normal ×1 ve +1/+1; Yoğun ×1,6 ve +2/+2. Ek tüketimler `src/data/production.js` içinde. Aşınma 6'da %70, 10'da %40 üretim; bakım 1 eylem +2 malzeme ile −5 aşınma.
+- Koloni'den veya yakında E/T ile konuşma. Seçenek → oyuncu cümlesi/Devam → sakin yanıtı/Devam → seçenekler. Moral kişi başına günde bir 1 eylemle +4 memnuniyet, −1 yorgunluk; bilgi soruları ücretsiz; dinlendirme görev değiştirir. Metinler `src/data/dialogues.js`.
+- Sahne ve diyalog aynı kişi için aynı tam-boy görseli kullanır (`sakinGorselTanimi`). Özel sprite yoksa genel yer tutucu kullanılır; bazıları paylaşılır.
+- NPC'ler atandıkları odanın tamamında dolaşır, assetlerden işaretlenen bitki/tank/tezgâh vb. noktalarda kısa prosedürel hareketler yapar. Veri `src/data/activities.js`, koordinatlar `docs/npc-noktalari.md`; `?npcNoktalar=1` ile işaretler görünür. Bu hareketler ekstra üretim sağlamaz.
+
+Ayrıntılı güncel devam akışı: `docs/devralma.md`. Simülasyon normal mod stratejilerini kullanır; inşaat/keşif/yeni mod seçimi ayrıca insan playtesti gerektirir.
 
 ## 5. Teknik yapı
 
@@ -428,7 +440,8 @@ Sayılar `src/state.js` → `AYAR` (`baslangicMemnuniyet`, `itirazEsigi`, `guven
 | `src/data/rooms.js` | Odalar, pencereler, nesnelerin konumları |
 | `src/data/research.js` | Araştırmalar, görevler, batarya ayarları |
 | `src/state.js` | Kurallar: gece tüketimi, denge, insanlık, sonlar, `AYAR` |
-| `src/scenes/GameScene.js` | Phaser sahnesi: çizim, hareket, etkileşim, görsel dönüşüm, sakinler |
+| `src/scenes/GameScene.js` | Sahne kurulumu, oyuncu, etkileşim ve gün akışı |
+| `src/scenes/game/*.js` | Doku, yedek çizimler, animasyon, dünya, NPC, efektler ve ortak ayarlar; ayrıntı `docs/devralma.md` |
 | `src/ui/ui.js` | HUD, paneller, radyo, kapı kartı, gece raporu, hikaye, son ekranı |
 | `src/style.css` | Arayüz stili |
 | `tools/simulasyon.mjs` | Denge simülasyonu |
@@ -827,3 +840,11 @@ Tüm nesne/karakterler **ölçek dizisi** yöntemiyle üretilir: aynı kategorid
 - **Eylem hakkı:** Günlük panel işlemi sayısı (3, mühendis içeri alınırsa 4).
 - **Kirli eylem:** Hızlı sonuç veren ama karbon salan seçenek (dizel jeneratör, atık yakma).
 - **Ziyaretçi:** Kapıya gelen iklim göçmeni ya da göçmen grubu.
+
+### 4.21 Güncel ilerleme paketi (1 Kasım 2026)
+
+Aşamalı keşif ve pompa planı → yağmur suyu araştırması → depo; dinlenme sözü hafızası; hava/üretim modu etkileri; ayrı Hedefler paneli ve gün başı localStorage kaydı eklendi. Kurallar ve test sınırları `docs/devralma.md` son bölümde. Hackathon kriter değerlendirmesi: `docs/hackathon-uyum-analizi.md`. Yeni regresyon: `tools/ilerleme-test.mjs` (`npm test` içinde). Güncel otomatik simülasyonda akıllı/hepsini al gerçek ütopya yaklaşık %74; yeni seçimlerin bütün kombinasyonlarını kapsamaz.
+
+### 4.22 Sahne modülleri (1 Kasım 2026)
+
+GameScene 362 satırdır; çizim/doku/animasyon/NPC/efekt yöntemleri `src/scenes/game/` altına taşındı. Güncel yöntem sahipleri PROJECT_LOG Project Map'te, bağlam/ömür sözleşmesi `docs/devralma.md` → GameScene modülleri bölümünde. Sahne dışı yöntem düzenlemek için önce bu haritayı kullanın. Yöntemler GameScene prototype'ına eklenir, `this` Phaser sahnesidir; modüller ana sahneyi import etmez. Doku önbelleği restart boyunca korunur. Yeni asset veya mekanik sayı değişikliği yoktur.

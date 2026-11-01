@@ -1,6 +1,6 @@
 # Son Denge — Geliştirme devir rehberi
 
-Güncel durum: 1 Kasım 2026. Bu belge, asset, arayüz veya mekanik geliştirmesine devam edecek ekip arkadaşı için başlangıç noktasıdır. Sayıların asıl kaynağı `src/state.js` ve `src/data/`; tarihsel log kayıtları güncel ayar yerine kullanılmamalıdır.
+Güncel durum: 1 Kasım 2026. Son ekler: aşamalı keşif/plan zinciri, söz hafızası, hava üretimi, isteğe bağlı hedefler ve gün başı kayıt/devam. Bu belge, asset, arayüz veya mekanik geliştirmesine devam edecek ekip arkadaşı için başlangıç noktasıdır. Sayıların asıl kaynağı `src/state.js` ve `src/data/`; tarihsel log kayıtları güncel ayar yerine kullanılmamalıdır.
 
 ## Başlangıç
 
@@ -20,7 +20,7 @@ Terminalin verdiği adresi açın; varsayılan port 5173'tür, doluysa sonraki p
 |---|---|
 | `PROJECT_LOG.md` | Her işe başlamadan Project Map; tamamlayınca en üste değişiklik kaydı; açık borçlar ve asset durumları |
 | `CLAUDE.md` / `AGENTS.md` | Aynı proje bilgisi ve asistan kuralları; Codex `AGENTS.md` kullanır. Mekanik anlatım güncellendiğinde ikisini eş tutun |
-| `docs/asset-listesi.md` | Project Log içindeki 92 satırlık asset tablosunun paylaşılabilir kopyası |
+| `docs/asset-listesi.md` | Project Log içindeki 93 satırlık asset tablosunun paylaşılabilir kopyası |
 | `docs/asset-rehberi.pdf` | Güncel asset listesi, örnek görseller ve sanat stili; üreticiye gönderilebilir |
 | `docs/asset-promptu.md` | Yalnız halen eksik veya yenilenecek görseller için güncel üretim promptu |
 | `docs/olcek-standardi.md` | Referans karaktere göre görsel ölçeği |
@@ -31,7 +31,7 @@ Terminalin verdiği adresi açın; varsayılan port 5173'tür, doluysa sonraki p
 - Beş gün; her gün temel 3 eylem. Dört kurucu ile başlanır; dört üretim makinesi doludur. Oyuncu nüfusa dahil değildir.
 - Enerji, su, gıda, atık ve karbon; denge hesabında karbon iki ağırlıklıdır. Gizli insanlık ve görünür memnuniyet farklı göstergelerdir. Dört temel son ve güven oylaması sonu vardır.
 - Makine operatörleri, uzmanlık, dinlenme/yorgunluk, ziyaretçi kabul/ret, yarının olayına hazırlık, karar kartları, araştırma, batarya ve keşif işler.
-- Koloni, Odalar, Keşif, Araştırma, İnşaat ayrı yönetim panelleridir. Ekranın altından veya yaşam odasındaki Sığınak Yönetimi panosundan açılır. Pencere açıkken oyuncu durur; NPC'ler yürümeye devam eder.
+- Koloni, Odalar, Keşif, Araştırma, İnşaat, Hedefler ayrı yönetim panelleridir. Ekranın altından veya yaşam odasındaki Sığınak Yönetimi panosundan açılır. Pencere açıkken oyuncu durur; NPC'ler yürümeye devam eder.
 - A/D veya oklar: yürü. Shift + yön: ×1,65 koş. E: etkileşim. 1–9: üretim paneli eylemi. Esc: kapat, Enter: varsayılan buton.
 - Oyuncu hızı 240 px/sn; koşu 396 px/sn. NPC hızı 85 px/sn; yol süresi mesafeden hesaplanır, animasyon hıza uyarlanır ve yürüyüşler arasında duraklar.
 - Arayüz: metal/ahşap 9-dilim çerçeveler, açık zeytin kutular, yerel Nunito Sans ve Barlow Condensed fontları. Uzun pencerelerde çerçeve ve alt şerit sabit, içerik kayar.
@@ -40,7 +40,9 @@ Terminalin verdiği adresi açın; varsayılan port 5173'tür, doluysa sonraki p
 
 `src/data/structures.js` içinde beş yapı var: Yalıtım Tesisi, Sel Bariyeri, Ek Güneş Paneli, Su Geri Kazanım Hattı ve Onarım Tezgâhı. Her yapının `oda`, `sure`, `maliyet`, `geceEtki` / `olayAzalt` alanları bulunur.
 
-Aynı anda tek inşaat (`state.insaat`) yürür. Eylem ve kaynaklar başta ödenir; yapı bir gece sonra `state.yapilar` listesine geçer. O gece henüz üretim yapmaz, sonraki gün aktif olur; tamamlanma gece raporunda gösterilir. Son gün yeni inşaat başlatılmaz. Atık burada geri kazanılabilir malzemedir; negatif atık maliyeti gerçekten elde bulunmalıdır. İptal/iade, inşaatçı görevi ve fiziksel oda genişletme henüz yoktur. Yeni yapılar mevcut ikonları kullanır; dünyaya ayrıca sprite çizilmez.
+Aynı anda tek inşaat (`state.insaat`) yürür. Malzeme atıktan ayrıdır: başlangıç 8, kapasite 100; yapı maliyeti malzeme stoğundan ödenir. Ayrıştırma 20 gerçek atık başına 6, onarım 10 gerçek atık başına 3 malzeme verir; atık yoksa kazanım yoktur. Atık, yapıya doğrudan harcanmaz.
+
+Her yapı 2 iş puanı gerektirir. Atanan işçi gecede 1, mühendis/tamirci 2 iş sağlar; oyuncu günde bir kez 1 eylemle +1 iş ekler. İşçi/yardım yoksa ilerleme yoktur. İnşaatçı eski işinde üretim yapmaz; bitince/iptal edilince önceki işine döner, yer doluysa dinlenir. Duraklatmada ilerleme yoktur ve işçi dinlenir. İptal, kalan iş oranına göre malzemenin yarısını iade eder; enerji/eylem iade edilmez. Yapı gece tamamlanır, sonraki gün aktif olur. Son gün yeni proje açılmaz.
 
 `kaynakYeterliMi()` enerji/su/gıda harcayan eylemleri kontrol eder. Atık/karbon temizliği, elde tam miktar olmasa da yapılabilir ve sıfırda durur. İnşaatta malzeme kontrolü ayrıca atığı da kapsar. `yeniAile` kartının kabul/ret seçenekleri gerçek ziyaretçiyi işler; sel/toz kartındaki hazırlık gerçek `state.hazirlik` alanını ayarlar.
 
@@ -54,14 +56,14 @@ Yorgunluk: çalışana +1/gece, dinlenene −2; uyarı 4, ayrılma eşiği 5; ay
 | Eylemler / olaylar / ziyaretçiler / araştırma / yapılar / keşif | `src/data/panels.js`, `events.js`, `visitors.js`, `research.js`, `structures.js`, `exploration.js` |
 | Yönetim panelleri | `src/ui/ui.js`: `YONETIM_BOLUMLERI`, `panoAc(bolum)`, `panoCiz`, `odalarHtml`, `yapilarHtml` |
 | Pencereler ve sabit alt şerit | `src/ui/ui.js`: `modalAc`; `src/style.css`: `.kart-icerik`, `.kart > .alt`, `.pano-gecis` |
-| Koşma / NPC | `src/scenes/GameScene.js`: `update`, `KOSU_CARPANI`, `SAKIN_HIZI`, `sakinIdleBaslat`, `sakinTasi`, `sakinAnimGuncelle(dt)` |
+| Koşma / NPC | `GameScene.js`: `update`; `scenes/game/ayarlar.js`: hızlar; `scenes/game/sakinler.js`: rutin ve animasyon |
 | Oda yerleşimi / ölçek | `src/data/rooms.js`: `ODALAR`, `ODA_GENISLIK=739`; `src/data/assets.js`: `PX_METRE=74` |
 | Dünya assetleri / arayüz dosyaları | `src/data/assets.js`: `ASSETLER`, `ARAYUZ_IKONLARI`, `KARAR_GORSELLERI`, `SON_GORSELLERI`, `ARAYUZ_DOSYALARI` |
 | Animasyon kareleri | `src/data/animations.js`: `ANIMASYONLAR`; dosyalar `public/assets/anim/<ad>-<n>.png` |
 
 ## Asset devri
 
-92 satırın 71'i hazır, 9'u yenilenmeli, 12'si eksik. Kalanlar: `sakin-1` ve `sakin-3` için bekleme+yürüme setleri; dokuz eski stildeki portre; isteğe bağlı on özel sakin sprite'ı. Mevcut 44 arayüz görseli bağlıdır, yeniden üretilmeleri gerekmiyor. `node tools/asset-durum.mjs` diskteki dosyaları kontrol eder; sanat kalitesini veya portre yenileme gereksinimini otomatik değerlendirmez.
+93 satırın 72'si hazır, 9'u yenilenmeli, 12'si eksik. Kalanlar: `sakin-1` ve `sakin-3` için bekleme+yürüme setleri; dokuz eski stildeki portre; isteğe bağlı on özel sakin sprite'ı. Mevcut 44 arayüz görseli bağlıdır, yeniden üretilmeleri gerekmiyor. `node tools/asset-durum.mjs` diskteki dosyaları kontrol eder; sanat kalitesini veya portre yenileme gereksinimini otomatik değerlendirmez.
 
 1. Mevcut dosyayı/kimliği tablodan seçin. Küçük harf ve tire kullanın; Türkçe karakter kullanmayın.
 2. Animasyonda önceki sabit görseli referans verin; karelerde aynı boy, taban ve şeffaflık. Sakin seti 2 bekleme + 4 yürüyüş karesidir; oyun ayrı PNG kareleri yükler, ham sprite sheet yüklemez.
@@ -93,3 +95,51 @@ Devam edilecekler: eylemler arasındaki baskın seçimleri azaltma (güneş temi
 ## PR ve ekip akışı
 
 Küçük, test edilebilir değişiklikler yapın; her iş sonunda kullanıcı bilgisiyle Project Log kaydı ve ilgili harita/asset güncellemesi ekleyin. Kod sorumlusu Ayberk; dalı push edip PR üzerinden birleştirin. `main` birleşmesi canlı yayını tetikler. GDD gelecekteki kapsamı anlatır; hangi parçanın gerçekten çalıştığını bu rehber, kod ve güncel testler üzerinden kontrol edin.
+
+## Üretim modları, konuşma ve NPC rutinleri
+
+`src/data/production.js`: tasarruf üretim ×0,65, yorgunluk/aşınma +0; normal ×1 ve +1/+1; yoğun ×1,6 ve +2/+2. Ek enerji/su/karbon etkileri makineye göre değişir. Aşınma 6'da üretim %70'e, 10'da %40'a iner. Bakım: 1 eylem +2 malzeme, −5 aşınma. Modlar Odalar ve üretim panellerinden seçilir. Denge simülasyonu normal modu kullanır; diğer modların stratejik dengesini insan playtestiyle kontrol edin.
+
+Yakındaki sakinle E veya nesne de yakınsa T; Koloni panelinde Konuş. Akış: açılış/Devam → seçenekler → oyuncu cümlesi/Devam → sakin yanıtı/Devam → seçenekler. Oyuncu portresi sol, sakin sağ altta; yalnız konuşmacı görünür. Görev/ihtiyaç soruları ücretsiz; moral kişi başına günde bir, 1 eylem karşılığında +4 memnuniyet/−1 yorgunluk; dinlenme görevi doğrudan değiştirir. Veri `src/data/dialogues.js`; uygulama `sakinleKonus()` ve `moralVer()`.
+
+Karakter kimliği `assets.js` içindeki `sakinGorselTanimi()` ile ortak seçilir: sahne, koloni ve diyalog aynı tam-boy görseli kullanır. Özel sakin-<id>.png varsa önceliklidir; yoksa kimliğe sabit genel sprite kullanılır. Selin ve Nur şu an aynı kadın yer tutucuyu paylaşır; benzersiz tam-boy assetler Asset Listesi'nde bekliyor. Sıralama değişince karakter tipi değişmez.
+
+NPC'ler atandıkları odada serbest dolaşır; `src/data/activities.js` görselden işaretlenen hedefleri içerir. Serada domates/marul/biber/fide rafı, diğer odalarda tank/tezgâh/raf vb. kullanılır. Koordinat tablosu ve debug açma yöntemi `docs/npc-noktalari.md`. Sulama/onarım/inceleme hareketleri Phaser tween/Graphics ile prosedüreldir, yeni PNG yoktur. Üretim bu animasyonlardan bağımsızdır. Yeni bir oda asseti gelirse ilgili oranları yeniden kontrol edin.
+
+`npm test` artık `tools/uretim-test.mjs` ile malzeme/mod/bakım, iş gücü/iptal, moral, karakter eşleşmesi ve faaliyet bölgesi doğrulamalarını; `tools/ses-test.mjs` ile ses yarış durumlarını da çalıştırır.
+
+## İlerleme paketi ve devam noktaları
+
+- `data/exploration.js`: santral/rezervuar bir geceden sonra karar bekler. Güvenli erken dönüş yarım kaynak verir, plan/araştırma vermez. Devam bir gece ve −0,15 başarı; erzak −2 su/−2 gıda ve +0,10 başarı (en çok 1). Son gün yalnız dönüş mümkündür. İnşaat işçisi sefer için önce görev değiştirmeli.
+- Rezervuarın tam başarılı dönüşü `pompa` planını açar. `yagmurSuyu` araştırması 4 puan; `yagmurDeposu` 1 eylem/8 malzeme/4 enerji, 2 iş; gecelik +4 su ve kuraklık zararında yarılanma. Yeni PNG gerekmez; mevcut su ikonu kullanılır, ayrı bina görseli eklenmedi.
+- Diyalogdan yarın dinlenme sözü verilir; ertesi günün gece kapanışında görev `bosta` ise tutulur. Kişisel güven +10/−12 ve memnuniyet +6/−6; ayrılmış kişi ceza yaratmaz. Kişisel güven şu an yalnız hafıza/geri bildirim, üretim katsayısı değildir.
+- `data/production.js` hava etkilerini, `state.havaUretimEtkisi` koruma ve yoğun mod etkileşimini yönetir. Gece tahmini ve gerçek hesap aynı üretimi kullanır.
+- `data/scenario.js`: 3. gün sonuna kadar bariyer veya komşuya 8 su/5 malzeme; isteğe bağlı, ana kazanma koşulu değil. Geri kazanım ile ikisi de yapılabilir.
+- `kayit.js`: `sondenge:gun-basi:v1` localStorage kaydı; yeni oyun başlangıcı ve her sabah otomatik. Gün içi işlem kaydedilmez. Kayıt cihaz/tarayıcıya özgü; depolama engellenirse oyun sürer ama kayıt oluşmaz. Oyun bitince kayıt silinir. Devam sahneyi yeniden kurar, seri hale getirilemeyen olay/kart fonksiyonları veri tanımlarından bağlanır. Hatalı/eski kayıt açılmaz.
+- `tools/ilerleme-test.mjs` yeni akışların regresyonlarını içerir. `npm test`, normal/tek build geçti; tarayıcıda kararlar, hedefler ve gün 3 devam/sahne kurma doğrulandı. 36.000 oyun simülasyonu mevcut otomatik stratejileri kapsar, yeni tüm seçim kombinasyonlarını kapsamaz; akıllı/hepsini al gerçek ütopya yaklaşık %74. Tarihsel %76 sonucu son hava modeli için kullanılmamalı.
+- [Hackathon eşlemesi](hackathon-uyum-analizi.md): kullanıcının iki slaytına göre 7 odak/10 kriter; yayın/teslim/sunum henüz doğrulanmış değil. Değişiklikler yerel, bu çalışma push/merge yapmadı.
+
+## GameScene performansı (1 Kasım 2026)
+
+Sakin verisi eşlemesi `gorselGuncelle` ile state bildiriminde çalışır; `gorselUygula` yalnız görsel geçişi uygular. Bu yüzden yeni sakin/görev değişimlerinde state'in mevcut bildirim mekanizmasını kullanın. Yakın sakin seçimi tek geçiştir; sahnedeki sakin kaydı `id` taşır. Şehir renkleri ve etiket kutusu değişmedikçe Graphics tekrar çizilmez. İpucu zemini dışarıdan temizlenirse `etiketKutusu` önbelleğini de sıfırlayın. Shutdown, text üreticisini geri yükler ve E/T dinleyicilerini kaldırır; restart başında zaman/girdi/önbellek alanları sıfırlanır.
+
+Chromium kontrolü: 1,7 saniyelik denge geçişinde sakin eşleme ve sabit ipucu çizimi birer çağrı; restart sonrası tek E dinleyicisi ve çalışan konuşma ipucu. FPS karşılaştırması yapılmadı. Dekor ve asset çizimleri sonraki yapısal düzenlemede `scenes/game/` altına taşındı; aşağıdaki harita günceldir.
+
+## GameScene modülleri
+
+Ana `src/scenes/GameScene.js` 362 satır: `create`, oyuncu, `update`, etkileşim ve gün bitirme akışı. Alt sistemler `src/scenes/game/` altında:
+
+| Modül | Sorumluluk |
+|---|---|
+| `dokular.js` | Preload, küçültme, içerik kutusu, sprite ölçekleme |
+| `yerTutucular.js` | Eksik assetler için kodla doku üretimi |
+| `animasyonlar.js` | Animasyon karelerini yükleme, kurma ve oynatma |
+| `dunya.js` | Oda/dekor, manzara, çatı ve inşa edilen yapıların çizimi |
+| `sakinler.js` | UID eşleme, yürüme, oda rutinleri ve çalışma |
+| `efektler.js` | Kaynak yazıları, duman, ziyaretçi, gün başlığı, atmosfer, etiket zemini |
+| `ayarlar.js` | Hız, ölçek ve ortak koordinatlar |
+| `dokuOnbellegi.js` | TextureManager ile restart boyunca yaşayan kümeler ve ölçümler |
+
+Yöntem nesneleri GameScene dosyasının sonunda açık `Object.assign` ile prototype'a eklenir. Böylece Phaser callback'lerindeki `this` ve mevcut `scene.sakinTasi()` gibi çağrılar korunur; her karede bağlama/wrapper maliyeti eklenmez. Modüller GameScene'i import etmez, döngüsel sahne bağımlılığı yoktur. Modüllerdeki `this` bir Phaser GameScene'dir; `this.add`, `this.time`, `this.tweens` ve sahne verileri kullanılır. Yeni alanları `create` içinde başlatın; dinleyici/rutin temizliğini shutdown'da tutun. Doku önbelleğini sahne restart'ında temizlemeyin; dokular o sırada yaşamaya devam eder. Yeni yöntem adını diğer modüllerle çakıştırmayın.
+
+`CIZIM_OLCEGI` asıl olarak `ayarlar.js` içindedir; mevcut `main.js` importunu bozmamak için GameScene'den yeniden export edilir. Bu refaktör davranışı ve kaynak sayılarını değiştirmez.
