@@ -10,6 +10,8 @@ import { ZIYARETCILER, KURUCULAR } from './data/visitors.js';
 import { PANELLER } from './data/panels.js';
 import { BILGILER, GENEL_BILGILER } from './data/facts.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, BATARYA_SARJ_ESIGI, OYUNCU_CALISMA_MALIYETI } from './data/research.js';
+import { YAPILAR } from './data/structures.js';
+export { YAPILAR };
 
 export const AYAR = {
   maxGun: 5,            // demo kaç gün sürer
@@ -120,6 +122,7 @@ export function sifirla() {
   state.guvenDusukGece = 0;     // memnuniyetin üst üste kaç gece eşiğin altında kaldığı
   state.sefer = null;           // { yer, uid, kalan } aktif keşif seferi
   state.kesfedilenler = [];     // bu oyunda gidilmiş keşif noktaları
+  state.yapilar = [];           // inşa edilen yapılar (data/structures.js)
   for (const k of KURUCULAR) state.sakinler.push({ uid: state.sakinler.length + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
   katkiGuncelle();
   state.denge = dengeHesapla();
@@ -160,16 +163,53 @@ function topla(...etkiler) {
 
 // ---------------------------------------------------------------
 //  HAZIRLIKLI OLAYLAR (GDD Faz 2: uyarı → hazırlık → etki)
+//  Yapılar (GDD Faz 7, data/structures.js) olayAzalt ile aynı
+//  carpan sistemine entegre: hazırlık ile çarpılır (çarpanlar birleşir).
 // ---------------------------------------------------------------
-// Bugünün olayına hazırlanıldıysa kötü yöndeki etkiler küçülür
+function olayCarpani(olay = state.olay, hazirlikli = state.olayHazirlikli) {
+  let c = 1;
+  if (hazirlikli && olay?.hazirlik) c *= olay.hazirlik.carpan;
+  if (olay) for (const y of state.yapilar || []) {
+    const az = YAPILAR[y]?.olayAzalt;
+    if (az && az[olay.id] != null) c *= az[olay.id];
+  }
+  return c;
+}
+
+// Bugünün olayına hazırlanıldıysa veya yapı varsa kötü yöndeki etkiler küçülür
 export function olayEtkisi(etki, olay = state.olay, hazirlikli = state.olayHazirlikli) {
-  if (!etki || !hazirlikli || !olay?.hazirlik) return etki;
+  if (!etki) return etki;
+  const c = olayCarpani(olay, hazirlikli);
+  if (c === 1) return etki;
   const sonuc = {};
   for (const [ad, d] of Object.entries(etki)) {
     const kotu = (d < 0) === KAYNAKLAR[ad].yuksekIyi;
-    sonuc[ad] = kotu ? Math.round(d * olay.hazirlik.carpan) : d;
+    sonuc[ad] = kotu ? Math.round(d * c) : d;
   }
   return sonuc;
+}
+
+// Yapı inşa (GDD Faz 7)
+export const yapiAcik = (id) => (state.yapilar || []).includes(id);
+export function yapiKurabilirMi(id) {
+  if (state.bitti || !YAPILAR[id] || yapiAcik(id)) return false;
+  const m = YAPILAR[id].maliyet || {};
+  if (state.eylem < (m.eylem || 0)) return false;
+  if (YAPILAR[id].onKosul && !YAPILAR[id].onKosul(state)) return false;
+  return true;
+}
+export function yapiKur(id) {
+  if (!yapiKurabilirMi(id)) return false;
+  const m = YAPILAR[id].maliyet || {};
+  if (m.eylem) state.eylem -= m.eylem;
+  const kaynakMaliyet = {};
+  for (const [k, v] of Object.entries(m)) if (k !== 'eylem') kaynakMaliyet[k] = v;
+  etkiUygula(kaynakMaliyet);
+  state.yapilar.push(id);
+  if (YAPILAR[id].bilgi) state.bugunBilgi.push({ anahtar: YAPILAR[id].bilgi, kirli: false });
+  state.denge = dengeHesapla();
+  bildir();
+  return true;
 }
 
 export function hazirlanabilirMi() {
@@ -502,7 +542,8 @@ export function masadaArastir() {
 function geceHesapla() {
   const sakin = sakinlerToplami(true);
   const teknoloji = state.arastirma.acik.map((id) => ARASTIRMALAR[id].geceEtki);
-  const degisim = topla(AYAR.gunSonuDegisim, nufusTuketimi(), sakin.etki, olayEtkisi(state.olay?.gunSonu), state.kartGeceEtki, ...teknoloji);
+  const yapi = (state.yapilar || []).map((id) => YAPILAR[id].geceEtki);
+  const degisim = topla(AYAR.gunSonuDegisim, nufusTuketimi(), sakin.etki, olayEtkisi(state.olay?.gunSonu), state.kartGeceEtki, ...teknoloji, ...yapi);
 
   // Batarya: açık varsa önce depodan karşıla, fazla varsa depoya aktar
   let batarya = state.batarya;
