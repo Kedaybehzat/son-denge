@@ -21,7 +21,7 @@ export const ILK_OLAY = {
   baslik: 'Sakin bir sabah',
   metin:
     '"Günaydın Yeşilvadi. Bugün gökyüzü açık, rüzgar hafif. Merkez hatırlatıyor: ' +
-    'Büyük Sessizlik\'ten önceki dünya israf yüzünden çöktü. Kaynaklarınızı dengede tutun."\n\n' +
+    'Afetlere hazırlanmak ve kaynakları paylaşmak Yeşilvadi\'yi ayakta tutacak."\n\n' +
     'Odaları gez ve panelleri tanı. Her gün sınırlı eylem hakkın var. Günü bitirmek için yatağa git.\n\n' +
     'Yarından itibaren kapıya sığınacak yer arayanlar gelebilir. Kimi içeri alacağına sen karar vereceksin.',
 };

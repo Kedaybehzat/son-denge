@@ -5,11 +5,12 @@
 // =============================================================
 import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, ziyaretciNetEtki, geceTahmini, AYAR, KAYNAKLAR,
   sakinTanimi, sakinCiktisi, gorevAta, arastirmaSec, arastirmaAcik, masadaArastir, masadaArastirabilirMi,
-  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi, kapaliMakineler, makineKapali, YAPILAR, yapiAcik, yapiKur, yapiKurabilirMi, CALISMA_MODLARI, BAKIM, makineModu, makineModuSec, makineUretimi, bakimYap, bakimYapabilirMi, geriKazanimMiktari, insaatci, insaatTahmini, insaatDuraklat, insaatIptal, insaataYardimEt, moralVer, moralVerebilirMi, havaUretimEtkisi, dinlenmeSozuVer, dinlenmeSozuVerebilirMi, SENARYO_HEDEFLERI, hedefYardimiGonder, hedefYardimiGonderebilirMi, kesifKarariSec, kesifKarariYapabilirMi, kayittanDevamEt } from '../state.js';
+  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi, kapaliMakineler, makineKapali, YAPILAR, yapiAcik, yapiKur, yapiKurabilirMi, CALISMA_MODLARI, BAKIM, makineModu, makineModuSec, makineUretimi, bakimYap, bakimYapabilirMi, geriKazanimMiktari, insaatci, insaatTahmini, insaatDuraklat, insaatIptal, insaataYardimEt, moralVer, moralVerebilirMi, havaUretimEtkisi, dinlenmeSozuVer, dinlenmeSozuVerebilirMi, SENARYO_HEDEFLERI, hedefYardimiGonder, hedefYardimiGonderebilirMi, kesifKarariSec, kesifKarariYapabilirMi, kayittanDevamEt, panelIncelendi } from '../state.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, OYUNCU_CALISMA_MALIYETI } from '../data/research.js';
 import { ODALAR } from '../data/rooms.js';
 import { PANELLER } from '../data/panels.js';
 import { kayitOku, gunBasiniKaydet } from '../kayit.js';
+import { kararAciklamasi, gununKararlari, ogrenmeOzeti } from '../ogrenme.js';
 import { DIYALOG } from '../data/dialogues.js';
 import { HIKAYE } from '../data/story.js';
 import { HAZIRLIK_MALIYETI } from '../data/events.js';
@@ -264,6 +265,7 @@ function hudGuncelle(s) {
 //  KONTROL PANELİ
 // ---------------------------------------------------------------
 export function panelAc(def, anahtar = null) {
+  panelIncelendi(anahtar);
   aktifPanel = def;
   aktifPanelAnahtar = anahtar;
   sonMesaj = '';
@@ -321,6 +323,7 @@ function panelCiz() {
     </div>
     <p class="aciklama">${kacis(def.aciklama)}</p>
     ${makinePanelHtml()}
+    ${ilkGunRehberiHtml()}
     ${aktifPanelAnahtar ? makineAyarHtml(aktifPanelAnahtar) : ''}
     <div class="mini-gostergeler">${goster}</div>
     <div class="eylemler">${eylemler}</div>
@@ -332,6 +335,7 @@ function panelCiz() {
     </div>`, { sinif: 'panel', tema: def.tema });
 
   makineAyarlariniBagla();
+  ilkGunRehberiBagla();
   kart.querySelector('[data-kendin]')?.addEventListener('click', () => {
     if (!kendinCalisabilirMi(aktifPanelAnahtar)) return;
     sonMesaj = 'Kolları sıvadın. Makine bu gece senin sayende üretecek.';
@@ -415,8 +419,31 @@ function hazirlikBagla(yenidenCiz) {
 }
 
 export function olayGoster(olay) {
-  modalAc(`${olayHtml(olay)}<div class="alt sag"><button data-kapat data-varsayilan>Tamam</button></div>`, { sinif: 'radyo-kart' });
+  modalAc(`${olayHtml(olay)}${ilkGunRehberiHtml()}<div class="alt sag"><button data-kapat data-varsayilan>Tamam</button></div>`, { sinif: 'radyo-kart' });
   hazirlikBagla(() => olayGoster(olay));
+  ilkGunRehberiBagla();
+}
+
+function ilkGunRehberiHtml() {
+  if (state.gun !== 1 || state.bitti) return '';
+  const incelendi = state.kararGecmisi.some(k => k.tip === 'inceleme');
+  const secildi = state.kararGecmisi.some(k => k.tip === 'eylem' || k.tip === 'kart');
+  return `<section class="bilgi-karti"><h3>İlk gün: kararını ve sonucunu keşfet</h3>
+    <p>${incelendi ? '✓' : '1.'} Bir makinenin üretimini ve seçeneklerini incele. ${secildi ? '✓ Bir tercih yaptın.' : '2. Eylemlerin kazancını ve bedelini karşılaştırıp birini seç.'} 3. Gece tahminine bak; hazır olduğunda yaşam alanındaki yatakta uyu. Sabah raporunda seçiminin sonucunu gör.</p>
+    <button class="ikincil" data-rehber-panel>Enerji panelini incele</button>
+    <button class="ikincil" data-rehber-tahmin>Gece tahminine bak</button></section>`;
+}
+function ilkGunRehberiBagla() {
+  kart.querySelector('[data-rehber-panel]')?.addEventListener('click', () => panelAc(PANELLER.enerji, 'enerji'));
+  kart.querySelector('[data-rehber-tahmin]')?.addEventListener('click', () => {
+    const t = geceTahmini();
+    bilgi('Gece tahmini', `Enerji ${Math.max(0, Math.min(100, state.kaynak.enerji + (t.degisim.enerji || 0)))}, su ${Math.max(0, Math.min(100, state.kaynak.su + (t.degisim.su || 0)))}, gıda ${Math.max(0, Math.min(100, state.kaynak.gida + (t.degisim.gida || 0)))}. Bu bir tahmindir; gün içindeki yeni tercihlerle değişir. Hazır olduğunda yatağa gidip günü bitir.`);
+  });
+}
+
+function secimDersleriHtml(secimler, baslik) {
+  if (!secimler.length) return '';
+  return `<section class="bilgi-karti"><h3>${kacis(baslik)}</h3>${secimler.map(k => `<p><b>Gün ${k.gun} · ${kacis(k.ad || 'Seçimin')}:</b> ${kacis(kararAciklamasi(k))}</p>${k.tip === 'eylem' ? `<div class="rapor"><span>Seçim anındaki değişim:</span>${etkiChipleri(k.etki) || '<span class="chip">Kaynak değişimi yok</span>'}${k.malzeme ? `<span class="chip iyi">+${k.malzeme} malzeme</span>` : ''}</div>` : ''}`).join('')}</section>`;
 }
 
 function bilgiHtml(b) {
@@ -425,7 +452,7 @@ function bilgiHtml(b) {
     <div class="bilgi-karti">
       <span class="etiket">💡 BİLİYOR MUYDUN?</span>
       <p>${kacis(b.metin)}</p>
-      <span class="kaynak">Kaynak: ${kacis(b.kaynak)}</span>
+      <span class="kaynak">Kaynak: ${kacis(b.kaynak)}${b.url?.startsWith('https://') ? ` · <a href="${kacis(b.url)}" target="_blank" rel="noopener noreferrer">Kaynağı aç</a>` : ''}</span>
     </div>`;
 }
 
@@ -448,6 +475,7 @@ export function gunBaslangici({ sozSonuclari = [], hedefSonuclari = [], insaatBi
     ${ayrilanlar.map((z) => `<p class="uyari">😮‍💨 ${kacis(z.ad)} tükenmişti ve gece sessizce sığınaktan ayrıldı.</p>`).join('')}
     ${sozSonuclari.map(p => `<p class="${p.durum === 'tutuldu' ? 'mesaj' : 'uyari'}">${kacis(p.ad)}: dinlenme sözü ${p.durum === 'tutuldu' ? 'tutuldu (+6 memnuniyet, güven arttı)' : p.durum === 'ayrildi' ? 'sakin ayrıldığı için kapandı' : 'tutulmadı (−6 memnuniyet, güven azaldı)' }.</p>`).join('')}
     ${hedefSonuclari.map(h => `<p class="mesaj">${SENARYO_HEDEFLERI.find(t => t.id === h.id).ad}: ${h.durum === 'tamamlandi' ? 'tamamlandı' : 'süre doldu'}.</p>`).join('')}
+    ${secimDersleriHtml(gununKararlari(state.kararGecmisi, state.gun - 1), 'Seçimlerin neyi gösterdi?')}
     ${memnuniyetHtml(memnuniyet)}
     ${gitti}
     ${seferHtml(sefer)}
@@ -1007,7 +1035,7 @@ export function gunuBitirOnay(evet) {
     ${t.bataryaSarj ? `<div class="ziyaretci-satir"><span>Batarya:</span><span class="chip iyi">🔋 fazla ${t.bataryaSarj} enerji depoya</span></div>` : ''}
     <div class="ziyaretci-satir"><span>Tahmini denge:</span><span class="chip ${t.denge >= state.denge ? 'iyi' : 'kotu'}">${state.denge} → ${t.denge}</span></div>
     ${uyarilar.map((u) => `<p class="aciklama">${kacis(u)}</p>`).join('')}
-    <p class="aciklama">Tahmin; sabit gece tüketimini, ${state.nufus} kişinin tüketimini, çalışan makinelerin üretimini, sakinlerin katkılarını ve bugünkü olayı içerir. Yarının olayı bilinmez.</p>
+    <p class="aciklama">Tahmin; sabit gece tüketimini, ${state.nufus} kişinin tüketimini, çalışan makinelerin üretimini, sakinlerin katkılarını ve bugünkü olayı içerir. Yarının anlık etkileri bu gece tahminine dahil değildir.</p>
     <div class="alt sag">
       <button class="ikincil" data-kapat>Vazgeç</button>
       <button data-evet data-varsayilan>Uyu</button>
@@ -1222,6 +1250,8 @@ export function sonGoster({ tip, bilgi }, tekrar) {
         ${state.ayrilan ? `<div><span>Tükenip giden</span><b>${state.ayrilan}</b><small>kişi</small></div>` : ''}
         <div><span>Memnuniyet</span><b>${state.memnuniyet}</b><small>/ 100</small></div>
       </div>
+      ${secimDersleriHtml(ogrenmeOzeti(state.kararGecmisi), 'Bu oyundaki tercihlerinden')}
+      <p class="aciklama">Kaynaklar ve karbon 0–100 oyun puanlarıdır; gerçek miktar veya iklim tahmini değildir. Beş günlük akış, uzun vadeli ilişkileri basitleştirir.</p>
       ${bilgiHtml(bilgi)}
       <button data-tekrar data-varsayilan>Tekrar oyna</button>
     </div>`, { kapatma: false, sinif: 'son-ekrani' });

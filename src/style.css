@@ -1459,3 +1459,8 @@ body { font-weight: 400; }
 .diyalog-secenekler button { text-align: left; text-transform: none; font-size: 1.3cqw; }
 .diyalog-secenekler small { display: block; font: 400 0.9cqw var(--font-metin); opacity: 0.8; }
 .ikon-rozet.portre img.sakin-portre { object-position: center top; }
+
+/* Bilgi kartlarındaki birincil kaynak bağlantıları. */
+.bilgi-karti .kaynak { display: block; overflow-wrap: anywhere; }
+.bilgi-karti .kaynak a { color: #b8e5d5; text-decoration: underline; text-underline-offset: 0.15em; }
+.bilgi-karti .kaynak a:hover, .bilgi-karti .kaynak a:focus-visible { color: #fff2cf; }

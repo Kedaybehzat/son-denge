@@ -124,6 +124,7 @@ export function sifirla() {
   state.eylem = AYAR.eylemHakki;
   state.kullanilanOlaylar = [];
   state.kullanilanZiyaretciler = [];
+  state.kararGecmisi = [];   // Gerçekleşmiş seçimler; gün başı kayda dahil
   state.bugunBilgi = [];     // bugünkü seçimlerin bilgi anahtarları
   state.gosterilenBilgiler = [];
   state.bitti = false;
@@ -307,10 +308,18 @@ export function hazirlanabilirMi() {
   return !state.bitti && !!state.tahmin?.hazirlik && !state.hazirlik && state.eylem >= HAZIRLIK_MALIYETI;
 }
 
+function kararKaydet(karar) {
+  state.kararGecmisi.push({ gun: state.gun, ...karar });
+}
+export function panelIncelendi(id) {
+  if (state.bitti || !PANELLER[id] || state.kararGecmisi.some(k => k.tip === 'inceleme' && k.id === id && k.gun === state.gun)) return;
+  kararKaydet({ tip: 'inceleme', id });
+}
 export function hazirlan() {
   if (!hazirlanabilirMi()) return false;
   state.eylem -= HAZIRLIK_MALIYETI;
   state.hazirlik = true;
+  kararKaydet({ tip: 'hazirlik', ad: state.tahmin.hazirlik.ad, bilgi: 'erkenuyari' });
   state.bugunBilgi.push({ anahtar: 'erkenuyari', kirli: false });
   bildir();
   return true;
@@ -353,6 +362,7 @@ function kartKontrol() {
 // Seçeneği uygular; sonuç ekranı için seçeneği döndürür
 export function kartSec(sec) {
   if (!kartSecebilirMi(sec) || !kartSecenekleri().includes(sec)) return null;
+  const once = { ...state.kaynak };
   state.eylem -= sec.maliyet || 0;
   etkiUygula(sec.etki);
   state.kartGeceEtki = topla(state.kartGeceEtki, sec.geceEtki);
@@ -365,8 +375,9 @@ export function kartSec(sec) {
     if (biten) state.bugunBilgi.push({ anahtar: ARASTIRMALAR[biten].bilgi, kirli: false });
   }
   if (sec.bilgi) state.gosterilenBilgiler.push(sec.bilgi); // sonuç ekranında gösterildi, gece tekrar çıkmasın
+  kararKaydet({ tip: 'kart', ad: sec.ad, bilgi: sec.bilgi, aciklama: sec.sonuc || '', etki: Object.fromEntries(Object.keys(once).map(k => [k, state.kaynak[k] - once[k]])) });
   state.kart = null;
-  if (sec.hazirlik) state.hazirlik = true;
+  if (sec.hazirlik) { state.hazirlik = true; kararKaydet({ tip: 'hazirlik', ad: state.tahmin.hazirlik.ad, bilgi: 'erkenuyari' }); }
   if (sec.kapi === 'kabul') ziyaretciKabul();
   else if (sec.kapi === 'ret') ziyaretciReddet();
   state.denge = dengeHesapla();
@@ -815,10 +826,12 @@ export function geriKazanimMiktari(eylem) {
 }
 export function eylemYap(eylem) {
   if (!eylemYapabilirMi(eylem)) return false;
+  const once = { ...state.kaynak }, onceMalzeme = state.malzeme;
   const malzeme = geriKazanimMiktari(eylem);
   state.malzeme = Math.min(AYAR.malzemeKapasite, state.malzeme + malzeme);
   state.eylem -= eylem.maliyet ?? 1;
   etkiUygula(eylem.etki);
+  kararKaydet({ tip: 'eylem', ad: eylem.ad, bilgi: eylem.bilgi, etki: Object.fromEntries(Object.keys(once).map(k => [k, state.kaynak[k] - once[k]])), malzeme: state.malzeme - onceMalzeme });
   if (eylem.bilgi) state.bugunBilgi.push({ anahtar: eylem.bilgi, kirli: !!eylem.kirli });
   state.denge = dengeHesapla();
   bildir();
@@ -971,6 +984,7 @@ export function gunuBitir() {
   const insaatPlani = insaatTahmini();
   const yorgunlukPlani = new Map(state.sakinler.map((s) => [s.uid, yarinkiYorgunluk(s)]));
   const asinmaPlani = Object.keys(MAKINELER).filter((id) => makineCalisiyorMu(id) && !makineKapali(id));
+  for (const id of asinmaPlani) kararKaydet({ tip: 'uretim', ad: `${MAKINELER[id].ad}: ${makineModu(id).ad}`, mod: state.makineModlari[id] });
   const once = { ...state.kaynak };
   const gece = geceHesapla();
   etkiUygula(gece.degisim);

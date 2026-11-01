@@ -72,7 +72,7 @@ export const ZIYARETCILER = [
     ad: 'Mert ve Ada',
     ikon: '🧒',
     kisi: 2,
-    metin: 'İki kardeş. Ailelerini salgında kaybetmişler, haftalardır yalnız yürüyorlar.',
+    metin: 'İki kardeş. Afetler sırasında ailelerinden ayrı düşmüşler, haftalardır yalnız yürüyorlar.',
     katkiMetni: 'Hiçbir şey getirmiyorlar. Sadece bir gelecek.',
     calisir: false,
     guclu: 'Topluluğun geleceği',

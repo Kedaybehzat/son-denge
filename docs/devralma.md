@@ -143,3 +143,15 @@ Ana `src/scenes/GameScene.js` 362 satır: `create`, oyuncu, `update`, etkileşim
 Yöntem nesneleri GameScene dosyasının sonunda açık `Object.assign` ile prototype'a eklenir. Böylece Phaser callback'lerindeki `this` ve mevcut `scene.sakinTasi()` gibi çağrılar korunur; her karede bağlama/wrapper maliyeti eklenmez. Modüller GameScene'i import etmez, döngüsel sahne bağımlılığı yoktur. Modüllerdeki `this` bir Phaser GameScene'dir; `this.add`, `this.time`, `this.tweens` ve sahne verileri kullanılır. Yeni alanları `create` içinde başlatın; dinleyici/rutin temizliğini shutdown'da tutun. Doku önbelleğini sahne restart'ında temizlemeyin; dokular o sırada yaşamaya devam eder. Yeni yöntem adını diğer modüllerle çakıştırmayın.
 
 `CIZIM_OLCEGI` asıl olarak `ayarlar.js` içindedir; mevcut `main.js` importunu bozmamak için GameScene'den yeniden export edilir. Bu refaktör davranışı ve kaynak sayılarını değiştirmez.
+
+## İklim anlatısı ve öğrenme geri bildirimi
+
+Açılış artık salgın yerine iklim baskısı, kaynak güvenliği ve dayanışmayı anlatır; 2071 ve önceki tarihler kurmaca senaryodur. İlk radyo/çocuk ziyaretçi anlatımı da uyumlu güncellendi. Yeni PNG yok; mevcut hikâye seti kullanılır.
+
+- `src/ogrenme.js`: gerçek seçimden açıklama, gece için konu tekrarsız en çok 3 kayıt, sonda farklı konulardan en çok 3 gözlem.
+- `state.kararGecmisi`: panel inceleme, başarılı eylem/kart/hazırlık ve gecelik üretim modu. Panel kaynak farkları **kapasite sınırından sonra** ölçülür. Kartın bilgi anahtarı eylem türü değildir: aynı `fosil` kartına süre istemek de bağlıdır; bu yüzden kartın kendi sonuç metni saklanır.
+- Gece üretimi yalnız çalışan/açık makineler için kaydedilir. Mod seçip geri almak tek başına geçmiş yaratmaz. Normal mod öğrenme gözlemi olarak gösterilmez. Mevcut kayıt biçimi geçmiş alanını isteğe bağlı kabul eder; eski kayıt yüklenirse boş geçmiş başlar. İnceleme eylem hakkı harcamaz, özetlerde yer almaz.
+- Rehber mevcut ilk gün radyo ve üretim paneli içinde: incele → seçim yap → salt okunur gece tahminine bak → yatakta uyu → raporu gör. Önizleme günü bitirmez, kaynak değiştirmez. Diğer günlerde rehber yok.
+- Son ekranındaki açıklamalar ölçülmüş öğrenme sonucu değildir. Kaynak/karbon puanları 0–100 oyun modeli ve zaman hızlandırılmıştır.
+- Bilgi kartları: birincil kaynak URL/tarih `facts.js`; düzeltme notları `docs/bilgi-kaynaklari.md`. Kaynak bağlantıları yeni sekmede açılır. Salgın kartı genel havuzdan çıkarıldı; `uyum` eklendi.
+- Test: `tools/ogrenme-test.mjs` (`npm test`): hatalı eylem, gerçek kapasite farkı, kart/eylem ayrımı, mod geri alma, eski/yeni kayıt ve kaynak metadata kontrolü. Kaynak sayıları/üretim dengesi değişmedi.

@@ -6,6 +6,7 @@ export function kayitGecerliMi(k) {
     && !s.bitti && ['enerji','su','gida','atik','karbon'].every(ad => Number.isFinite(s.kaynak?.[ad]) && s.kaynak[ad] >= 0 && s.kaynak[ad] <= 100)
     && Array.isArray(s.sakinler) && s.sakinler.length > 0 && s.sakinler.every(s => Number.isInteger(s.uid) && typeof s.id === 'string')
     && ['planlar','sozler','sozGecmisi','hedefler','yapilar','sohbetEdilenler'].every(ad => Array.isArray(s[ad]))
+    && (s.kararGecmisi === undefined || (Array.isArray(s.kararGecmisi) && s.kararGecmisi.every(k => k && Number.isInteger(k.gun) && typeof k.tip === 'string')))
     && Array.isArray(s.arastirma?.acik) && !!s.arastirma?.puan && !!s.makineModlari && !!s.makineAsinma && Number.isFinite(s.malzeme)
     && Number.isFinite(s.memnuniyet) && Number.isFinite(s.insanlik) && Number.isInteger(s.eylem);
 }

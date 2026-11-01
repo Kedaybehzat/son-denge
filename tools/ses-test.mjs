@@ -40,10 +40,23 @@ test('Ses yöneticisi regresyonları', async (t) => {
     assert.equal(a.paused, true);
     a.istekler[0].resolve(); b.istekler[0].resolve(); await s.coz(); s.ilerle();
     assert.equal(a.paused, true); assert.equal(a.muted, true); assert.equal(a.volume, 0);
-    assert.equal(b.paused, false); assert.equal(b.volume, 0.55);
+    assert.equal(b.paused, false); assert.equal(b.volume, 0.55 * 0.7);
     s.muzikCal('gece'); assert.equal(s.sesler.length, 2);
     s.muzikCal('umut'); assert.equal(b.paused, true);
     s.muzikDurdur(); assert.equal(s.zamanlar.size, 0);
+  });
+
+  await t.test('Müzik ve efekt seviyeleri ayrı uygulanır ve saklanır', async () => {
+    const s = await kur();
+    assert.equal(s.muzikSeviyesi(), 0.7); assert.equal(s.efektSeviyesi(), 0.8);
+    s.muzikCal('ana'); const a = s.sesler[0];
+    a.istekler[0].resolve(); await s.coz(); s.ilerle();
+    s.muzikSeviyeAyarla(0.4); assert.equal(a.volume, 0.55 * 0.4);
+    s.efektSeviyeAyarla(0.25); s.sesCal('klik', { ses: 0.8 });
+    assert.equal(s.sesler[1].volume, 0.2);
+    assert.equal(s.depo.get('sondenge:ses-muzik'), '0.4');
+    assert.equal(s.depo.get('sondenge:ses-efekt'), '0.25');
+    s.sesToggle(); s.muzikSeviyeAyarla(1); assert.equal(a.volume, 0);
   });
 
   await t.test('Kapatma fade içindeki müziği ve tüm efektleri anında susturur', async () => {

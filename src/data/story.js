@@ -1,38 +1,29 @@
-// =============================================================
-//  GİRİŞ HİKAYESİ
-//  Başla ekranından önce sırayla gösterilen ekranlar.
-//  Metni değiştirmek ya da ekran eklemek için bu listeyi düzenleyin.
-//  (Görseller hazır olunca her ekrana bir "gorsel" alanı eklenebilir.)
-// =============================================================
-
+// Kurmaca gelecek senaryosu; tarihler bir iklim tahmini değildir.
 export const HIKAYE = [
   {
-    ust: '2030\'lar',
+    ust: "2030'lar · Kurmaca gelecek",
     baslik: 'Dünya ısınıyordu',
-    metin:
-      'Her yaz bir öncekinden sıcaktı. Raporlar yazıldı, zirveler toplandı, uyarılar yapıldı. ' +
-      'Ama fabrikalar çalışmaya, tüketim artmaya devam etti.',
+    metin: 'Sıcak hava dalgaları uzuyor, suya ve enerjiye duyulan ihtiyaç artıyordu. ' +
+      'Uyarılar yapıldı; ama tüketimi azaltmak ve yeni koşullara hazırlanmak her yerde aynı hızda ilerlemedi.',
   },
   {
-    ust: '2040\'lar',
-    baslik: 'Buz çözüldü',
-    metin:
-      'Kuzeyde on binlerce yıldır donmuş toprak çözülmeye başladı. ' +
-      'Buzla birlikte, insanlığın hiç karşılaşmadığı eski bir virüs de uyandı.',
+    ust: "2040'lar",
+    baslik: 'Su azaldı, yollar değişti',
+    metin: 'Kuraklık tarlaları zorlarken ani seller evleri ve enerji hatlarını vurdu. ' +
+      'Bazı topluluklar su depolayıp üretimlerini uyarladı. Bazılarıysa yeni bir yuva aramak için yola çıktı.',
   },
   {
-    ust: '2050\'ler',
+    ust: "2050'ler",
     baslik: 'Büyük Sessizlik',
-    metin:
-      'Virüs birkaç yıl içinde dünya nüfusunun büyük kısmını yok etti. ' +
-      'Şehirler boşaldı, tedarik zincirleri koptu. Hayatta kalanlara kuraklık, seller ve kıt kaynaklar kaldı.',
+    metin: 'Ardı ardına gelen afetler ve tedarik kesintileri, bu kurmaca gelecekte birçok yerleşimi boşalttı. ' +
+      'Eski üretim merkezleri sustu. İnsanlar bu döneme Büyük Sessizlik adını verdi. ' +
+      'Ayakta kalanlar için soru aynıydı: eldeki kaynaklarla birlikte nasıl yaşayacağız?',
   },
   {
     ust: '2071',
     baslik: 'Yeşilvadi',
-    metin:
-      'Hayatta kalanlar aynı hatayı bir daha yapmamaya yemin etti ve Yeşilvadi\'yi kurdu: ' +
-      'her damla suyun, her kilovatın hesabının tutulduğu küçük bir ütopya.\n\n' +
-      'Sığınağın bakımı artık sana emanet.',
+    metin: "Farklı yerlerden gelen insanlar Yeşilvadi'yi kurdu: suyun yeniden kullanıldığı, " +
+      'enerjinin dikkatle üretildiği, atılan malzemelerin onarıldığı küçük bir yerleşim.\n\n' +
+      'Şimdi beş gün boyunca bu topluluğu yöneteceksin. Kaynaklarını korurken kapına gelenlere de yer açabilecek misin?',
   },
 ];
