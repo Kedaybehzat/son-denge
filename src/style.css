@@ -1,8 +1,46 @@
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/barlow-condensed-600.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/barlow-condensed-700.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/nunito-sans-400.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/nunito-sans-600.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/nunito-sans-700.ttf') format('truetype');
+}
+
 /* =============================================================
    ARAYÜZ STİLİ · Retro-fütüristik sığınak kontrol terminalleri
    Arayüz oyun alanıyla birlikte ölçeklenir (cqw = sahne genişliğinin %1'i).
    ============================================================= */
 :root {
+  --font-metin: 'Nunito Sans', 'Segoe UI', sans-serif;
+  --font-baslik: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   --terminal-bg: #06100c;
   --terminal-ekran: #0b1813;
   --terminal-ekran-ust: #0f2019;
@@ -34,7 +72,7 @@ html, body {
   height: 100%;
   background:
     radial-gradient(ellipse at top, #0a1612 0%, #050a07 55%, #020403 100%);
-  font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-family: var(--font-metin);
   color: var(--terminal-metin);
   overflow: hidden;
 }
@@ -95,7 +133,7 @@ body { display: grid; place-items: center; }
   text-transform: uppercase;
 }
 .gun b {
-  font-family: 'VT323', monospace;
+  font-family: var(--font-baslik);
   font-size: 2.6cqw;
   margin: 0 0.25cqw;
   color: var(--yesil);
@@ -153,7 +191,7 @@ body { display: grid; place-items: center; }
   filter: drop-shadow(0 0 0.3cqw currentColor) saturate(1.1);
 }
 .kaynak b {
-  font-family: 'VT323', monospace;
+  font-family: var(--font-baslik);
   min-width: 2cqw;
   font-size: 1.6cqw;
   line-height: 1;
@@ -209,7 +247,7 @@ body { display: grid; place-items: center; }
   letter-spacing: 0.28em;
 }
 .denge-etiket b {
-  font-family: 'VT323', monospace;
+  font-family: var(--font-baslik);
   font-size: 1.6cqw;
   color: var(--terminal-metin-parlak);
   letter-spacing: 0;
@@ -242,7 +280,7 @@ body { display: grid; place-items: center; }
   margin-top: 0.1cqw;
 }
 .nufus b {
-  font-family: 'VT323', monospace;
+  font-family: var(--font-baslik);
   font-size: 1.3cqw;
   color: var(--terminal-metin-parlak);
   margin: 0 0.15cqw;
@@ -343,7 +381,7 @@ body { display: grid; place-items: center; }
   display: inline-flex;
   align-items: center;
   gap: 0.5cqw;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-metin);
   font-size: 0.85cqw;
   letter-spacing: 0.28em;
   color: var(--tema);
@@ -374,7 +412,7 @@ body { display: grid; place-items: center; }
 }
 
 .kart h1, .kart h2, .kart h3 {
-  font-family: 'VT323', monospace;
+  font-family: var(--font-baslik);
   letter-spacing: 0.02em;
   color: var(--terminal-metin-parlak);
   text-shadow: 0 0 0.4cqw color-mix(in oklab, var(--tema) 50%, transparent);
@@ -390,7 +428,7 @@ body { display: grid; place-items: center; }
    BUTONLAR
    ============================================================= */
 button {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-metin);
   font-size: 1.15cqw;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -472,7 +510,7 @@ button.ikincil:hover:not(:disabled) {
 }
 .mini {
   display: flex; align-items: center; gap: 0.5cqw;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-metin);
   font-size: 1cqw;
   letter-spacing: 0.04em;
 }
@@ -488,7 +526,7 @@ button.ikincil:hover:not(:disabled) {
   box-shadow: inset 0 0 0.3cqw #000c, inset 0 0 0 0.08cqw #ffffff12;
 }
 .mini b {
-  font-family: 'VT323', monospace;
+  font-family: var(--font-baslik);
   font-size: 1.5cqw;
   color: var(--terminal-metin-parlak);
   min-width: 2cqw;
@@ -505,7 +543,7 @@ button.ikincil:hover:not(:disabled) {
 .eylem {
   display: flex; align-items: center; gap: 1.1cqw;
   text-align: left;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-metin);
   text-transform: none;
   letter-spacing: 0;
   background:
@@ -572,7 +610,7 @@ button.ikincil:hover:not(:disabled) {
   display: grid; place-items: center;
   background: color-mix(in oklab, var(--tema) 25%, #000);
   color: var(--tema);
-  font-family: 'VT323', monospace;
+  font-family: var(--font-baslik);
   font-size: 1.9cqw;
   line-height: 1;
   border: 0.1cqw solid color-mix(in oklab, var(--tema) 55%, transparent);
@@ -634,7 +672,7 @@ button.ikincil:hover:not(:disabled) {
    ============================================================= */
 .chipler, .etki-satir, .rapor { display: flex; flex-wrap: wrap; gap: 0.4cqw; align-items: center; }
 .chip {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-metin);
   font-size: 0.95cqw;
   font-weight: 600;
   padding: 0.2cqw 0.6cqw;
@@ -667,7 +705,7 @@ button.ikincil:hover:not(:disabled) {
   border-radius: 0.3cqw;
   border-left: 0.25cqw solid var(--yesil);
   box-shadow: 0 0 0.8cqw color-mix(in oklab, var(--yesil) 20%, transparent);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-metin);
 }
 .uyari {
   margin: 1cqw 0 0;
@@ -726,7 +764,7 @@ button.ikincil:hover:not(:disabled) {
 }
 .radyo-ust {
   position: relative;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-metin);
   font-size: 0.85cqw;
   letter-spacing: 0.3em;
   color: var(--amber);
@@ -807,7 +845,7 @@ button.ikincil:hover:not(:disabled) {
   font-weight: 600;
   border-left: 0.25cqw solid var(--amber);
   box-shadow: 0 0 1cqw color-mix(in oklab, var(--amber) 25%, transparent);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-metin);
   animation: alarm 1.8s ease-in-out infinite;
 }
 @keyframes alarm {
@@ -927,7 +965,7 @@ kbd {
   border-radius: 0.25cqw;
   background: color-mix(in oklab, var(--yesil) 10%, #000);
   border: 0.1cqw solid color-mix(in oklab, var(--yesil) 50%, transparent);
-  font-family: 'VT323', monospace;
+  font-family: var(--font-baslik);
   font-size: 1.4cqw;
   line-height: 1;
   color: var(--yesil);
@@ -998,7 +1036,7 @@ kbd {
   font-weight: 600;
 }
 .son-istatistik b {
-  font-family: 'VT323', monospace;
+  font-family: var(--font-baslik);
   font-size: 3.2cqw;
   line-height: 1;
   color: var(--tema);
@@ -1030,7 +1068,7 @@ kbd {
 .hikaye-ekrani { animation: soluk 0.7s ease-out; }
 @keyframes soluk { from { opacity: 0; } }
 .hikaye-ust {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-metin);
   font-size: 0.95cqw;
   letter-spacing: 0.36em;
   color: var(--amber);
@@ -1038,7 +1076,7 @@ kbd {
   text-transform: uppercase;
 }
 .hikaye-ekrani h1 {
-  font-family: 'VT323', monospace;
+  font-family: var(--font-baslik);
   font-size: 4.2cqw;
   margin: 0.7cqw 0 1.4cqw;
   color: #fff;
@@ -1046,7 +1084,7 @@ kbd {
   text-shadow: 0 0 1cqw #ffffff40;
 }
 .hikaye-ekrani p {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-metin);
   font-size: 1.3cqw;
   line-height: 1.75;
   color: #cfc6a9;
@@ -1170,3 +1208,202 @@ button.gorev.dolu { opacity: 0.6; }
 .sefer-sonuc.kotu { border-left-color: #e0b23a; }
 .sefer-sonuc .etiket { font-size: 0.85cqw; letter-spacing: 0.16em; color: var(--terminal-dim); }
 .sefer-sonuc p { margin: 0.4cqw 0; }
+
+/* Yüklenen arayüz seti: köşeler sabit, kenarlar 9-dilim ile esner. */
+:root {
+  --terminal-metin: #eadfc3;
+  --terminal-metin-parlak: #fff2d3;
+  --terminal-dim: #b6b29b;
+  --yesil: #b9d78b;
+}
+.arayuz-ikon {
+  display: inline-block;
+  width: 1.65cqw;
+  height: 1.65cqw;
+  object-fit: contain;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.chip .arayuz-ikon { width: 1.4cqw; height: 1.4cqw; }
+.proje .ad .arayuz-ikon { width: 3cqw; height: 3cqw; margin-right: 0.4cqw; }
+.gorev .arayuz-ikon { width: 2cqw; height: 2cqw; }
+.eylem-hakki .arayuz-ikon, .nufus .arayuz-ikon { width: 1.3cqw; height: 1.3cqw; }
+.kart, .kart.hikaye {
+  border: 1.5cqw solid transparent;
+  border-image: url('/assets/kart-cerceve.png') 96 / 1.5cqw / 0 stretch;
+  background: #3b4b37;
+  padding: 1.6cqw;
+  box-shadow: 0 1.5cqw 4cqw #000b;
+}
+.kart::before, .kart::after { display: none; }
+/* Dar butonlarda da aynı köşe boyu: uzun metinlerde yalnız orta esner. */
+.kart button {
+  border: 0.65cqw solid transparent;
+  border-image: url('/assets/buton.png') 32 / 0.65cqw / 0 stretch;
+  background: #536044;
+  color: var(--terminal-metin-parlak);
+  padding: 0.5cqw 1cqw;
+  text-shadow: 0 1px 2px #000;
+  box-shadow: 0 0.25cqw 0.5cqw #0005;
+}
+.kart button:hover:not(:disabled), .kart button:active:not(:disabled),
+.kart button.secili {
+  border-image-source: url('/assets/buton-basili.png');
+  background: #65734f;
+  color: #fff4cc;
+}
+.kart button:focus-visible { outline: 0.2cqw solid var(--amber); outline-offset: 0.2cqw; }
+.kart button:disabled { opacity: 0.45; cursor: not-allowed; }
+.kart button.ret { color: #ffae92; }
+.kart button.eylem.kirli { border-left: 0.65cqw solid #b94d36; }
+.kart button.proje.secili, .kart button.gorev.secili { outline: 0.12cqw solid var(--yesil); }
+#hud { gap: 0.5cqw; padding: 0.7cqw; }
+.hud-gun, #hud .kaynak, .hud-denge {
+  border: 0.6cqw solid transparent;
+  border-image: url('/assets/hud-kutu.png') 24 / 0.6cqw / 0 stretch;
+  background: #46543c;
+  border-radius: 0;
+  box-shadow: 0 0.3cqw 0.7cqw #0006;
+}
+.hud-gun {
+  flex: 0 0 11.8cqw;
+  min-width: 11.8cqw;
+  padding: 0.55cqw 0.65cqw;
+  gap: 0.35cqw;
+}
+.hud-gun .gun { display: flex; align-items: center; gap: 0.3cqw; line-height: 1; white-space: nowrap; }
+.hud-gun .gun b { font-size: 2.1cqw; }
+.hud-gun .eylem-hakki { justify-content: space-between; gap: 0.3cqw; line-height: 1.3; }
+.hud-gun .eylem-hakki > span:first-child { display: flex; align-items: center; gap: 0.25cqw; letter-spacing: 0.03em; }
+.hud-gun .noktalar { flex-shrink: 0; gap: 0.2cqw; }
+.hud-gun .noktalar i { width: 0.65cqw; height: 0.65cqw; }
+.hud-gun .nufus { display: flex; align-items: center; gap: 0.3cqw; letter-spacing: 0.04em; line-height: 1.3; white-space: nowrap; }
+.hud-gun .nufus b { margin: 0; }
+.hud-kaynaklar, .hud-ekstra { gap: 0.3cqw; }
+#hud .kaynak { padding: 0.3cqw; gap: 0.3cqw; }
+.hud-kaynaklar .bar { width: 3.6cqw; }
+.hud-ekstra .kaynak .bar { width: 2.2cqw; }
+.hud-denge { min-width: 11cqw; padding: 0.2cqw 0.5cqw; }
+.denge-etiket { letter-spacing: 0.1em; }
+#modal.menu-ortami {
+  background: linear-gradient(#08100b66, #08100bcc), url('/assets/menu-arka.png') center / cover;
+  backdrop-filter: none;
+}
+.kart.baslangic { width: min(64cqw, 92%); background: #3b4b37f5; }
+.baslik-ekrani .oyun-baslik { margin: 0.5cqw 0; }
+.oyun-logo { display: block; width: 32cqw; height: auto; margin: 0 auto; }
+.baslik-ekrani p { max-width: 48cqw; }
+.baslik-ekrani .kontroller { margin: 1cqw 0 1.4cqw; }
+.baslik-ekrani [data-basla] { min-width: 17cqw; font-size: 1.5cqw; }
+.son-gorsel {
+  display: block;
+  width: 100%;
+  max-height: 16cqw;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0.3cqw;
+  margin-bottom: 1cqw;
+}
+.karar-gorsel {
+  float: right;
+  width: 18cqw;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: 0.3cqw;
+  margin: 0 0 1cqw 1.2cqw;
+}
+.karar .eylemler { clear: both; }
+.son-istatistik { flex-wrap: wrap; }
+.son-istatistik div { min-width: 7cqw; }
+
+
+/* Çerçeve sabit kalır; uzun içerik kendi alanında kayar. */
+.kart, .kart.hikaye {
+  display: flex;
+  flex-direction: column;
+  max-height: 94%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+.kart-icerik {
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #a7b77d #17291f;
+  padding: 1.2cqw 1.5cqw;
+  overflow-wrap: anywhere;
+}
+.kart-icerik:focus-visible { outline: 0.12cqw solid var(--amber); outline-offset: -0.2cqw; }
+.kart > .alt {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.7cqw 1.5cqw;
+  background: #3b4b37;
+}
+.alt, .hikaye-butonlar { flex-wrap: wrap; }
+.kart button { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.eylem { flex-wrap: wrap; }
+.eylem .govde { min-width: 14cqw; }
+.eylem .maliyet { margin-left: auto; }
+.mini-gostergeler { flex-wrap: wrap; }
+.projeler { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.gorevler { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kart.pano { width: min(86cqw, 96%); }
+.kart.baslangic { width: min(70cqw, 94%); }
+.baslik-ekrani { padding: 0.4cqw; }
+.baslik-ekrani .oyun-logo { width: 27cqw; }
+.baslik-ekrani .kontroller { gap: 0.5cqw 1cqw; margin: 0.8cqw 0; }
+.kart.son-ekrani { width: min(76cqw, 96%); }
+.son { padding: 0.2cqw; }
+.son h1 { font-size: 3.5cqw; margin: 0.6cqw 0; }
+.son-gorsel { max-height: 12cqw; }
+.son-istatistik { gap: 0.5cqw; margin: 0.8cqw 0; }
+.son-istatistik div { padding: 0.4cqw 0.6cqw; }
+.son .bilgi-karti { padding: 0.7cqw 1cqw; margin: 0.7cqw 0; }
+.hikaye-ekrani .hikaye-gorsel { max-height: 14cqw; }
+.hikaye-ekrani h1 { font-size: 3.4cqw; margin: 0.5cqw 0 0.8cqw; }
+.hikaye-ekrani p { font-size: 1.2cqw; line-height: 1.55; }
+.hikaye-ekrani .alt { margin-top: 0.8cqw; padding-top: 0.6cqw; }
+
+/* Açık kutu içleri üzerinde metinlerin okunurluğu. */
+.hud-gun .gun, .hud-gun .eylem-hakki, .hud-gun .nufus { opacity: 1; }
+.hud-gun .eylem-hakki > span:first-child { opacity: 1; }
+.kart .aciklama, .kart .kalan, .kart button.proje .kalan,
+.kart button.proje .aciklama, .kart button.gorev small { color: #e0e2cd; }
+
+/* Tipografi: yumuşak gövde metni, dar endüstriyel başlıklar. */
+body { font-weight: 400; }
+.kart { line-height: 1.6; }
+.kart h1, .kart h2, .kart h3, .hikaye-ekrani h1 { font-weight: 700; letter-spacing: 0.025em; text-shadow: 0 0.1cqw 0.2cqw #0005; }
+.kart button { font-family: var(--font-baslik); font-weight: 600; letter-spacing: 0.045em; }
+.eylem .ad, .proje .ad { font-family: var(--font-baslik); font-weight: 700; font-size: 1.35cqw; }
+.kart button .aciklama, .kart button small, .chip, .eylem .maliyet { font-family: var(--font-metin); text-transform: none; letter-spacing: 0.01em; }
+#hud b, .mini b, .son-istatistik b { font-family: var(--font-baslik); font-weight: 700; font-variant-numeric: tabular-nums; }
+.kart p, .hikaye-ekrani p { letter-spacing: 0.01em; }
+.etiket, .radyo-ust, .hikaye-ust { font-family: var(--font-baslik); font-weight: 600; letter-spacing: 0.14em; }
+
+
+/* Yönetim panelleri: bağımsız içerik, sabit geçiş şeridi. */
+.yonetim-erisim {
+  position: absolute;
+  top: 51.7cqw;
+  left: 1.2cqw;
+  display: flex;
+  gap: 0.45cqw;
+  pointer-events: auto;
+}
+.yonetim-erisim button { font-family: var(--font-baslik); font-size: 1.2cqw; padding: 0.45cqw 1cqw; background: #3b4b37ed; color: #fff2d3; letter-spacing: 0.04em; }
+.pano-gecis { display: flex; flex-wrap: wrap; gap: 0.5cqw; padding: 0.7cqw 1.5cqw; border-bottom: 1px solid #b9d78b55; flex-shrink: 0; }
+.kart.pano .pano-gecis button { flex: 1; font-size: 1.3cqw; }
+.yonetim-yardim { margin-bottom: 1cqw; }
+.yonetim-yardim summary { cursor: pointer; color: #eadfc3; }
+.yonetim-yardim p { margin-top: 0.6cqw; }
+.oda-kartlari { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8cqw; }
+.oda-karti { padding: 1cqw; border: 1px solid #b9d78b55; border-radius: 0.4cqw; }
+.oda-karti button { margin: 0.5cqw 0.3cqw 0 0; }
+.oda-filtre { display: flex; gap: 0.7cqw; align-items: center; margin-bottom: 1cqw; }
+.oda-filtre select { padding: 0.4cqw; color: #fff2d3; background: #283724; font: inherit; border: 1px solid #b9d78b77; }

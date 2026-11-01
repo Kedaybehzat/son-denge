@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict';
+import { state, sifirla, rastgeleAyarla, eylemYap, eylemYapabilirMi, yapiKur, yapiKurabilirMi, yapiAcik, gunuBitir, geceTahmini, kartSec, kartSecebilirMi } from '../src/state.js';
+import { PANELLER } from '../src/data/panels.js';
+import { KARTLAR } from '../src/data/cards.js';
+import { ZIYARETCILER } from '../src/data/visitors.js';
+import { OLAYLAR } from '../src/data/events.js';
+
+rastgeleAyarla(() => 0.4);
+sifirla();
+state.kaynak.su = 0;
+const once = structuredClone(state);
+assert.equal(eylemYapabilirMi(PANELLER.sera.eylemler[0]), false);
+assert.equal(eylemYap(PANELLER.sera.eylemler[0]), false);
+assert.deepEqual(state, once, 'Reddedilen eylem hiçbir kaynak veya eylem harcamamalı');
+state.kaynak.atik = 3;
+assert.equal(eylemYap(PANELLER.geriDonusum.eylemler[0]), true, 'Az kalan atık da temizlenebilmeli');
+assert.equal(state.kaynak.atik, 0);
+
+sifirla();
+state.kaynak.atik = 0;
+assert.equal(yapiKur('yalitim'), false, 'Malzemesiz inşaat başlayamaz');
+state.kaynak.atik = 35;
+const enerjiOnce = geceTahmini().degisim.enerji;
+assert.equal(yapiKur('ekPanel'), true);
+assert.equal(state.eylem, 1);
+assert.equal(yapiAcik('ekPanel'), false);
+assert.equal(geceTahmini().degisim.enerji, enerjiOnce, 'İnşaat sürerken üretim yok');
+assert.equal(yapiKur('yalitim'), false, 'Aynı anda ikinci inşaat yok');
+const gece = gunuBitir();
+assert.equal(gece.insaatBitti, 'ekPanel');
+assert.equal(yapiAcik('ekPanel'), true);
+assert.equal(state.insaat, null);
+assert.equal(yapiKurabilirMi('ekPanel'), false, 'Aynı yapı tekrar kurulamaz');
+state.gun = 5;
+assert.equal(yapiKurabilirMi('yalitim'), false, 'Son gün yetişmeyecek inşaat başlatılamaz');
+sifirla();
+assert.equal(state.insaat, null);
+assert.deepEqual(state.yapilar, []);
+
+for (const [index, alan] of [[0, 'kabulEdilen'], [2, 'reddedilen']]) {
+  sifirla();
+  const aile = KARTLAR.find((k) => k.id === 'yeniAile');
+  state.kart = aile;
+  state.ziyaretci = ZIYARETCILER[0];
+  const kisi = state.ziyaretci.kisi;
+  assert.ok(kartSec(aile.secenekler[index]));
+  assert.equal(state.ziyaretci, null);
+  assert.equal(state[alan], kisi);
+  assert.equal(state.kart, null);
+}
+sifirla();
+const toz = KARTLAR.find((k) => k.id === 'tozUyari');
+state.kart = toz;
+state.tahmin = OLAYLAR.find((o) => o.id === 'toz');
+assert.ok(kartSec(toz.secenekler[0]));
+assert.equal(state.hazirlik, true);
+gunuBitir();
+assert.equal(state.olay.id, 'toz');
+assert.equal(state.olayHazirlikli, true, 'Karttaki hazırlık yarının olayını gerçekten önlemeli');
+state.kart = KARTLAR.find((k) => k.id === 'yeniAile');
+state.ziyaretci = null;
+assert.equal(kartSecebilirMi(state.kart.secenekler[0]), false);
+console.log('Mekanik kontrolleri başarılı: kaynak maliyeti, inşaat yaşam döngüsü, kapı kararları ve olay hazırlığı.');

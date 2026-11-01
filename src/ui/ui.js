@@ -7,12 +7,14 @@ import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, ziyaretciNetEt
   sakinTanimi, sakinCiktisi, gorevAta, arastirmaSec, arastirmaAcik, masadaArastir, masadaArastirabilirMi,
   MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi, kapaliMakineler, makineKapali, YAPILAR, yapiAcik, yapiKur, yapiKurabilirMi } from '../state.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, OYUNCU_CALISMA_MALIYETI } from '../data/research.js';
+import { ODALAR } from '../data/rooms.js';
+import { PANELLER } from '../data/panels.js';
 import { HIKAYE } from '../data/story.js';
 import { HAZIRLIK_MALIYETI } from '../data/events.js';
 import { BILGILER } from '../data/facts.js';
 import { KESIF_NOKTALARI } from '../data/exploration.js';
 import { KURUCULAR } from '../data/visitors.js';
-import { portreDosyasi, hikayeDosyasi, ARAYUZ_ASSET_KLASORU } from '../data/assets.js';
+import { portreDosyasi, hikayeDosyasi, ARAYUZ_ASSET_KLASORU, ARAYUZ_IKONLARI, KARAR_GORSELLERI, SON_GORSELLERI } from '../data/assets.js';
 import { assetVar } from '../assetListesi.js';
 
 const hud = document.getElementById('hud');
@@ -24,6 +26,8 @@ let kapatilabilir = true;
 let aktifPanel = null;
 let aktifPanelAnahtar = null;
 let panoAcik = false;
+let panoBolumu = 'koloni';
+let insaatOda = null;
 let sonMesaj = '';
 let seciliKesif = null; // panoda seçilmiş keşif noktası (kişi seçimi bekliyor)
 
@@ -49,6 +53,13 @@ const varsaImg = (yol, sinif = '') => {
   const ad = yol.slice(ARAYUZ_ASSET_KLASORU.length);
   return assetVar(ad) ? `<img ${sinif ? `class="${sinif}" ` : ''}src="${yol}" alt="" onerror="this.remove()">` : '';
 };
+// Görseller dekoratiftir; anlamı yanındaki metin ve HUD title taşır.
+function arayuzIkonu(id, yedek = '') {
+  const ad = ARAYUZ_IKONLARI[id];
+  return (ad && varsaImg(`${ARAYUZ_ASSET_KLASORU}ikon-${ad}.png`, 'arayuz-ikon')) || yedek;
+}
+const arayuzGorseli = (onek, ad, sinif) => ad ? varsaImg(`${ARAYUZ_ASSET_KLASORU}${onek}-${ad}.png`, sinif) : '';
+
 const portreRozet = (id, ikon) =>
   `<span class="ikon-rozet portre">${varsaImg(portreDosyasi(portreOneki(id), id))}<span class="ikon-yedek">${ikon}</span></span>`;
 const portreBuyuk = (id) => varsaImg(portreDosyasi(portreOneki(id), id), 'portre-buyuk');
@@ -61,7 +72,7 @@ function etkiChipleri(etki) {
     .map(([ad, d]) => {
       const k = KAYNAKLAR[ad];
       const iyi = (d > 0) === k.yuksekIyi;
-      return `<span class="chip ${iyi ? 'iyi' : 'kotu'}">${k.ikon} ${d > 0 ? '+' : '−'}${Math.abs(d)} ${k.ad}</span>`;
+      return `<span class="chip ${iyi ? 'iyi' : 'kotu'}">${arayuzIkonu(ad, k.ikon)} ${d > 0 ? '+' : '−'}${Math.abs(d)} ${k.ad}</span>`;
     })
     .join('');
 }
@@ -76,13 +87,21 @@ const eylemNoktalari = () =>
     `<i class="${i < state.eylem ? 'dolu' : ''}"></i>`).join('');
 
 function modalAc(html, { kapatma = true, sinif = '', tema = null } = {}) {
+  const oncekiKaydirma = panoAcik ? kart.querySelector('.kart-icerik')?.scrollTop || 0 : 0;
   panoAcik = false; // pano kendini çizdikten sonra tekrar açar
-  kart.innerHTML = html;
+  kart.innerHTML = `<div class="kart-icerik" tabindex="0" aria-label="Pencere içeriği">${html}</div>`;
+  const icerik = kart.querySelector('.kart-icerik');
+  const gecis = icerik.querySelector('.pano-gecis');
+  if (gecis) kart.prepend(gecis);
+  const alt = icerik.querySelector(':scope > .alt');
+  if (alt) kart.append(alt);
   kart.className = 'kart ' + sinif;
+  modal.classList.toggle('menu-ortami', sinif === 'baslangic' || sinif === 'hikaye');
   if (tema) kart.style.setProperty('--tema', tema);
   else kart.style.removeProperty('--tema');
   kapatilabilir = kapatma;
   modal.classList.remove('gizli');
+  icerik.scrollTop = oncekiKaydirma;
   acik = true;
   kart.querySelectorAll('[data-kapat]').forEach((b) => b.addEventListener('click', modalKapat));
 }
@@ -116,30 +135,30 @@ export function hudKur() {
   hud.innerHTML = `
     <div class="hud-gun">
       <div class="gun">GÜN <b data-gun></b><span>/ ${AYAR.maxGun}</span></div>
-      <div class="eylem-hakki" title="Kalan eylem hakkı"><span>Eylem</span><span class="noktalar" data-eylem></span></div>
-      <div class="nufus" title="Sığınaktaki kişi sayısı">👥 <b data-nufus></b> kişi</div>
+      <div class="eylem-hakki" title="Kalan eylem hakkı"><span>${arayuzIkonu('eylem')} Eylem</span><span class="noktalar" data-eylem></span></div>
+      <div class="nufus" title="Sığınaktaki kişi sayısı">${arayuzIkonu('nufus', '👥')} <b data-nufus></b> kişi</div>
     </div>
     <div class="hud-kaynaklar">
       ${Object.entries(KAYNAKLAR).map(([ad, k]) => `
         <div class="kaynak" data-k="${ad}" title="${k.ad}${k.yuksekIyi ? '' : ' (düşük olması iyi)'}">
-          <span class="ikon">${k.ikon}</span>
+          <span class="ikon">${arayuzIkonu(ad, k.ikon)}</span>
           <div class="bar"><i></i></div>
           <b></b>
         </div>`).join('')}
     </div>
     <div class="hud-ekstra">
       <div class="kaynak hud-arastirma" data-arastirma title="Aktif araştırma">
-        <span class="ikon" data-ar-ikon>🧪</span>
+        <span class="ikon" data-ar-ikon>${arayuzIkonu('arastirma', '🧪')}</span>
         <div class="bar"><i data-ar-bar></i></div>
         <b data-ar-puan></b>
       </div>
       <div class="kaynak hud-memnuniyet" data-memnuniyet title="Sakinlerin memnuniyeti (yönetime güven)">
-        <span class="ikon">🙂</span>
+        <span class="ikon">${arayuzIkonu('memnuniyet', '🙂')}</span>
         <div class="bar"><i data-mem-bar></i></div>
         <b data-mem></b>
       </div>
       <div class="kaynak hud-batarya" data-batarya title="Batarya deposu">
-        <span class="ikon">🔋</span>
+        <span class="ikon">${arayuzIkonu('bataryaHud', '🔋')}</span>
         <div class="bar"><i data-bat-bar></i></div>
         <b data-bat></b>
       </div>
@@ -148,6 +167,14 @@ export function hudKur() {
       <div class="denge-etiket"><span>Distopya</span><b data-denge></b><span>Ütopya</span></div>
       <div class="bar denge"><i></i></div>
     </div>`;
+  const erisim = document.createElement('nav');
+  erisim.className = 'yonetim-erisim';
+  erisim.setAttribute('aria-label', 'Sığınak yönetimi');
+  erisim.innerHTML = Object.entries(YONETIM_BOLUMLERI).map(([id, ad]) => `<button data-yonetim="${id}">${ad}</button>`).join('');
+  hud.append(erisim);
+  erisim.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+    if ((!acik || panoAcik) && !state.bitti) panoAc(b.dataset.yonetim);
+  }));
   abone(hudGuncelle);
   hudGuncelle(state);
 }
@@ -176,7 +203,7 @@ function hudGuncelle(s) {
     arBox.title = `Aktif araştırma: ${ar.ad}`;
     const puan = s.arastirma.puan?.[s.arastirma.aktif] || 0;
     const yuzde = Math.min(100, Math.round((puan / ar.maliyet) * 100));
-    arBox.querySelector('[data-ar-ikon]').textContent = ar.ikon;
+    arBox.querySelector('[data-ar-ikon]').innerHTML = arayuzIkonu(s.arastirma.aktif, ar.ikon);
     const barAr = arBox.querySelector('[data-ar-bar]');
     barAr.style.width = yuzde + '%';
     barAr.className = yuzde >= 50 ? 'iyi' : yuzde >= 25 ? 'orta' : 'kotu';
@@ -191,7 +218,7 @@ function hudGuncelle(s) {
   memBar.style.width = mem + '%';
   memBar.className = mem >= 50 ? 'iyi' : mem >= AYAR.itirazEsigi ? 'orta' : 'kotu';
   hud.querySelector('[data-mem]').textContent = mem;
-  hud.querySelector('[data-memnuniyet] .ikon').textContent = mem >= 50 ? '🙂' : mem >= AYAR.itirazEsigi ? '😐' : '😠';
+  hud.querySelector('[data-memnuniyet] .ikon').innerHTML = arayuzIkonu('memnuniyet', mem >= 50 ? '🙂' : mem >= AYAR.itirazEsigi ? '😐' : '😠');
   hud.querySelector('[data-memnuniyet]').title = `Memnuniyet ${mem}/100. Üst üste ${AYAR.guvenOylamasiGece} gece ${AYAR.guvenOylamasiEsigi} veya altında kalırsa güven oylaması yapılır.`;
 
   // Batarya göstergesi: ancak Batarya Deposu araştırması bittiyse
@@ -249,7 +276,7 @@ function panelCiz() {
   const goster = (def.gosterge || []).map((ad) => {
     const k = KAYNAKLAR[ad];
     const v = state.kaynak[ad];
-    return `<div class="mini"><span>${k.ikon} ${k.ad}</span><div class="bar"><i class="${barSinifi(ad, v)}" style="width:${v}%"></i></div><b>${v}</b></div>`;
+    return `<div class="mini"><span>${arayuzIkonu(ad, k.ikon)} ${k.ad}</span><div class="bar"><i class="${barSinifi(ad, v)}" style="width:${v}%"></i></div><b>${v}</b></div>`;
   }).join('');
 
   const eylemler = def.eylemler.map((e, i) => `
@@ -259,7 +286,7 @@ function panelCiz() {
         <span class="ad">${kacis(e.ad)}${e.kirli ? ' <em>⚠ kirletir</em>' : ''}</span>
         <span class="chipler">${etkiChipleri(e.etki)}</span>
       </span>
-      <span class="maliyet">${e.maliyet ?? 1} eylem</span>
+      <span class="maliyet">${eylemYapabilirMi(e) ? `${e.maliyet ?? 1} eylem` : 'Eylem / kaynak yetersiz'}</span>
     </button>`).join('');
 
   const bitti = state.eylem <= 0
@@ -379,7 +406,7 @@ function bilgiHtml(b) {
 }
 
 // Gün geçişi iki adım: önce gece raporu + bilgi kartı, sonra sabah radyosu
-export function gunBaslangici({ rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj, ayrilanlar = [], sefer = null, memnuniyet = null }) {
+export function gunBaslangici({ insaatBitti = null, rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj, ayrilanlar = [], sefer = null, memnuniyet = null }) {
   const gitti = gidenZiyaretci
     ? `<p class="uyari">🚪 ${kacis(gidenZiyaretci.ad)} kapıda beklemekten vazgeçip gitti.</p>`
     : '';
@@ -390,6 +417,7 @@ export function gunBaslangici({ rapor, bilgi, gidenZiyaretci, arastirmaPuani, ar
     ${bataryaKullanim ? `<div class="rapor"><span>Batarya:</span><span class="chip iyi">🔋 ${bataryaKullanim} enerji depodan geldi</span></div>` : ''}
     ${bataryaSarj ? `<div class="rapor"><span>Batarya:</span><span class="chip iyi">🔋 ${bataryaSarj} fazla enerji depolandı</span></div>` : ''}
     ${arastirmaBitti ? `<p class="mesaj">&gt; ${ARASTIRMALAR[arastirmaBitti].ikon} ${kacis(ARASTIRMALAR[arastirmaBitti].ad)} tamamlandı! ${kacis(ARASTIRMALAR[arastirmaBitti].aciklama)}</p>` : ''}
+    ${insaatBitti ? `<p class="mesaj">İnşaat tamamlandı: ${kacis(YAPILAR[insaatBitti].ad)}. Etkisi bugünden itibaren aktif.</p>` : ''}
     ${ayrilanlar.map((z) => `<p class="uyari">😮‍💨 ${kacis(z.ad)} tükenmişti ve gece sessizce sığınaktan ayrıldı.</p>`).join('')}
     ${memnuniyetHtml(memnuniyet)}
     ${gitti}
@@ -473,6 +501,7 @@ export function kararKartiGoster() {
       </button>`;
   }).join('');
   modalAc(`
+    ${arayuzGorseli('kart', KARAR_GORSELLERI[k.id], 'karar-gorsel')}
     <div class="panel-ust"><span class="etiket">▸ KARAR KARTI<i class="led uyari"></i></span><h2>${kacis(k.baslik)}</h2></div>
     <p>${kacis(k.sozcu && state.sakinler.some((x) => x.id === k.sozcu.id) ? k.sozcu.metin : k.metin)}</p>
     <div class="eylemler">${satirlar}</div>
@@ -543,7 +572,24 @@ export function onay(baslik, metin, evetYazi, evet) {
 // ---------------------------------------------------------------
 //  GÖREV VE ARAŞTIRMA PANOSU
 // ---------------------------------------------------------------
-export function panoAc() {
+const YONETIM_BOLUMLERI = { koloni: 'Koloni', odalar: 'Odalar', kesif: 'Keşif', arastirma: 'Araştırma', insaat: 'İnşaat' };
+
+function odalarHtml() {
+  return `<div class="oda-kartlari">${ODALAR.map((oda) => {
+    const panel = oda.nesneler.find((n) => n.tip === 'panel')?.panel;
+    const op = panel ? makineOperatoru(panel) : null;
+    const tamamlanan = Object.entries(YAPILAR).filter(([id, y]) => y.oda === oda.tip && yapiAcik(id));
+    return `<article class="oda-karti"><h3>${kacis(oda.ad)}</h3>
+      <p>${panel ? `Operatör: ${op ? kacis(sakinTanimi(op.id).ad) : 'Yok'} · ${makineCalisiyorMu(panel) ? 'Çalışıyor' : 'Üretim yok'}` : `${state.nufus} kişi sığınakta`}</p>
+      ${panel ? `<div class="chipler">${etkiChipleri(MAKINELER[panel].uretim)}</div><button data-oda-panel="${panel}">Kontrol panelini aç</button>` : ''}
+      <p class="aciklama">${tamamlanan.length ? tamamlanan.map(([, y]) => kacis(y.ad)).join(', ') : 'Henüz iyileştirme yapılmadı'}</p>
+      <button data-oda-insaat="${oda.tip}">İyileştirmeleri gör</button></article>`;
+  }).join('')}</div>`;
+}
+export function panoAc(bolum = 'koloni') {
+  aktifPanel = null;
+  aktifPanelAnahtar = null;
+  panoBolumu = bolum;
   panoAcik = true;
   sonMesaj = '';
   panoCiz();
@@ -586,20 +632,21 @@ function makineDurumHtml() {
 }
 
 // İnşa edilebilir yapılar (GDD bölüm 7, data/structures.js)
-function yapilarHtml() {
-  return Object.entries(YAPILAR).map(([id, y]) => {
+function yapilarHtml(oda = null) {
+  return Object.entries(YAPILAR).filter(([, y]) => !oda || y.oda === oda).map(([id, y]) => {
     const inşaEdildi = yapiAcik(id);
     const kurabilir = yapiKurabilirMi(id);
     const m = y.maliyet || {};
     const maliyetMetin = [];
     if (m.eylem) maliyetMetin.push(`${m.eylem} eylem`);
-    for (const [k, v] of Object.entries(m)) if (k !== 'eylem') maliyetMetin.push(`${v > 0 ? '+' : '−'}${Math.abs(v)} ${KAYNAKLAR[k]?.ikon || k}`);
-    const durum = inşaEdildi ? '✓ İnşa edildi' : kurabilir ? 'İnşa Et' : 'Yeterli eylem/kaynak yok';
+    for (const [k, v] of Object.entries(m)) if (k !== 'eylem') maliyetMetin.push(`${v > 0 ? '+' : '−'}${Math.abs(v)} ${KAYNAKLAR[k]?.ad || k}`);
+    const suruyor = state.insaat?.id === id;
+    const durum = inşaEdildi ? '✓ İnşa edildi' : suruyor ? `İnşa ediliyor · ${state.insaat.kalan} gece` : state.gun >= AYAR.maxGun ? 'İnşaat için son gün' : state.insaat ? 'Önce mevcut inşaat tamamlanmalı' : kurabilir ? 'İnşaatı başlat' : 'Yeterli eylem/kaynak yok';
     return `
       <button class="proje ${inşaEdildi ? 'acik' : ''}" data-yapi="${id}" ${inşaEdildi || !kurabilir ? 'disabled' : ''}>
-        <span class="ad">${y.ikon} ${kacis(y.ad)} ${inşaEdildi ? '✓' : ''}</span>
+        <span class="ad">${arayuzIkonu(id === 'suDeposu' ? 'grisu' : id === 'onarimTezgahi' ? 'atik' : id, y.ikon)} ${kacis(y.ad)} ${inşaEdildi ? '✓' : ''}</span>
         <span class="aciklama">${kacis(y.aciklama)}</span>
-        <span class="kalan">${inşaEdildi ? 'Kalıcı etki aktif' : `Maliyet: ${maliyetMetin.join(', ')} · ${durum}`}</span>
+        <span class="kalan">${inşaEdildi ? 'Kalıcı etki aktif' : `Maliyet: ${maliyetMetin.join(', ')} · ${y.sure ?? 1} gece · ${durum}`}</span>
       </button>`;
   }).join('');
 }
@@ -634,7 +681,7 @@ function kesifHtml() {
     ? (() => {
         const kisi = state.sakinler.find((x) => x.uid === sf.uid);
         const n = KESIF_NOKTALARI[sf.yer];
-        return `<p class="mesaj">&gt; 🧭 ${kacis(kisi ? sakinTanimi(kisi.id).ad : '')} keşifte: ${n.ikon} ${kacis(n.ad)} · dönüş: ${sf.kalan === 1 ? 'yarın sabah' : `${sf.kalan} gün sonra`} · başarı %${Math.round(sf.sans * 100)}</p>`;
+        return `<p class="mesaj">&gt; 🧭 ${kacis(kisi ? sakinTanimi(kisi.id).ad : '')} keşifte: ${arayuzIkonu(sf.yer, n.ikon)} ${kacis(n.ad)} · dönüş: ${sf.kalan === 1 ? 'yarın sabah' : `${sf.kalan} gün sonra`} · başarı %${Math.round(sf.sans * 100)}</p>`;
       })()
     : '';
   const noktalar = Object.entries(KESIF_NOKTALARI).map(([id, n]) => {
@@ -648,7 +695,7 @@ function kesifHtml() {
     const durum = gidildi ? 'gidildi' : yetismez ? 'oyun bitmeden dönülemez' : `${n.sure} gece · başarı %${Math.round(n.sans * 100)}`;
     return `
       <button class="proje ${seciliKesif === id ? 'secili' : ''}" data-kesif="${id}" ${gidildi || yetismez || sf ? 'disabled' : ''}>
-        <span class="ad">${n.ikon} ${kacis(n.ad)}</span>
+        <span class="ad">${arayuzIkonu(id, n.ikon)} ${kacis(n.ad)}</span>
         <span class="chipler"><span class="gece-etiket">erzak:</span>${etkiChipleri(n.erzak)}</span>
         <span class="chipler"><span class="gece-etiket">ödül:</span>${odul}</span>
         <span class="kalan">${kacis(durum)}</span>
@@ -689,7 +736,7 @@ function panoCiz() {
           return `
           <button class="gorev ${s.gorev === id ? 'secili' : ''} ${dolu ? 'dolu' : ''}" data-uid="${s.uid}" data-gorev="${id}"
             title="${dolu ? kacis(dolu + ' (o kişi dinlenmeye geçer)') : ''}">
-            ${g.ikon} ${kacis(g.ad)}${z.uzman === id ? ' ★' : ''}<small>${kacis(dolu || alt)}</small>
+            ${arayuzIkonu(id, g.ikon)} ${kacis(g.ad)}${z.uzman === id ? ' ★' : ''}<small>${kacis(dolu || alt)}</small>
           </button>`;
         }).join('');
     return `
@@ -710,7 +757,7 @@ function panoCiz() {
     const durumEtiket = acik ? '✓' : a.aktif === id ? '◂ aktif' : kilitli ? '🔒 Seviye I bitince açılır' : '';
     return `
       <button class="proje ${a.aktif === id ? 'secili' : ''} ${acik ? 'acik' : ''} ${kilitli ? 'kilitli' : ''}" data-proje="${id}" ${disabled ? 'disabled' : ''}>
-        <span class="ad">${p.ikon} ${kacis(p.ad)} ${durumEtiket}</span>
+        <span class="ad">${arayuzIkonu(id, p.ikon)} ${kacis(p.ad)} ${durumEtiket}</span>
         <span class="aciklama">${kacis(p.aciklama)}</span>
         <span class="bar"><i class="iyi" style="width:${(puan / p.maliyet) * 100}%"></i></span>
         <span class="kalan">${acik ? 'Tamamlandı' : kilitli ? 'Önce Seviye I' : `${puan} / ${p.maliyet} puan`}</span>
@@ -721,13 +768,16 @@ function panoCiz() {
     ? `<div class="ziyaretci-satir"><span>Batarya:</span><span class="chip iyi">🔋 ${state.batarya} / ${BATARYA_KAPASITE}</span></div>`
     : '';
 
-  modalAc(`
-    <div class="panel-ust"><span class="etiket">▸ GÖREV_PANOSU // ÇEVRİMİÇİ<i class="led"></i></span><h2>Görevler ve Araştırma</h2></div>
+  const bolumler = {
+    koloni: `
+      <details class="yonetim-yardim"><summary>Görevler ve yorgunluk nasıl çalışır?</summary>
     <p class="aciklama">Her makinede bir operatör çalışır; <b>operatörü olmayan makine üretim yapmaz</b>. Boş makinenin paneline gidip kendin çalışabilirsin (${OYUNCU_CALISMA_MALIYETI} eylem). ★ uzmanlık yeridir: orada ek katkı ve <b>%100 verim</b>; başka makinede ${Math.round(AYAR.uzmanOlmayanVerim * 100)}%. Laboratuvar sınırsız: istediğin kadar sakini araştırmaya atayabilirsin, her biri +2 puan/gün verir. <b>Yorgunluk:</b> çalışan her gece +1, dinlenen −2; ${AYAR.yorgunlukAyrilmaEsigi} ve üstünde sakin sığınaktan ayrılabilir. <b>Enerji düştüğünde</b> makineler kademeli kapanır (25 altı: Geri Dönüşüm; 10 altı: Sera da). Görev değişikliği bu geceden geçerlidir; +1 eylem hakkı yarın başlar.</p>
-    <div class="ziyaretci-satir makineler">${makineDurumHtml()}</div>
-    <div class="ziyaretci-satir laboratuvar">${laboratuvarDurumHtml()}</div>
-    <div class="sakinler">${sakinler}</div>
-    ${kesifHtml()}
+      </details>
+      <div class="ziyaretci-satir makineler">${makineDurumHtml()}</div>
+      <div class="sakinler">${sakinler}</div>`,
+    odalar: odalarHtml(),
+    kesif: kesifHtml(),
+    arastirma: `<div class="ziyaretci-satir laboratuvar">${laboratuvarDurumHtml()}</div>
     <h3>Araştırma</h3>
     <div class="projeler">${projeler}</div>
     ${batarya}
@@ -736,14 +786,39 @@ function panoCiz() {
       <span class="govde"><span class="ad">${kacis(MASA_ARASTIRMA.ad)}</span><span class="chipler"><span class="chip iyi">+${MASA_ARASTIRMA.puan} araştırma puanı</span></span></span>
       <span class="maliyet">${MASA_ARASTIRMA.maliyet} eylem</span>
     </button>
-    <h3>İnşa</h3>
-    <div class="projeler">${yapilarHtml()}</div>
+    `,
+    insaat: `<p class="aciklama">Aynı anda bir inşaat yapılır. Malzeme ve eylem başlarken harcanır; yapı gece tamamlanır ve ertesi gün kullanıma girer. Atık, geri kazanılan yapı malzemesidir.</p>
+      ${state.insaat ? `<p class="mesaj">${kacis(YAPILAR[state.insaat.id].ad)} inşa ediliyor · ${state.insaat.kalan} gece kaldı</p>` : ''}
+      <label class="oda-filtre">Oda <select data-insaat-oda><option value="">Tüm odalar</option>${ODALAR.map((o) => `<option value="${o.tip}" ${insaatOda === o.tip ? 'selected' : ''}>${kacis(o.ad)}</option>`).join('')}</select></label>
+      <div class="projeler">${yapilarHtml(insaatOda)}</div>`,
+  };
+  modalAc(`
+    <nav class="pano-gecis" aria-label="Yönetim panelleri">${Object.entries(YONETIM_BOLUMLERI).map(([id, ad]) => `<button data-bolum="${id}" aria-pressed="${panoBolumu === id}" class="${panoBolumu === id ? 'secili' : ''}">${ad}</button>`).join('')}</nav>
+    <div class="panel-ust"><span class="etiket">YEŞİLVADİ · YÖNETİM</span><h2>${YONETIM_BOLUMLERI[panoBolumu]}</h2></div>
+    ${bolumler[panoBolumu]}
     ${sonMesaj ? `<p class="mesaj">&gt; ${kacis(sonMesaj)}</p>` : ''}
     <div class="alt">
       <span class="kalan"><span>Kalan eylem</span> <span class="noktalar">${eylemNoktalari()}</span></span>
       <button class="ikincil" data-kapat>Kapat (Esc)</button>
     </div>`, { sinif: 'panel pano', tema: '#7fd1b9' });
   panoAcik = true;
+  kart.querySelectorAll('[data-bolum]').forEach((b) => b.addEventListener('click', () => {
+    panoBolumu = b.dataset.bolum;
+    kart.querySelector('.kart-icerik').scrollTop = 0;
+    sonMesaj = '';
+    panoCiz();
+  }));
+  kart.querySelector('[data-insaat-oda]')?.addEventListener('change', (e) => {
+    insaatOda = e.target.value || null;
+    panoCiz();
+  });
+  kart.querySelectorAll('[data-oda-insaat]').forEach((b) => b.addEventListener('click', () => {
+    insaatOda = b.dataset.odaInsaat;
+    panoAc('insaat');
+  }));
+  kart.querySelectorAll('[data-oda-panel]').forEach((b) => b.addEventListener('click', () => {
+    panelAc(PANELLER[b.dataset.odaPanel], b.dataset.odaPanel);
+  }));
 
   kart.querySelectorAll('[data-gorev]').forEach((b) => b.addEventListener('click', () => {
     sonMesaj = '';
@@ -756,7 +831,7 @@ function panoCiz() {
   kart.querySelectorAll('[data-yapi]').forEach((b) => b.addEventListener('click', () => {
     const id = b.dataset.yapi;
     if (yapiKur(id)) {
-      sonMesaj = `${YAPILAR[id].ikon} ${YAPILAR[id].ad} inşa edildi.`;
+      sonMesaj = `${YAPILAR[id].ikon} ${YAPILAR[id].ad} inşaatı başladı. Yarın kullanıma hazır.`;
       panoCiz();
     }
   }));
@@ -773,7 +848,7 @@ function panoCiz() {
       panoCiz();
     }
   }));
-  kart.querySelector('[data-masa]').addEventListener('click', () => {
+  kart.querySelector('[data-masa]')?.addEventListener('click', () => {
     if (!masadaArastirabilirMi()) return;
     sonMesaj = 'Notlar, çizimler, hesaplar...';
     const biten = masadaArastir();
@@ -849,14 +924,16 @@ function girisBitti(bitti) {
 }
 
 export function baslangicEkrani(basla) {
+  hud.style.visibility = 'hidden';
   modalAc(`
     <div class="baslik-ekrani">
-      <span class="etiket">▸ ÇALIŞMA ADI<i class="led"></i></span>
-      <h1>Son Denge</h1>
+      <span class="etiket">YEŞİLVADİ · 2071<i class="led"></i></span>
+      <h1 class="oyun-baslik">${varsaImg(`${ARAYUZ_ASSET_KLASORU}logo.png`, 'oyun-logo') || 'Son Denge'}</h1>
       <p><b>Yeşilvadi</b>, Büyük Sessizlik'ten sonra kurulan son ütopya. Ne kadar dayanacağı senin kararlarına bağlı.</p>
       <p>${AYAR.maxGun} gün boyunca enerjiyi, suyu, gıdayı ve atığı yönet. Kolay çözümlerin bir bedeli var.</p>
       <div class="kontroller">
         <span><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> yürü</span>
+        <span><kbd>Shift</kbd> koş</span>
         <span><kbd>E</kbd> etkileşim</span>
         <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> panel eylemi</span>
         <span><kbd>Esc</kbd> kapat</span>
@@ -864,6 +941,7 @@ export function baslangicEkrani(basla) {
       <button data-basla data-varsayilan>Başla</button>
     </div>`, { kapatma: false, sinif: 'baslangic' });
   kart.querySelector('[data-basla]').addEventListener('click', () => {
+    hud.style.visibility = '';
     modalKapat();
     basla();
   });
@@ -901,6 +979,7 @@ export function sonGoster({ tip, bilgi }, tekrar) {
   const s = SONLAR[tip];
   modalAc(`
     <div class="son ${s.sinif}">
+      ${arayuzGorseli('son', SON_GORSELLERI[tip], 'son-gorsel')}
       <span class="etiket">▸ SON · GÜN ${state.gun}<i class="led"></i></span>
       <h1>${s.baslik}</h1>
       <p>${s.metin}</p>

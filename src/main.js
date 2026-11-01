@@ -7,6 +7,13 @@ import './style.css';
 sifirla();
 ui.hudKur();
 
+// Canvas yazıları oluşturulmadan önce yerel fontlar hazır olsun.
+await Promise.all([
+  document.fonts.load('400 16px "Nunito Sans"'),
+  document.fonts.load('700 16px "Nunito Sans"'),
+  document.fonts.load('700 24px "Barlow Condensed"'),
+]);
+
 // window.oyun: tarayıcı konsolundan hata ayıklamak için
 window.oyun = new Phaser.Game({
   type: Phaser.AUTO,

@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "build:tek": "vite build --mode tek",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node tools/mekanik-test.mjs"
   },
   "keywords": [],
   "author": "",

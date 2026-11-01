@@ -23,4 +23,4 @@ Animasyon/kare setlerinde aynı kural: **ilk karenin yanında (aynı görselde) 
 
 ## Oyun tarafı (kod)
 - Kesimden sonra her parçanın **görünen yüksekliği / referans insan yüksekliği × 1,75 m** = gerçek boy; bu değer `assets.js`'e metre olarak yazılır. Kesmeyi ve hesabı asistan yapar (görseli atmanız yeterli).
-- `PX_METRE` (şu an 75) oda görsellerindeki bilinen nesnelerden kalibre edilir; oda görselleri değişirse yalnız bu sayı güncellenir.
+- `PX_METRE` (şu an 74) oda görsellerindeki bilinen nesnelerden kalibre edilir; oda görselleri değişirse yalnız bu sayı güncellenir.

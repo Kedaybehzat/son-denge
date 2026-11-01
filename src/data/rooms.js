@@ -47,7 +47,7 @@ export const ODALAR = [
     nesneler: [
       { tip: 'kapi', x: 85, etiket: 'Kapı', arka: true },
       { tip: 'radyo', x: 279, etiket: 'Radyo', arka: true },
-      { tip: 'pano', x: 449, etiket: 'Görev ve Araştırma Panosu', arka: true },
+      { tip: 'pano', x: 449, etiket: 'Sığınak Yönetimi', arka: true },
       { tip: 'yatak', x: 606, etiket: 'Yatak (günü bitir)', arka: true },
     ],
     // Görselde kitaplık (sol), yatak (orta-sol), sandık (orta-sağ), koltuk (sağ) var

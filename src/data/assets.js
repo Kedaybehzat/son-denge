@@ -80,3 +80,28 @@ for (const k of [...KURUCULAR, ...ZIYARETCILER]) {
 export const ARAYUZ_ASSET_KLASORU = 'assets/';
 export const portreDosyasi = (onek, id) => `${ARAYUZ_ASSET_KLASORU}${onek}-${id}.png`;
 export const hikayeDosyasi = (n) => `${ARAYUZ_ASSET_KLASORU}hikaye-${n}.png`;
+
+// Arayüz dosyalarının tek kaydı; UI ve asset kontrol aracı birlikte kullanır.
+export const ARAYUZ_IKONLARI = {
+  enerji: 'enerji', su: 'su', gida: 'gida', atik: 'atik', karbon: 'karbon',
+  nufus: 'nufus', eylem: 'eylem', arastirma: 'arastirma', memnuniyet: 'memnuniyet',
+  batarya: 'batarya-depo', bataryaHud: 'batarya', grisu: 'grisu', turbin: 'turbin',
+  hidroponik: 'hidroponik', havaFiltresi: 'hava-filtresi', yalitim: 'yalitim',
+  bariyer: 'bariyer', ekPanel: 'ek-panel', santral: 'santral', sehir: 'sehir',
+  komsu: 'komsu', rezervuar: 'rezervuar', sera: 'gida', geriDonusum: 'atik',
+};
+export const KARAR_GORSELLERI = {
+  itiraz: 'itiraz', karanlik: 'karanlik', susuz: 'susuz', protesto: 'protesto',
+  kompost: 'kompost', soz: 'soz', tozUyari: 'toz-uyari', selUyari: 'sel-uyari',
+  bosMakine: 'bos-makine', keşifBataryalari: 'kesif-batarya', yeniAile: 'yeni-aile',
+};
+export const SON_GORSELLERI = {
+  gercekUtopya: 'gercek-utopya', yalnizUtopya: 'yalniz-utopya',
+  kapimizAcikti: 'kapimiz-acikti', guvenKaybi: 'guven-kaybi', cokus: 'cokus',
+};
+export const ARAYUZ_DOSYALARI = [...new Set([
+  'logo.png', 'menu-arka.png', 'kart-cerceve.png', 'buton.png', 'buton-basili.png', 'hud-kutu.png',
+  ...Object.values(ARAYUZ_IKONLARI).map((ad) => `ikon-${ad}.png`),
+  ...Object.values(KARAR_GORSELLERI).map((ad) => `kart-${ad}.png`),
+  ...Object.values(SON_GORSELLERI).map((ad) => `son-${ad}.png`),
+])];

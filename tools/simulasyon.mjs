@@ -4,7 +4,7 @@
 //  dağılımını gösterir. state.js / data dosyalarında sayı değiştirince
 //  çalıştırın:   node tools/simulasyon.mjs
 // =============================================================
-import { state, sifirla, eylemYap, gunuBitir, ziyaretciKabul, ziyaretciReddet, hazirlan, kartSec, kartSecenekleri, kartSecebilirMi,
+import { state, sifirla, eylemYap, eylemYapabilirMi, gunuBitir, ziyaretciKabul, ziyaretciReddet, hazirlan, kartSec, kartSecenekleri, kartSecebilirMi,
   dengeHesapla, nufusTuketimi, AYAR, rastgeleAyarla, bosMakineler, kendinCalis,
   masadaArastirabilirMi, masadaArastir, arastirmaSec, arastirmaAcik, gorevAta,
   makineOperatoru, sakinTanimi, MAKINELER, yapiKur, yapiKurabilirMi, yapiAcik } from '../src/state.js';
@@ -37,13 +37,14 @@ function tahmin(etki, nufus = state.nufus, katki = state.katki) {
 
 const STILLER = {
   // Her eylemde dengeyi en çok artıracak seçeneği seçer
-  akilli: (r) => TUM_EYLEMLER.reduce((a, b) => (tahmin(b.etki) > tahmin(a.etki) ? b : a)),
+  akilli: (r) => TUM_EYLEMLER.filter(eylemYapabilirMi).reduce((a, b) => (tahmin(b.etki) > tahmin(a.etki) ? b : a)),
   // Rastgele seçer
-  rastgele: (r) => TUM_EYLEMLER[Math.floor(r() * TUM_EYLEMLER.length)],
+  rastgele: (r) => { const uygun = TUM_EYLEMLER.filter(eylemYapabilirMi); return uygun[Math.floor(r() * uygun.length)]; },
   // Mümkünse hep kirli/hızlı seçeneği seçer
   kirli: (r) => {
-    const kirliler = TUM_EYLEMLER.filter((e) => e.kirli);
-    return r() < 0.7 ? kirliler[Math.floor(r() * kirliler.length)] : TUM_EYLEMLER[Math.floor(r() * TUM_EYLEMLER.length)];
+    const uygun = TUM_EYLEMLER.filter(eylemYapabilirMi);
+    const kirliler = uygun.filter((e) => e.kirli);
+    return r() < 0.7 ? kirliler[Math.floor(r() * kirliler.length)] : uygun[Math.floor(r() * uygun.length)];
   },
 };
 
@@ -83,7 +84,7 @@ function oyna(stilAd, stil, kapi, r) {
       const ss = kartSecenekleri().filter(kartSecebilirMi);
       const deger = (x) => tahmin({ ...(x.etki || {}), ...Object.fromEntries(Object.entries(x.geceEtki || {}).map(([k, v]) => [k, (x.etki?.[k] || 0) + v])) });
       let sec = ss[Math.floor(r() * ss.length)];
-      if (stilAd === 'akilli') sec = ss.reduce((a, b) => (deger(b) > deger(a) ? b : a));
+      if (stilAd === 'akilli' && ss.length) sec = ss.reduce((a, b) => (deger(b) > deger(a) ? b : a));
       if (stilAd === 'kirli') sec = ss.find((x) => x.kirli) || sec;
       if (sec) kartSec(sec);
     }
@@ -99,7 +100,10 @@ function oyna(stilAd, stil, kapi, r) {
     }
     // Operatörü olmayan makinelerde önce oyuncu kendisi çalışır
     for (const m of bosMakineler()) kendinCalis(m);
-    while (state.eylem > 0) eylemYap(stil(r));
+    while (state.eylem > 0) {
+      const sec = stil(r);
+      if (!sec || !eylemYap(sec)) break;
+    }
     const s = gunuBitir();
     if (s.tip !== 'devam') {
       return {
