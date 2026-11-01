@@ -2,6 +2,10 @@
 
 Bu prompt yalnız eksik ya da yenilenecek görselleri ister. Not: 34–44 arası kutu sahneleri mockup'tan kesilip oyuna bağlandı (geçici, kenarda hafif yazı izi var); yeniden üretmek isteğe bağlı iyileştirmedir. Konsol ve pano görselleri için `docs/tasarim-referans/` mockup'larını da referans olarak yükleyin (öncelik 7 ve 9). Hazır görseller (odalar, manzara, menü/UI seti, mevcut ikonlar, kart/son görselleri, oyuncu ve sakin-2/4 animasyonları) yeniden üretilmez. Tam durum: `docs/asset-listesi.md`.
 
+**Parçalı konsol güncellemesi:** Dört konsol artık altı ayrı UI parçası kullanır (`docs/asset-parcalari.md`). 30–33 tam konsol zeminleri güncel tasarım için gerekli değildir; eski tasarımın isteğe bağlı yedeğidir. Ortak çerçeve/düğme/doku mevcut mockup’tan `tools/asset-parcala.py` ile çıkarılır, yeniden üretilmez.
+
+**Güncel üretim tamamlandı:** Temel 7 ikon, keşif harita/işaret, genel sakin-1/3 kareleri ve 10 karakterin özel sprite/animasyon setleri üretildi. Mevcut yüz portreleri korunur; bunları tekrar üretmeyin. Güncel set kaydı `docs/karakter-setleri.md`, gerçek üretim promptları `docs/karakter-uretim-istekleri.json` içindedir. Aşağıdaki uzun liste tarihsel briftir; eksik durumu için her zaman `node tools/asset-durum.mjs` ve güncel Asset Listesi esas alınır.
+
 ## Nasıl kullanılır
 
 1. Yeni bir görsel sohbeti açın (Gemini / Nano Banana önerilir).

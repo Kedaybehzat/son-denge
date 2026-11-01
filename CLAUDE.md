@@ -470,6 +470,8 @@ node tools/asset-durum.mjs   # hangi görseller hazır
 
 ## 6. Görsel üretim rehberi (AI)
 
+> **Önce `docs/tasarim-rehberi.md` okuyun.** Yeni ekran, panel ve görsel tasarımlarının ortak dili orada: renk paleti, tipografi, ölçü birimleri, bileşen kataloğu, etkileşim kuralları, mockup'tan ekran kurma akışı, stil blokları E (arayüz zemini) ve F (kontrol sahnesi), kontrol listesi. Bu bölüm görsel üretim ayrıntılarını içerir.
+
 ### 6.1 Araçlar
 - **Google Gemini (Nano Banana):** Ana araç. Ücretsiz, tarayıcıda çalışıyor. En büyük avantajı: bir görseli yükleyip "bu stilde" diyerek **tutarlı** yeni görseller üretebilmesi.
 - **Leonardo.ai:** Yedek. Günlük ücretsiz kota ve ticari kullanım izni var.

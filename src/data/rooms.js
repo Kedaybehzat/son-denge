@@ -1,5 +1,6 @@
 // =============================================================
 //  ODALAR VE NESNELER
+//  Panel calismaIsigi: oda görselinde LED konumu [x,y], 0..1 oran.
 //  Odalar soldan sağa dizilir. x değerleri oda içindedir (0..ODA_GENISLIK).
 //  Yeni nesne eklemek için ilgili odanın "nesneler" listesine ekleyin.
 //
@@ -58,7 +59,7 @@ export const ODALAR = [
     tip: 'enerji',
     duvar: 0xb9c4cc,
     pencereX: 558,
-    nesneler: [{ tip: 'panel', panel: 'enerji', x: 315, etiket: 'Enerji Paneli', arka: true }],
+    nesneler: [{ tip: 'panel', panel: 'enerji', calismaIsigi: [0.761, 0.437], x: 315, etiket: 'Enerji Paneli', arka: true }],
     // Görselde jeneratör (sol), tezgâh (orta), inverter dolapları, batarya rafı (sağ)
     gorsel: { duvar: 0.755, nesneOran: { enerji: 0.722 }, nesneY: { enerji: 0.475 }, duman: [0.149, 0.13] },
   },
@@ -67,7 +68,7 @@ export const ODALAR = [
     tip: 'su',
     duvar: 0xa9c8d6,
     pencereX: 218,
-    nesneler: [{ tip: 'panel', panel: 'su', x: 461, etiket: 'Arıtma Paneli', arka: true }],
+    nesneler: [{ tip: 'panel', panel: 'su', calismaIsigi: [0.710, 0.332], x: 461, etiket: 'Arıtma Paneli', arka: true }],
     // Görselde iki büyük tank (gösterge camlarında su seviyesi), filtreler, havuz
     gorsel: { duvar: 0.762, nesneOran: { su: 0.694 }, nesneY: { su: 0.59 }, suGostergeleri: [[0.376, 0.33, 0.393, 0.575], [0.529, 0.33, 0.549, 0.575]] },
   },
@@ -77,7 +78,7 @@ export const ODALAR = [
     duvar: 0xc5d9b0,
     pencereX: 388,
     pencereGenis: true,
-    nesneler: [{ tip: 'panel', panel: 'sera', x: 679, etiket: 'Sera Paneli', arka: true }],
+    nesneler: [{ tip: 'panel', panel: 'sera', calismaIsigi: [0.033, 0.421], x: 679, etiket: 'Sera Paneli', arka: true }],
     gorsel: { duvar: 0.765, nesneOran: { sera: 0.08 }, nesneY: { sera: 0.53 }, bitkiOran: [0.14, 0.075], copOran: null },
   },
   {
@@ -85,7 +86,7 @@ export const ODALAR = [
     tip: 'geri',
     duvar: 0xcdbfae,
     pencereX: 570,
-    nesneler: [{ tip: 'panel', panel: 'geriDonusum', x: 364, etiket: 'Geri Dönüşüm Paneli', arka: true }],
+    nesneler: [{ tip: 'panel', panel: 'geriDonusum', calismaIsigi: [0.309, 0.519], x: 364, etiket: 'Geri Dönüşüm Paneli', arka: true }],
     gorsel: { duvar: 0.765, nesneOran: { geriDonusum: 0.29 }, duman: [0.946, 0.51], copOran: 0.10 },
   },
 ];

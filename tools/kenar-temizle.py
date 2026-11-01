@@ -11,7 +11,7 @@ KOK = Path(__file__).resolve().parent.parent
 A_DIR = KOK / 'public/assets'
 YEDEK = KOK / 'assets-orijinal/kenar-oncesi'
 # Dikdörtgen illüstrasyon / 9-dilim / opak zeminler hariç: yalnız serbest kesilmiş görseller
-HARIC = ('kart-', 'son-', 'oda-', 'menu-arka', 'manzara', 'hikaye', 'hud-kutu', 'buton', 'kart-cerceve', 'modul-', 'rozet-', 'konsol-', 'yonetim-', 'panel-', 'ziyaretci-', 'kurucu-')
+HARIC = ('ui-', 'kart-', 'son-', 'oda-', 'menu-arka', 'manzara', 'hikaye', 'hud-kutu', 'buton', 'kart-cerceve', 'modul-', 'rozet-', 'konsol-', 'yonetim-', 'panel-', 'ziyaretci-', 'kurucu-')
 PANEL_NESNE = ('panel.png', 'panel-enerji.png', 'panel-su.png', 'panel-sera.png', 'panel-geri.png')
 
 def uygun(p):

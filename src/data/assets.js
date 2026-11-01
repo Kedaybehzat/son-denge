@@ -68,7 +68,7 @@ export const ASSETLER = {
 
 // Karaktere özel sakin görseli: sakin-<id>.png (ör. sakin-selin.png, sakin-tamirci.png).
 // Varsa o kişi sahnede bununla görünür; yoksa sırayla sakin-1..4 kullanılır.
-// Özel görselli sakine genel sakin-N animasyonları uygulanmaz (başkasına dönüşmesin).
+// Özel görselli sakin kendi sakin-<id> animasyonunu kullanır; eksikse sabit kalır.
 export const SAKIN_OZEL_YUKSEKLIK = { cocuklar: m(1.3) };
 for (const k of [...KURUCULAR, ...ZIYARETCILER]) {
   ASSETLER['sakin-' + k.id] = { dosya: `sakin-${k.id}.png`, yukseklik: SAKIN_OZEL_YUKSEKLIK[k.id] ?? m(1.7), ozelSakin: true };
@@ -107,6 +107,12 @@ export const SON_GORSELLERI = {
   kapimizAcikti: 'kapimiz-acikti', guvenKaybi: 'guven-kaybi', cokus: 'cokus',
 };
 export const ARAYUZ_DOSYALARI = [...new Set([
+  'portre-oyuncu.png', 'logo-apoclimate.png', 'favicon.png', 'Apoclimate Metalik Logo.png',
+  'ui-panel-cerceve.png', 'ui-panel-metal.jpg', 'ui-dugme-cerceve.png', 'ui-bakim.png', 'ui-oda-sera.png', 'ui-oda-geri.png',
+  'hud-serit.jpg', 'alt-serit.jpg', 'ekran-ayarlar.jpg',
+  ...[1, 2, 3, 4].map((n) => `hikaye-ekran-${n}.jpg`),
+  ...['enerji', 'su', 'sera', 'geriDonusum'].flatMap((id) => [`panel-${id}.jpg`, `panel-${id}-kapali.jpg`]),
+  ...['koloni', 'odalar', 'kesif', 'arastirma', 'insaat', 'hedefler'].map((id) => `yonetim-${id}.jpg`),
   'logo.png', 'menu-arka.png', 'kart-cerceve.png', 'buton.png', 'buton-basili.png', 'hud-kutu.png',
   ...Object.values(ARAYUZ_IKONLARI).map((ad) => `ikon-${ad}.png`),
   ...Object.values(KARAR_GORSELLERI).map((ad) => `kart-${ad}.png`),

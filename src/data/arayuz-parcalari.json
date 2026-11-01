@@ -1,0 +1,11 @@
+{
+  "_aciklama": "Kaynak mockup'tan yeniden üretilebilir UI parçaları. Kutular kaynak pikselidir; metin/sayı içeren merkezler saydam bırakılır. tools/asset-parcala.py",
+  "parcalar": [
+    {"dosya":"ui-panel-cerceve.png","kaynak":"konsol-enerji","kutu":[14,32,1656,914],"islem":"cerceve","boyut":[512,512],"dilim":64},
+    {"dosya":"ui-panel-metal.jpg","kaynak":"konsol-enerji","kutu":[760,86,1090,190],"islem":"doku","boyut":[330,104]},
+    {"dosya":"ui-dugme-cerceve.png","kaynak":"konsol-enerji","kutu":[1368,762,1583,842],"islem":"dugme","boyut":[215,80],"dilim":18},
+    {"dosya":"ui-bakim.png","kaynak":"konsol-enerji","kutu":[1156,768,1244,846],"islem":"kes","boyut":[88,78]},
+    {"dosya":"ui-oda-sera.png","kaynak":"konsol-sera","kutu":[940,222,1574,384],"islem":"kes","boyut":[634,162]},
+    {"dosya":"ui-oda-geri.png","kaynak":"konsol-geri","kutu":[955,194,1585,310],"islem":"kes","boyut":[630,116]}
+  ]
+}
