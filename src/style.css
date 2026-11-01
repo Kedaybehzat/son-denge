@@ -1218,11 +1218,11 @@ button.gorev.dolu { opacity: 0.6; }
   display: block;
   width: 100%;
   max-width: 48cqw;
-  aspect-ratio: 16 / 9;
-  max-height: 24cqw;
-  object-fit: cover;
+  max-height: 26cqw;
+  object-fit: contain; /* görselin tamamı sığsın, kenarlar kırpılmasın */
   border-radius: 0.6cqw;
   margin: 0 auto 1cqw;
+  background: #0a0d08;
 }
 
 /* ---------- Yarın için tahmin (hazırlıklı olaylar) ---------- */
