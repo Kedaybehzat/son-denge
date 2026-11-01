@@ -107,99 +107,108 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 
 ## Asset Listesi
 
-> **Tek, güncel liste** (görseller ve animasyonlar birlikte, kategori yok). 1 Kasım 2026'da oyunun son hâline göre **sıfırdan** oluşturuldu: komple yeniden üretim için her şey burada. Kural: `CLAUDE.md` → 0.1 madde 5.
-> Üretim standardı: **ölçek dizisi** (`docs/olcek-standardi.md`, şablon `docs/olcek-sablonu.png`) · oda brifi ve promptları: `CLAUDE.md` 6.12 · stil blokları: 6.4 · durum kontrolü: `node tools/asset-durum.mjs`.
+> Sıfırdan üretim için tek liste (kopyası: `docs/asset-listesi.md`). Her asset tuval boyutu ve tuvaldeki boyuyla.
 
-**Genel kurallar**
-- Dosya adı küçük harf, Türkçe karakter yok. `.png` ile biten satırlar tek görsel; uzantısız satırlar **animasyon**: kareler `anim/<ad>-1.png … -N.png` olur (2×2 / 2×3 ızgaralı tek görsel olarak teslim edilebilir, kesme asistanda).
-- Nesne ve karakterler: şeffaf (ya da düz beyaz) arka plan, yandan görünüş, karakterler sağa bakar, taban en altta. Boyut serbest; oyun "Boy" sütunundaki gerçek ölçüye göre ölçekler (`PX_METRE`). Göreli boylar için ölçek dizisiyle üretin.
-- Animasyon kareleri: aynı boyut, aynı konum, aynı taban çizgisi; sadece hareket eden kısım değişir.
-- Odalar: 21:9, duvar–zemin çizgisi **tüm odalarda %74,5**, yürüme çizgisi %82, kenar %4'ler aynı kolon, camlar düz magenta #FF00FF, gerçek ölçek (1 m = yüksekliğin %18'i ön zeminde, %16,5'i duvar dibinde). Odanın "Ne" sütunundaki konumlar oyunun nesneleri yerleştirdiği yerlerdir; boş sürümde bu alanlar **boş bırakılır**.
-- **Her oda iki sürüm:** `oda-<oda>.png` (boş) + `oda-<oda>-tam.png` (aynı görsel, etkileşimli nesneler içine çizili). Oyun birleşik sürüm varsa onu kullanır ve nesnelerin üstüne görünmez etkileşim alanı koyar (garanti yol); yoksa ayrı parçaları yerleştirir. En kolay üretim: önce birleşik sürümü üretin, sonra aynı görselden nesneleri silip boş sürümü elde edin (ya da tersi).
-- Teslimde ölçekleme/kırpma yok; dosyaları olduğu gibi `public/assets/`'e koyun ya da asistana verin (isimlendirme, kesme, küçültme, magenta silme asistanda).
+**Kurallar (hepsi bu kadar)**
+- **Karakter ve nesneler:** şeffaf (ya da düz beyaz) arka plan, yandan görünüş, karakterler sağa bakar. Tuvalde **1 m = 600 px**, nesnenin tabanı tuvalin altından 40 px yukarıda. "Nesnenin boyu" sütunundaki yüksekliğe çizin; böylece hepsi birbirine göre doğru boyda olur.
+- **Animasyonlar:** tek görselde ızgara; her hücrede aynı boy, aynı konum, aynı taban çizgisi.
+- **Odalar:** 1920×820, düz karşıdan kesit. Duvar–zemin çizgisi **her odada y=611**, karakterlerin yürüdüğü çizgi y=672, sol ve sağ 77 px aynı kolon, camlar düz **#FF00FF**. Ölçek: 1 m ≈ 148 px (1,75 m insan ≈ 260 px). "Boş bırak" yazan yerlere hiçbir şey çizilmez.
+- Dosya adları önemli değil, asistan isimlendirir. Ölçekleme/kırpma yapmayın.
 
-**Toplam:** 72 satır · 55 görsel · 17 animasyon (57 kare). "İsteğe bağlı/Önerilir" olanlar yoksa oyun yedeğini kullanır.
+**Toplam:** 72 (görsel 55, animasyon 17).
 
-| # | Dosya / animasyon | Ne (odalarda: içerik ve ayrılacak alanlar) | Boy / oran | Kare | Zorunlu | Not |
+| # | Dosya | Ne | Tuval (px) | Nesnenin boyu | Kare | Not |
 |---|---|---|---|---|---|---|
-| 1 | `oda-yasam.png` | Yaşam Alanı arka planı — **boş sürüm** (oyunun nesneleri ayrı parça olarak konur). **İçerik ve ayrılacak alanlar** (x = görsel genişliğine %): KAPI x 13–21% (1,1×2,1 m, duvar dibi) · RADYO+SEHPA x 71–78% (0,8×0,9 m, duvar dibi) · YATAK x 35–59% (2,0×0,9 m) · GÖREV PANOSU ön zeminde x 3–11% (1,1×1,7 m) · sakinlerin durduğu boş zemin x 41–59%. Süs: kitaplık x 23–34% (1,2 m altı) + üstünde pencere, duvar rafı/askılar x 60–71%, koltuk + büyük bitki x 80–96%. | 21:9 (≈2,33:1) | — | Evet | Zemin çizgisi %74,5 · kenar %4 kolon · camlar magenta · 6.12 |
-| 2 | `oda-yasam-tam.png` | Yaşam Alanı — **birleşik sürüm**: `oda-yasam.png` ile birebir aynı görsel + etkileşimli nesneler (kapı, radyo+sehpa, yatak, görev panosu) yukarıdaki konum ve boylarda içine çizili. Varsa oyun bunu kullanır, nesnelerin üstüne görünmez etkileşim alanı koyar. | 21:9 (≈2,33:1) | — | Önerilir (garanti) | Boş sürümle aynı kompozisyon; sadece listelenen nesneler eklenir. Dinamik olanlar (bitki, çöp, su seviyesi, karakterler) ÇİZİLMEZ |
-| 3 | `oda-enerji.png` | Enerji Odası arka planı — **boş sürüm** (oyunun nesneleri ayrı parça olarak konur). **İçerik ve ayrılacak alanlar:** DİZEL JENERATÖR x 5–31% (2,4×1,9 m; dikey baca, ucu x 15%, y 20% — kirli eylem dumanı buradan) · ENERJİ PANELİ x 57–65% (0,9×1,5 m, duvar dibi) · operatör boş zemini x 50–72%. Süs: alet tezgâhı x 31–50% + üstünde pencere, batarya rafı x 72–96%, üst duvarda kablo kanalları. | 21:9 (≈2,33:1) | — | Evet | Zemin çizgisi %74,5 · kenar %4 kolon · camlar magenta · 6.12 |
-| 4 | `oda-enerji-tam.png` | Enerji Odası — **birleşik sürüm**: `oda-enerji.png` ile birebir aynı görsel + etkileşimli nesneler (enerji paneli) yukarıdaki konum ve boylarda içine çizili. Varsa oyun bunu kullanır, nesnelerin üstüne görünmez etkileşim alanı koyar. | 21:9 (≈2,33:1) | — | Önerilir (garanti) | Boş sürümle aynı kompozisyon; sadece listelenen nesneler eklenir. Dinamik olanlar (bitki, çöp, su seviyesi, karakterler) ÇİZİLMEZ |
-| 5 | `oda-su.png` | Su Arıtma arka planı — **boş sürüm** (oyunun nesneleri ayrı parça olarak konur). **İçerik ve ayrılacak alanlar:** 2 SU TANKI x 27–40% ve 44–57% (her biri 1,7×2,4 m); önlerinde dikey GÖSTERGE CAMI x 37,2–38,0% ve 53,1–54,2%, y 38–64%, içi düz açık gri (su seviyesini oyun çizer) · ARITMA PANELİ x 61–70% (0,9×1,5 m, duvar dibi) · operatör boş zemini x 57–74%. Süs: kavanozlu raf x 5–24% + üstünde pencere, akan sulu beton havuz x 74–95%, tanklar arası borular/vanalar. | 21:9 (≈2,33:1) | — | Evet | Zemin çizgisi %74,5 · kenar %4 kolon · camlar magenta · 6.12 |
-| 6 | `oda-su-tam.png` | Su Arıtma — **birleşik sürüm**: `oda-su.png` ile birebir aynı görsel + etkileşimli nesneler (arıtma paneli (tanklar zaten görselde)) yukarıdaki konum ve boylarda içine çizili. Varsa oyun bunu kullanır, nesnelerin üstüne görünmez etkileşim alanı koyar. | 21:9 (≈2,33:1) | — | Önerilir (garanti) | Boş sürümle aynı kompozisyon; sadece listelenen nesneler eklenir. Dinamik olanlar (bitki, çöp, su seviyesi, karakterler) ÇİZİLMEZ |
-| 7 | `oda-sera.png` | Sera arka planı — **boş sürüm** (oyunun nesneleri ayrı parça olarak konur). **İçerik ve ayrılacak alanlar:** arka duvar 1 m yükseklikten tavana CAM DUVAR (camlar magenta) · YÜKSELTİLMİŞ YATAKLAR x 5–37% ve FİDE RAFLARI x 38–70% (hepsi 1 m altında, duvar dibinde) · ön zemin x 6–63% BOŞ (oyun 7 saksı bitki dizer, 0,65 m) · SERA PANELİ x 81–89% (0,9×1,5 m, duvar dibi) · operatör boş zemini x 74–82%. | 21:9 (≈2,33:1) | — | Evet | Zemin çizgisi %74,5 · kenar %4 kolon · camlar magenta · 6.12 |
-| 8 | `oda-sera-tam.png` | Sera — **birleşik sürüm**: `oda-sera.png` ile birebir aynı görsel + etkileşimli nesneler (sera paneli) yukarıdaki konum ve boylarda içine çizili. Varsa oyun bunu kullanır, nesnelerin üstüne görünmez etkileşim alanı koyar. | 21:9 (≈2,33:1) | — | Önerilir (garanti) | Boş sürümle aynı kompozisyon; sadece listelenen nesneler eklenir. Dinamik olanlar (bitki, çöp, su seviyesi, karakterler) ÇİZİLMEZ |
-| 9 | `oda-geri.png` | Geri Dönüşüm arka planı — **boş sürüm** (oyunun nesneleri ayrı parça olarak konur). **İçerik ve ayrılacak alanlar:** hurda kasaları duvar dibinde x 4–23%, ÖNLERİ BOŞ ön zemin x 6–20% (oyun büyüyüp küçülen çöp yığını çizer, 1,8×0,9 m) · GERİ DÖNÜŞÜM PANELİ x 47–57% (0,9×1,5 m, duvar dibi) · operatör boş zemini x 45–59%. Süs: tamir tezgâhı + alet panosu x 24–45%, geri dönüşüm afişi x 53–58% (1,6 m üstü), ayrıştırılmış kutu rafları x 59–95%, pencere x 6–20%. | 21:9 (≈2,33:1) | — | Evet | Zemin çizgisi %74,5 · kenar %4 kolon · camlar magenta · 6.12 |
-| 10 | `oda-geri-tam.png` | Geri Dönüşüm — **birleşik sürüm**: `oda-geri.png` ile birebir aynı görsel + etkileşimli nesneler (geri dönüşüm paneli) yukarıdaki konum ve boylarda içine çizili. Varsa oyun bunu kullanır, nesnelerin üstüne görünmez etkileşim alanı koyar. | 21:9 (≈2,33:1) | — | Önerilir (garanti) | Boş sürümle aynı kompozisyon; sadece listelenen nesneler eklenir. Dinamik olanlar (bitki, çöp, su seviyesi, karakterler) ÇİZİLMEZ |
-| 11 | `manzara-iyi.png` | Şehir panoraması, ütopya hâli (pencerelerden ve çatı üstünden görünür) | 21:9 (≈2,33:1), yatay döşenebilir | — | Evet | Ufuk %55 · 6.7 |
-| 12 | `manzara-kotu.png` | Aynı panorama, distopya hâli (denge düştükçe belirir) | 21:9 (≈2,33:1), aynı kompozisyon | — | Evet | 6.7 |
-| 13 | `cati.png` | Sığınak çatı şeridi, eğik güneş panelleri + havalandırma | 6:1, yatay döşenebilir | — | Evet | Final prompt C |
-| 14 | `oyuncu.png` | Oyuncu karakteri (sağa bakan, duruş) | 1,75 m | — | Evet | Ölçek dizisinin referansı · 6.13 |
-| 15 | `oyuncu-bekle` | Oyuncu dururken (nefes) | 1,75 m | 4 (döngü, 4 fps) | Evet |  |
-| 16 | `oyuncu-yuru` | Oyuncu yürürken | 1,75 m | 6 (döngü, 10 fps) | Evet | Gelince kodla zıplama kapanır |
-| 17 | `oyuncu-calis` | Oyuncu panele dokunurken | 1,75 m | 4 (bir kez, 8 fps) | Evet |  |
-| 18 | `sakin-1.png` | Genel sakin 1 (asalı yaşlı işçi); isimsiz sakinler sırayla bunları kullanır | 1,7 m | — | Evet | 6.5 |
-| 19 | `sakin-2.png` | Genel sakin 2 (örgülü kadın, saha ceketli); isimsiz sakinler sırayla bunları kullanır | 1,7 m | — | Evet | 6.5 |
-| 20 | `sakin-3.png` | Genel sakin 3 (deri önlüklü usta); isimsiz sakinler sırayla bunları kullanır | 1,7 m | — | Evet | 6.5 |
-| 21 | `sakin-4.png` | Genel sakin 4 (hardal şapkalı genç gezgin); isimsiz sakinler sırayla bunları kullanır | 1,7 m | — | Evet | 6.5 |
-| 22 | `sakin-1-bekle` | Sakin 1 dururken | 1,7 m | 2 (döngü, 2 fps) | Evet |  |
-| 23 | `sakin-1-yuru` | Sakin 1 yürürken | 1,7 m | 4 (döngü, 8 fps) | Evet |  |
-| 24 | `sakin-2-bekle` | Sakin 2 dururken | 1,7 m | 2 (döngü, 2 fps) | Evet |  |
-| 25 | `sakin-2-yuru` | Sakin 2 yürürken | 1,7 m | 4 (döngü, 8 fps) | Evet |  |
-| 26 | `sakin-3-bekle` | Sakin 3 dururken | 1,7 m | 2 (döngü, 2 fps) | Evet |  |
-| 27 | `sakin-3-yuru` | Sakin 3 yürürken | 1,7 m | 4 (döngü, 8 fps) | Evet |  |
-| 28 | `sakin-4-bekle` | Sakin 4 dururken | 1,7 m | 2 (döngü, 2 fps) | Evet |  |
-| 29 | `sakin-4-yuru` | Sakin 4 yürürken | 1,7 m | 4 (döngü, 8 fps) | Evet |  |
-| 30 | `sakin-selin.png` | Sahnede Kurucu Selin (enerji); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
-| 31 | `sakin-burak.png` | Sahnede Kurucu Burak (su); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
-| 32 | `sakin-nur.png` | Sahnede Kurucu Nur (sera); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
-| 33 | `sakin-can.png` | Sahnede Kurucu Can (geri dönüşüm); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
-| 34 | `sakin-muhendis.png` | Sahnede Deniz, mühendis; varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
-| 35 | `sakin-ciftci.png` | Sahnede Hasan ve kızı Elif (birlikte); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
-| 36 | `sakin-bilim.png` | Sahnede Dr. Leyla; varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
-| 37 | `sakin-cocuklar.png` | Sahnede Mert ve Ada (iki çocuk birlikte); varsa genel sakin görseli yerine bu | 1,3 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
-| 38 | `sakin-tamirci.png` | Sahnede Kemal, tamirci; varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
-| 39 | `sakin-kafile.png` | Sahnede Sahil ailesi (4 kişi birlikte); varsa genel sakin görseli yerine bu | 1,7 m | — | İsteğe bağlı | Portresiyle aynı kişi, tam boy, yandan |
-| 40 | `kapi.png` | Sığınak kapısı (kapalı) — ayrı parça | 2,1 m | — | Evet | Birleşik yaşam odası varsa görünmez ama yedek olarak gerekli |
-| 41 | `kapi-ac` | Kapı açılıyor (ziyaretçi içeri alınınca) | 2,1 m | 4 (bir kez, 10 fps) | Evet | 1. kare = kapi.png. Birleşik odada oynamaz |
-| 42 | `panel.png` | Genel kontrol konsolu (yedek) | 1,5 m | — | Evet | Oda paneli yoksa kullanılır |
-| 43 | `panel-calis` | Genel konsol çalışıyor (ekran/ışık) | 1,5 m | 3 (döngü, 6 fps) | Evet |  |
-| 44 | `panel-enerji.png` | Enerji konsolu (sönük ekran) — ayrı parça | 1,5 m | — | Evet | = panel-enerji-calis 1. karesi |
-| 45 | `panel-enerji-calis` | Enerji konsolu çalışıyor | 1,5 m | 3 (döngü, 6 fps) | Evet | Sadece ekran/düğme ışığı değişir. Birleşik odada görünmez (durum ışığı yine görünür) |
-| 46 | `panel-su.png` | Su arıtma konsolu (sönük ekran) — ayrı parça | 1,5 m | — | Evet | = panel-su-calis 1. karesi |
-| 47 | `panel-su-calis` | Su arıtma konsolu çalışıyor | 1,5 m | 3 (döngü, 6 fps) | Evet | Sadece ekran/düğme ışığı değişir. Birleşik odada görünmez (durum ışığı yine görünür) |
-| 48 | `panel-sera.png` | Sera konsolu (sönük ekran) — ayrı parça | 1,5 m | — | Evet | = panel-sera-calis 1. karesi |
-| 49 | `panel-sera-calis` | Sera konsolu çalışıyor | 1,5 m | 3 (döngü, 6 fps) | Evet | Sadece ekran/düğme ışığı değişir. Birleşik odada görünmez (durum ışığı yine görünür) |
-| 50 | `panel-geri.png` | Geri dönüşüm konsolu (sönük ekran) — ayrı parça | 1,5 m | — | Evet | = panel-geri-calis 1. karesi |
-| 51 | `panel-geri-calis` | Geri dönüşüm konsolu çalışıyor | 1,5 m | 3 (döngü, 6 fps) | Evet | Sadece ekran/düğme ışığı değişir. Birleşik odada görünmez (durum ışığı yine görünür) |
-| 52 | `radyo.png` | Küçük sehpa üstünde radyo — ayrı parça | 0,9 m | — | Evet |  |
-| 53 | `pano.png` | Ayaklı görev ve araştırma panosu — ayrı parça | 1,7 m | — | Evet | Ön zeminde durur |
-| 54 | `yatak.png` | Tek kişilik yatak (yedek) | 0,9 m | — | İsteğe bağlı | Yaşam odası görselinde yatak çizili olduğundan normalde kullanılmaz |
-| 55 | `bitki.png` | Saksıda sebze fidesi, sağlıklı (seranın ön zemininde 7 adet) | 0,65 m | — | Evet | Her zaman ayrı parça (dinamik) |
-| 56 | `bitki-solgun.png` | Aynı fide, solgun (gıda/denge düşünce) | 0,65 m | — | Evet | Aynı saksı, aynı boy |
-| 57 | `cop-yigini.png` | Çöp yığını (atığa göre büyür/küçülür) | 0,9 m (≈1,8 m genişlik) | — | Evet | Her zaman ayrı parça (dinamik) |
-| 58 | `ziyaretci-muhendis.png` | Portre: Deniz, mühendis (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
-| 59 | `ziyaretci-ciftci.png` | Portre: Hasan ve kızı Elif (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
-| 60 | `ziyaretci-bilim.png` | Portre: Dr. Leyla (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
-| 61 | `ziyaretci-cocuklar.png` | Portre: Mert ve Ada (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
-| 62 | `ziyaretci-tamirci.png` | Portre: Kemal, tamirci (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
-| 63 | `ziyaretci-kafile.png` | Portre: Sahil kasabasından aile (4 kişi) (kapı kartı + pano) | 1:1 | — | Evet | 6.9 |
-| 64 | `kurucu-selin.png` | Portre: kurucu Selin (pano) | 1:1 | — | Evet | 6.9 Kurucular |
-| 65 | `kurucu-burak.png` | Portre: kurucu Burak (pano) | 1:1 | — | Evet | 6.9 Kurucular |
-| 66 | `kurucu-nur.png` | Portre: kurucu Nur (pano) | 1:1 | — | Evet | 6.9 Kurucular |
-| 67 | `kurucu-can.png` | Portre: kurucu Can (pano) | 1:1 | — | Evet | 6.9 Kurucular |
-| 68 | `hikaye-1.png` | Açılış hikaye ekranı 1: Dünya ısınıyordu | 16:9 | — | Evet | 6.8 |
-| 69 | `hikaye-2.png` | Açılış hikaye ekranı 2: Buz çözüldü | 16:9 | — | Evet | 6.8 |
-| 70 | `hikaye-3.png` | Açılış hikaye ekranı 3: Büyük Sessizlik | 16:9 | — | Evet | 6.8 |
-| 71 | `hikaye-4.png` | Açılış hikaye ekranı 4: Yeşilvadi | 16:9 | — | Evet | 6.8 |
-| 72 | `kapak.png` | Sunum kapağı (oyunda kullanılmaz) | 16:9 | — | Evet | 6.10 |
+| 1 | `oda-yasam.png` | Yaşam Alanı arka planı. Boş bırak: kapı x 250–403, radyo x 1363–1498, pano (ön zemin) x 58–211. Çiz: tek kişilik yatak x 672–1133. Süs: kitaplık+pencere x 442–653, raf/askı x 1152–1363, koltuk+bitki x 1536–1843 | 1920×820 | — | — | Duvar–zemin çizgisi y=611, karakterlerin yürüdüğü çizgi y=672, kenar 77 px kolon, camlar #FF00FF |
+| 2 | `oda-enerji.png` | Enerji Odası arka planı. Çiz: dizel jeneratör x 96–595 (baca ucu x 288, y 164). Boş bırak: panel x 1094–1248. Süs: tezgâh+pencere x 595–960, batarya rafı x 1382–1843 | 1920×820 | — | — | Duvar–zemin çizgisi y=611, karakterlerin yürüdüğü çizgi y=672, kenar 77 px kolon, camlar #FF00FF |
+| 3 | `oda-su.png` | Su Arıtma arka planı. Çiz: 2 tank x 518–768 ve x 845–1094, önlerinde boş açık gri gösterge camı (x 714–730 ve 1020–1041, y 312–525). Boş bırak: panel x 1171–1344. Süs: raf+pencere x 96–461, su havuzu x 1421–1824 | 1920×820 | — | — | Duvar–zemin çizgisi y=611, karakterlerin yürüdüğü çizgi y=672, kenar 77 px kolon, camlar #FF00FF |
+| 4 | `oda-sera.png` | Sera arka planı. 1 m yükseklikten tavana cam duvar (magenta). Çiz: yükseltilmiş yataklar x 96–710, fide rafları x 730–1344 (1 m altında). Boş: ön zemin x 115–1210 (saksılar), panel x 1555–1709 | 1920×820 | — | — | Duvar–zemin çizgisi y=611, karakterlerin yürüdüğü çizgi y=672, kenar 77 px kolon, camlar #FF00FF |
+| 5 | `oda-geri.png` | Geri Dönüşüm arka planı. Çiz: hurda kasaları x 77–442 (önleri boş zemin, çöp yığını). Boş bırak: panel x 902–1094. Süs: tamir tezgâhı x 461–864, afiş x 1018–1114, kutu rafları x 1133–1824 | 1920×820 | — | — | Duvar–zemin çizgisi y=611, karakterlerin yürüdüğü çizgi y=672, kenar 77 px kolon, camlar #FF00FF |
+| 6 | `oda-yasam-tam.png` | Yaşam Alanı, aynı görsel + boş bırakılan yerlere oyun nesneleri çizili | 1920×820 | — | — | İsteğe bağlı |
+| 7 | `oda-enerji-tam.png` | Enerji Odası, aynı görsel + boş bırakılan yerlere oyun nesneleri çizili | 1920×820 | — | — | İsteğe bağlı |
+| 8 | `oda-su-tam.png` | Su Arıtma, aynı görsel + boş bırakılan yerlere oyun nesneleri çizili | 1920×820 | — | — | İsteğe bağlı |
+| 9 | `oda-sera-tam.png` | Sera, aynı görsel + boş bırakılan yerlere oyun nesneleri çizili | 1920×820 | — | — | İsteğe bağlı |
+| 10 | `oda-geri-tam.png` | Geri Dönüşüm, aynı görsel + boş bırakılan yerlere oyun nesneleri çizili | 1920×820 | — | — | İsteğe bağlı |
+| 11 | `manzara-iyi.png` | Şehir panoraması, yeşil/iyi hâli | 1920×820 | — | — | Sol ve sağ kenar birbirine uysun, ufuk y=450 |
+| 12 | `manzara-kotu.png` | Aynı panorama, kirli/kötü hâli | 1920×820 | — | — | Aynı kompozisyon |
+| 13 | `cati.png` | Çatı şeridi: 4 eğik güneş paneli + havalandırma | 1536×256 | şerit altta ~80 px | — | Şeffaf üst, kenarlar birbirine uysun |
+| 14 | `oyuncu.png` | Oyuncu (sarı atkılı bakıcı), sağa bakan | 1024×1536 | 1050 px (1,75 m) | — |  |
+| 15 | `sakin-1.png` | Sakin 1: asalı yaşlı işçi | 1024×1536 | 1020 px (1,7 m) | — |  |
+| 16 | `sakin-2.png` | Sakin 2: örgülü kadın, saha ceketli | 1024×1536 | 1020 px (1,7 m) | — |  |
+| 17 | `sakin-3.png` | Sakin 3: deri önlüklü usta | 1024×1536 | 1020 px (1,7 m) | — |  |
+| 18 | `sakin-4.png` | Sakin 4: şapkalı genç gezgin | 1024×1536 | 1020 px (1,7 m) | — |  |
+| 19 | `sakin-selin.png` | Sahnede Selin (tam boy) | 1024×1536 | 1020 px | — | İsteğe bağlı |
+| 20 | `sakin-burak.png` | Sahnede Burak (tam boy) | 1024×1536 | 1020 px | — | İsteğe bağlı |
+| 21 | `sakin-nur.png` | Sahnede Nur (tam boy) | 1024×1536 | 1020 px | — | İsteğe bağlı |
+| 22 | `sakin-can.png` | Sahnede Can (tam boy) | 1024×1536 | 1020 px | — | İsteğe bağlı |
+| 23 | `sakin-muhendis.png` | Sahnede Deniz (tam boy) | 1024×1536 | 1020 px | — | İsteğe bağlı |
+| 24 | `sakin-ciftci.png` | Sahnede Hasan + kızı Elif (tam boy) | 1024×1536 | 1020 px | — | İsteğe bağlı |
+| 25 | `sakin-bilim.png` | Sahnede Dr. Leyla (tam boy) | 1024×1536 | 1020 px | — | İsteğe bağlı |
+| 26 | `sakin-cocuklar.png` | Sahnede Mert + Ada (tam boy) | 1024×1536 | 780 px (1,3 m) | — | İsteğe bağlı |
+| 27 | `sakin-tamirci.png` | Sahnede Kemal (tam boy) | 1024×1536 | 1020 px | — | İsteğe bağlı |
+| 28 | `sakin-kafile.png` | Sahnede 4 kişilik aile (tam boy) | 1024×1536 | 1050 px | — | İsteğe bağlı |
+| 29 | `kapi.png` | Sığınak kapısı, kapalı | 1024×1536 | 1260 px (2,1 m) | — |  |
+| 30 | `panel.png` | Genel kontrol konsolu | 1024×1536 | 900 px (1,5 m) | — |  |
+| 31 | `panel-enerji.png` | Konsol, enerji temalı (ekran sönük) | 1024×1536 | 900 px (1,5 m) | — |  |
+| 32 | `panel-su.png` | Konsol, su arıtma temalı (ekran sönük) | 1024×1536 | 900 px (1,5 m) | — |  |
+| 33 | `panel-sera.png` | Konsol, sera temalı (ekran sönük) | 1024×1536 | 900 px (1,5 m) | — |  |
+| 34 | `panel-geri.png` | Konsol, geri dönüşüm temalı (ekran sönük) | 1024×1536 | 900 px (1,5 m) | — |  |
+| 35 | `pano.png` | Ayaklı görev panosu | 1024×1536 | 1020 px (1,7 m) | — |  |
+| 36 | `radyo.png` | Sehpa üstünde radyo | 1024×1536 | 540 px (0,9 m) | — |  |
+| 37 | `bitki.png` | Saksıda sebze fidesi, sağlıklı | 1024×1536 | 390 px (0,65 m) | — |  |
+| 38 | `bitki-solgun.png` | Aynı fide, solgun | 1024×1536 | 390 px (0,65 m) | — |  |
+| 39 | `yatak.png` | Tek kişilik yatak | 1536×1024 | 540 px yük., 1200 px uzun (0,9 × 2 m) | — | İsteğe bağlı |
+| 40 | `cop-yigini.png` | Çöp yığını | 1536×1024 | 540 px yük., 1080 px gen. (0,9 × 1,8 m) | — |  |
+| 41 | `oyuncu-bekle` | Oyuncu nefes alıyor | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 525 px | 4 |  |
+| 42 | `oyuncu-yuru` | Oyuncu yürüyor | 1536×1024, 3×2 ızgara (hücre 512×512) | hücrede 450 px | 6 |  |
+| 43 | `oyuncu-calis` | Oyuncu panele dokunuyor | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 525 px | 4 |  |
+| 44 | `sakin-1-bekle` | Sakin 1 nefes alıyor | 1024×768, 2×1 ızgara (hücre 512×768) | hücrede 510 px | 2 |  |
+| 45 | `sakin-1-yuru` | Sakin 1 yürüyor | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 510 px | 4 |  |
+| 46 | `sakin-2-bekle` | Sakin 2 nefes alıyor | 1024×768, 2×1 ızgara (hücre 512×768) | hücrede 510 px | 2 |  |
+| 47 | `sakin-2-yuru` | Sakin 2 yürüyor | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 510 px | 4 |  |
+| 48 | `sakin-3-bekle` | Sakin 3 nefes alıyor | 1024×768, 2×1 ızgara (hücre 512×768) | hücrede 510 px | 2 |  |
+| 49 | `sakin-3-yuru` | Sakin 3 yürüyor | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 510 px | 4 |  |
+| 50 | `sakin-4-bekle` | Sakin 4 nefes alıyor | 1024×768, 2×1 ızgara (hücre 512×768) | hücrede 510 px | 2 |  |
+| 51 | `sakin-4-yuru` | Sakin 4 yürüyor | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 510 px | 4 |  |
+| 52 | `kapi-ac` | Kapı açılıyor (1. kare = kapalı) | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 630 px | 4 |  |
+| 53 | `panel-calis` | Genel konsol çalışıyor (1. kare sönük) | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 600 px | 3 | Sağ alt hücre boş |
+| 54 | `panel-enerji-calis` | enerji konsolu çalışıyor (1. kare = panel-enerji.png) | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 600 px | 3 | Sağ alt hücre boş |
+| 55 | `panel-su-calis` | su konsolu çalışıyor (1. kare = panel-su.png) | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 600 px | 3 | Sağ alt hücre boş |
+| 56 | `panel-sera-calis` | sera konsolu çalışıyor (1. kare = panel-sera.png) | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 600 px | 3 | Sağ alt hücre boş |
+| 57 | `panel-geri-calis` | geri konsolu çalışıyor (1. kare = panel-geri.png) | 1024×1536, 2×2 ızgara (hücre 512×768) | hücrede 600 px | 3 | Sağ alt hücre boş |
+| 58 | `ziyaretci-muhendis.png` | Portre: Deniz | 1024×1024 | baş+omuz | — |  |
+| 59 | `ziyaretci-ciftci.png` | Portre: Hasan + Elif | 1024×1024 | baş+omuz | — |  |
+| 60 | `ziyaretci-bilim.png` | Portre: Dr. Leyla | 1024×1024 | baş+omuz | — |  |
+| 61 | `ziyaretci-cocuklar.png` | Portre: Mert + Ada | 1024×1024 | baş+omuz | — |  |
+| 62 | `ziyaretci-tamirci.png` | Portre: Kemal | 1024×1024 | baş+omuz | — |  |
+| 63 | `ziyaretci-kafile.png` | Portre: 4 kişilik aile | 1024×1024 | baş+omuz | — |  |
+| 64 | `kurucu-selin.png` | Portre: Selin | 1024×1024 | baş+omuz | — |  |
+| 65 | `kurucu-burak.png` | Portre: Burak | 1024×1024 | baş+omuz | — |  |
+| 66 | `kurucu-nur.png` | Portre: Nur | 1024×1024 | baş+omuz | — |  |
+| 67 | `kurucu-can.png` | Portre: Can | 1024×1024 | baş+omuz | — |  |
+| 68 | `hikaye-1.png` | Hikaye ekranı: Dünya ısınıyordu | 1920×1080 | — | — |  |
+| 69 | `hikaye-2.png` | Hikaye ekranı: Buz çözüldü | 1920×1080 | — | — |  |
+| 70 | `hikaye-3.png` | Hikaye ekranı: Büyük Sessizlik | 1920×1080 | — | — |  |
+| 71 | `hikaye-4.png` | Hikaye ekranı: Yeşilvadi | 1920×1080 | — | — |  |
+| 72 | `kapak.png` | Sunum kapağı | 1920×1080 | — | — |  |
 
 ---
 
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-promptu`
+
+- **Prompt:** Kapsamlı prompt/rehber işe yaramadı; sadece sıfırdan bir asset listesi, olması gereken boyutlarıyla. Stil rehberini kendisi yükleyecek.
+- **Yapılan değişiklik:** Asset Listesi sadeleştirildi: 72 satır, her biri için tuval boyutu (px) ve nesnenin tuvaldeki boyu. Ölçek tuval kuralıyla sabit (karakter/nesne 1 m = 600 px, taban alttan 40 px; odalar 1920×820, zemin çizgisi y=611, 1 m ≈ 148 px); odalarda ayrılacak alanlar piksel aralığıyla. Uzun prompt kullanılmıyor.
+
+| Dosya | Açıklama |
+|---|---|
+| `docs/asset-listesi.md` | Yeni |
+| `PROJECT_LOG.md` | Asset Listesi yeniden yazıldı |
+
+- **Debt:** Yok.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-promptu`
 
