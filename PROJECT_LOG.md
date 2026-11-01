@@ -84,6 +84,9 @@ docs/oda-sablonlari/       Oda görselleri rework şablonları (sablon-<oda>.png
 assets-orijinal/           Küçültülmeden önceki asset yedekleri (git'e girmez, .gitignore)
 docs/olcek-standardi.md    Asset üretiminde tek ölçü standardı (ölçek dizisi) + prompt
 docs/olcek-sablonu.png     Ölçek dizisi şablonu (tek taban, 1 m = 300 px, 10 yuva)
+docs/asset-rehberi.pdf     Asset üretim rehberi PDF'i (24 sayfa; GPT'ye kaynak olarak yüklenir)
+docs/sanat-stili-1..3.png  Ekibin Ana Sanat Stili Rehberi sayfaları
+docs/sifirdan-asset-promptu.md  Sıfırdan komple asset üretimi promptu (72 madde)
 docs/final-asset-promptu.md  Asset sohbetine tek seferde yapıştırılacak final prompt (eksik/düzeltilecek tüm görseller)
 PROJECT_LOG.md             Bu dosya (Project Map, borçlar, Asset Listesi, değişiklik logu)
 Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
@@ -197,6 +200,21 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-promptu`
+
+- **Prompt:** Ben üreteceğim: sıfırdan, ayrıntılı asset listesi/prompt ver. + Örnek eski asset'ler, ölçek rehberi ve tema rehberini içeren bir PDF oluştur, GPT'ye kaynak olarak yükleyeceğim.
+- **Yapılan değişiklik:** PR #7 merge edildi. `docs/sifirdan-asset-promptu.md`: 72 maddelik yapıştırılacak İngilizce prompt (genel stil, ölçek standardı, nesne/animasyon/oda kuralları, odaların boş + birleşik sürümleri, içerik ve ayrılacak alanlar, karakter tarifleri, ızgara düzenleri). `docs/asset-rehberi.pdf` (24 sayfa, 12,9 MB): kapak + 8 temel kural, ekibin Ana Sanat Stili Rehberi (3 sayfa; docs'a gelen ChatGPT görselleri `sanat-stili-1..3.png` olarak adlandırıldı), renk paleti + stil blokları, ölçek standardı + şablon + gerçek boy tablosu, oda kuralları + güncel konumlarla yeniden üretilen 5 yerleşim şablonu, örnek mevcut asset'ler (odalar, karakter/nesneler, animasyon şeritleri, portreler, hikaye, manzara, çatı), tam asset listesi, prompt. Asset üretilmedi.
+
+| Dosya | Açıklama |
+|---|---|
+| `docs/asset-rehberi.pdf` | Yeni |
+| `docs/sifirdan-asset-promptu.md` | Yeni |
+| `docs/sanat-stili-1..3.png` | Ekipten (yeniden adlandırıldı) |
+| `docs/oda-sablonlari/*.png` | Güncel konumlar, birleşik sürüm işaretleri |
+| `PROJECT_LOG.md` | Asset Listesi'ne referanslar, ağaç, bu kayıt |
+
+- **Debt:** Yok. Not: PDF, scratch'teki bir Playwright betiğiyle üretildi; liste değişirse asistandan yeniden üretmesi istenmeli. PR merge izni otomatik verilmedi.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `animasyon-duzeltme` → `main`
 
