@@ -277,10 +277,10 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Güncel paketin PR ile birleştirilmesi
 
 - **Prompt:** Gamejam değerlendirmesine devam etmeden önce mevcut hali push, PR ve merge yap.
-- **Yapılan değişiklik:** Ses/UI düzeltmeleri, koloni mekanikleri, NPC rutinleri, ilerleme/kayıt ve GameScene modülleri tek yayın paketi olarak hazırlandı. Uzak main ile başlangıç commit'i aynı (`0984d81`); ayrı dal ve PR akışı kullanılıyor.
+- **Yapılan değişiklik:** Ses/UI düzeltmeleri, koloni mekanikleri, NPC rutinleri, ilerleme/kayıt ve GameScene modülleri tek yayın paketi olarak hazırlandı. Uzak main ile başlangıç commit'i aynı (`0984d81`); ayrı dal ve [PR #13](https://github.com/Kedaybehzat/son-denge/pull/13) açıldı. İlk paket commit’i `7144f6c`.
 - **Dosya / Açıklama:** Bu paketin dosyaları ve testleri önceki ayrı istek kayıtlarında açıklanmıştır; `PROJECT_LOG.md` — yayın talimatı ve doğrulama kaydı.
 - **Doğrulama:** Yerel npm test, normal/tek build ve tarayıcı sahne/NPC kontrolleri geçti. Merge öncesi GitHub PR kontrolleri de beklenecek.
-- **Debt:** Commit anında PR/merge/yayın süreci henüz bitmemiştir; kesin PR bağlantısı ve yayın sonucu ilgili GitHub kaydında ve kullanıcıya son yanıtta verilir. Gamejam analizi sonraki adım; bu yayın talimatı kapsamında yeni mekanik eklenmedi.
+- **Debt:** Bu kaydın commit anında PR #13 açıktır; merge/yayın sonucu PR ve Actions kayıtlarından izlenir, kullanıcıya son yanıtta bildirilir. GitHub uygulaması PR yazımında 403 verdiği için mevcut gh oturumu kullanıldı. Gamejam analizi sonraki adım; bu yayın talimatı kapsamında yeni mekanik eklenmedi.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Gamejam analizine dönüş
 
