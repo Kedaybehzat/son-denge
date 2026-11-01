@@ -89,7 +89,8 @@ docs/asset-rehberi.pdf     Asset rehberi PDF'i (10 sayfa): liste, 5 oda orijinal
 docs/orijinal/             Ekibin beğendiği ilk oda görselleri + hikaye/manzara orijinalleri (rehberin temeli)
 docs/oda-sablonlari/plan-*.jpg  Orijinal odalar üzerinde yerleşim planları
 docs/sanat-stili-1..3.png  Ekibin Ana Sanat Stili Rehberi sayfaları
-docs/sifirdan-asset-promptu.md  Sıfırdan komple asset üretimi promptu (72 madde)
+docs/asset-promptu.md      Asset sohbeti promptu (rehber PDF ile birlikte; her yanıtta tek görsel, 38 madde)
+docs/sifirdan-asset-promptu.md  (eski) 72 maddelik tek seferlik prompt
 docs/final-asset-promptu.md  Asset sohbetine tek seferde yapıştırılacak final prompt (eksik/düzeltilecek tüm görseller)
 PROJECT_LOG.md             Bu dosya (Project Map, borçlar, Asset Listesi, değişiklik logu)
 Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
@@ -105,62 +106,90 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | D10 | Yorgunluk ayarlarıyla dinlendirme stratejisi kötü: herkes 0'dan başlayıp 4. gece aynı anda riske giriyor; riskteki herkesi dinlendiren akıllı stil iyi sonu %82 → %20 düşürüyor. Öneri: kurucuları farklı yorgunlukla başlatmak ya da dinlenmeyi −3 / eşiği 5 yapmak (karar bekliyor) | `AYAR.yorgunluk*`, `KURUCULAR` | 2026-11-01 |
 | D12 | Hazırlıklı olaylarla zararlı olaylar ~1,6 kat sertleştirildi (hazırlık bir eylem değerinde olsun diye). Toplam zorluk arttı: akıllı+herkesi al iyi son %83 → %61 (hazırlanarak; hazırlıksız %62). 1,3 katta hazırlık bazen kötü seçim çıkıyordu. Dengeleme D10 ile birlikte yapılmalı | `events.js`, `AYAR` | 2026-11-01 |
 | D14 | Oda + manzara görselleri PNG olarak 19 MB; açılış ~35 MB. WebP'ye çevirmek yüklemeyi hızlandırır | `public/assets/oda-*`, `manzara-*`, `assets.js` | 2026-11-01 |
-| D15 | Orijinal odaların ölçekleri farklı (145–205 px/m); oda başına ölçek normalizasyonu + yeni etkileşim konumları (düzenlenmiş görseller gelince) | `rooms.js`, `GameScene.js` | 2026-11-01 |
 
 ---
 
 ## Asset Listesi
 
-> Güncel liste (kopyası `docs/asset-listesi.md`), rehber PDF: `docs/asset-rehberi.pdf`.
+> Kopyası `docs/asset-listesi.md` · prompt `docs/asset-promptu.md` · rehber `docs/asset-rehberi.pdf`.
+> **Durum (1 Kasım, yeni set işlendi):** ✅ 1–8 (odalar tek şeritten, manzara, çatı), 14–17 (yeni oyuncu + 3 animasyon), 18–21 (sakinler), 23 (örgülü kadın anim), 25 (gezgin anim), 26–28 (çöp, iki saksı), 29 (Deniz) · eski hâli: 9–13 hikaye/kapak, 30–38 portreler · ⏳ 22 (yaşlı sakin anim) ve 24 (usta anim): gelen setlerde opak "duman" hale var, kullanılmadı.
 
-**Yaklaşım:** Ekibin beğendiği ilk oda görselleri (`docs/orijinal/oda-*.png`) aynen kalır. Nesneleri sonradan üstüne koymuyoruz: oyunun etkileşimli nesneleri ya görselde **zaten var olan** bir öğe olur (yeşil), ya da aynı görsel **düzenlenerek** sahnenin içine çizilir (kırmızı). Oyun bu öğelerin üstüne görünmez etkileşim alanı koyar. Böylece karışıklık ve ölçek sorunu kalmaz. Yerleşim: `docs/oda-sablonlari/plan-<oda>.jpg`.
+Toplam **38 görsel** üretilecek (22–25 bekleme + yürüme animasyonunu tek görselde içerir; oyunda 42 dosyaya ayrılır). Odalar `docs/asset-rehberi.pdf`'teki orijinal oda görselleri ve planlarına göre, etkileşimli nesneler sahnenin içine çizili olarak üretilir. Prompt: `docs/asset-promptu.md`.
 
-**Kural:** Oda düzenlemelerinde görselin geri kalanı **hiç değişmez** (aynı boyut, aynı kompozisyon). Ölçeklendirme/kırpma yok. Dosya adları önemli değil, asistan isimlendirir.
-
-### A. Oda düzenlemeleri (orijinal görsel yüklenir, "edit" yapılır)
-
-| # | Çıktı | Kaynak | Yapılacak düzenleme | Görselde zaten olan (oyun kullanır) |
+| # | Dosya | Ne | Format | Boy (görseldeki) |
 |---|---|---|---|---|
-| 1 | `oda-yasam.png` | orijinal/oda-yasam.png | Pencere camını düz magenta (#FF00FF) yap · sandığın üstüne (x %62–66) küçük kırmızı vintage radyo ekle · saksılı ahşap sandığı (x %73–80) kaldırıp yerine zemine basan 2,1 m bunker kapısı çiz | Yatak (günü bitir), mantar pano (görev panosu) |
-| 2 | `oda-enerji.png` | orijinal/oda-enerji.png | İki pencerenin camlarını düz magenta yap | Jeneratör (duman bacadan), duvar invertörleri (enerji paneli) |
-| 3 | `oda-su.png` | orijinal/oda-su.png | Pencere camını düz magenta yap · (isteğe bağlı) iki tankın dikey gösterge camlarının içini düz açık gri yap | 2 tank (su seviyesi göstergede), filtre ünitesi (arıtma paneli) |
-| 4 | `oda-sera.png` | orijinal/oda-sera.png | Büyük cam duvarın bütün camlarını düz magenta yap (çerçeveler, sarmaşıklar ve önündeki bitkiler kalsın) | Duvardaki elektrik kutuları (sera paneli), bitkiler |
-| 5 | `oda-geri.png` | orijinal/oda-geri.png | Pencere camını düz magenta yap · gri dosya dolabını (x %62,5–68) kaldırıp yerine aynı yerde duran 1,5 m geri dönüşüm kontrol konsolu çiz | Hurda kasaları, varil (duman) |
-
-Manzara (iyi/kötü), 4 hikaye ekranı ve çatı hazır; yeniden üretilmeyecek.
-
-### B. Karakter ve dinamik nesneler (ayrı, şeffaf)
-
-Tuval kuralı: **1 m = 600 px**, nesnenin tabanı tuvalin altından 40 px yukarıda, şeffaf (ya da düz beyaz) arka plan, yandan görünüş, sağa bakar. Odalar arasındaki ölçek farkını oyun kendisi eşitler.
-
-| # | Dosya | Ne | Tuval | Nesnenin boyu | Kare |
-|---|---|---|---|---|---|
-| 6 | `oyuncu.png` | Oyuncu (sarı atkılı bakıcı) | 1024×1536 | 1050 px (1,75 m) | — |
-| 7 | `oyuncu-bekle` | Oyuncu nefes alıyor | 1024×1536, 2×2 | hücrede 525 px | 4 |
-| 8 | `oyuncu-yuru` | Oyuncu yürüyor | 1536×1024, 3×2 | hücrede 450 px | 6 |
-| 9 | `oyuncu-calis` | Oyuncu panele dokunuyor | 1024×1536, 2×2 | hücrede 525 px | 4 |
-| 10–13 | `sakin-1..4.png` | 4 sakin: asalı yaşlı işçi, örgülü kadın, deri önlüklü usta, şapkalı genç gezgin | 1024×1536 | 1020 px (1,7 m) | — |
-| 14–17 | `sakin-1..4-bekle` | Sakinler nefes alıyor | 1024×768, 2×1 | hücrede 510 px | 2 |
-| 18–21 | `sakin-1..4-yuru` | Sakinler yürüyor | 1024×1536, 2×2 | hücrede 510 px | 4 |
-| 22 | `cop-yigini.png` | Çöp yığını (atığa göre büyür) | 1536×1024 | 540 × 1080 px (0,9 × 1,8 m) | — |
-| 23 | `bitki.png` | Saksıda fide, sağlıklı (isteğe bağlı) | 1024×1536 | 390 px (0,65 m) | — |
-| 24 | `bitki-solgun.png` | Aynı fide, solgun (isteğe bağlı) | 1024×1536 | 390 px | — |
-
-### C. Arayüz görselleri
-
-| # | Dosya | Ne | Tuval |
-|---|---|---|---|
-| 25–30 | `ziyaretci-muhendis/ciftci/bilim/cocuklar/tamirci/kafile.png` | Ziyaretçi portreleri (baş + omuz) | 1024×1024 |
-| 31–34 | `kurucu-selin/burak/nur/can.png` | Kurucu portreleri | 1024×1024 |
-| 35 | `kapak.png` | Sunum kapağı | 1920×1080 |
-
-**Artık gerekmeyenler:** ayrı kapı, panel, radyo, pano, yatak görselleri ve kapı/panel animasyonları (odaların içinde çizili). Makinenin çalışıp çalışmadığını panelin üstündeki ışık gösterir.
+| 1 | oda-yasam.png | Yaşam alanı (yatak, mantar pano, sandık üstünde radyo, 2,1 m kapı) | En geniş yatay (~2,3:1) | 1,75 m insan ≈ yüksekliğin %35'i |
+| 2 | oda-enerji.png | Enerji odası (jeneratör, duvar invertörleri = enerji paneli) | En geniş yatay | aynı ölçek |
+| 3 | oda-su.png | Su arıtma (2 tank + gösterge camı, filtre ünitesi = panel) | En geniş yatay | aynı ölçek |
+| 4 | oda-sera.png | Sera (cam duvar, yetiştirme yatakları, elektrik kutusu = panel) | En geniş yatay | aynı ölçek |
+| 5 | oda-geri.png | Geri dönüşüm (hurda kasaları, tezgâh, 1,5 m kontrol konsolu, varil) | En geniş yatay | aynı ölçek |
+| 6 | manzara-iyi.png | Şehir panoraması, yeşil hâli (yatayda tekrar eder) | En geniş yatay | ufuk %55 |
+| 7 | manzara-kotu.png | Aynı panorama, kirli hâli | En geniş yatay | aynı kompozisyon |
+| 8 | cati.png | Çatı şeridi, 4 eğik güneş paneli | En geniş yatay, şeffaf | şerit alt %30 |
+| 9 | hikaye-1.png | Dünya ısınıyordu | 3:2 yatay | — |
+| 10 | hikaye-2.png | Buz çözüldü | 3:2 yatay | — |
+| 11 | hikaye-3.png | Büyük Sessizlik | 3:2 yatay | — |
+| 12 | hikaye-4.png | Yeşilvadi | 3:2 yatay | — |
+| 13 | kapak.png | Sunum kapağı | 3:2 yatay | — |
+| 14 | oyuncu.png | Oyuncu, duruş | 2:3 dikey, şeffaf | %68 |
+| 15 | oyuncu-bekle | Oyuncu nefes alıyor, 4 kare | 2:3, 2×2 ızgara | hücrenin %68'i |
+| 16 | oyuncu-yuru | Oyuncu yürüyor, 6 kare | 3:2, 3×2 ızgara | hücrenin %88'i |
+| 17 | oyuncu-calis | Oyuncu panele dokunuyor, 4 kare | 2:3, 2×2 ızgara | hücrenin %68'i |
+| 18 | sakin-1.png | Asalı yaşlı işçi | 2:3 dikey, şeffaf | %66 |
+| 19 | sakin-2.png | Örgülü kadın, saha ceketli | 2:3 dikey, şeffaf | %66 |
+| 20 | sakin-3.png | Deri önlüklü usta | 2:3 dikey, şeffaf | %66 |
+| 21 | sakin-4.png | Hardal şapkalı genç gezgin | 2:3 dikey, şeffaf | %66 |
+| 22 | sakin-1-bekle + sakin-1-yuru | Yaşlı işçi: üst satır 2 kare bekleme, alt 2 satır 4 kare yürüme | 2:3, 2×3 ızgara | hücrenin %80'i |
+| 23 | sakin-2-bekle + sakin-2-yuru | Örgülü kadın, aynı düzen | 2:3, 2×3 ızgara | hücrenin %80'i |
+| 24 | sakin-3-bekle + sakin-3-yuru | Deri önlüklü usta, aynı düzen | 2:3, 2×3 ızgara | hücrenin %80'i |
+| 25 | sakin-4-bekle + sakin-4-yuru | Şapkalı gezgin, aynı düzen | 2:3, 2×3 ızgara | hücrenin %80'i |
+| 26 | cop-yigini.png | Çöp yığını | 3:2 yatay, şeffaf | yükseklik %53, genişlik %70 |
+| 27 | bitki.png | Saksıda fide, sağlıklı | 2:3 dikey, şeffaf | %25 |
+| 28 | bitki-solgun.png | Aynı fide, solgun | 2:3 dikey, şeffaf | %25 |
+| 29 | ziyaretci-muhendis.png | Portre: Deniz | 1:1 | baş + omuz |
+| 30 | ziyaretci-ciftci.png | Portre: Hasan ve kızı Elif | 1:1 | baş + omuz |
+| 31 | ziyaretci-bilim.png | Portre: Dr. Leyla | 1:1 | baş + omuz |
+| 32 | ziyaretci-cocuklar.png | Portre: Mert ve Ada | 1:1 | baş + omuz |
+| 33 | ziyaretci-tamirci.png | Portre: Kemal | 1:1 | baş + omuz |
+| 34 | ziyaretci-kafile.png | Portre: 4 kişilik sahil ailesi | 1:1 | baş + omuz |
+| 35 | kurucu-selin.png | Portre: Selin | 1:1 | baş + omuz |
+| 36 | kurucu-burak.png | Portre: Burak | 1:1 | baş + omuz |
+| 37 | kurucu-nur.png | Portre: Nur | 1:1 | baş + omuz |
+| 38 | kurucu-can.png | Portre: Can | 1:1 | baş + omuz |
 
 ---
 
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-promptu-2` → `main`
+
+- **Prompt:** Yeni yüklediğim asset'leri incele, iyi olanları kullan (önceki mesaj: PR #9 merge'ü gelen asset'lerle birlikte).
+- **Yapılan değişiklik:** 30 dosya incelendi (orijinaller `assets-orijinal/yeni2/`). Odalar: `son-denge-tum-odalar-sutunlu-ultra-genis.png` (9042×836, 5 oda + geçiş sütunları, nesneler sahnede çizili) beşe bölündü → `oda-<tip>-tam.png`, magenta camlar şeffaf; tek şerit olduğundan ölçek ve zemin her odada aynı, geçişler dikişsiz. Kod: `ODA_GENISLIK` 739 (dilim oranı), yeni etkileşim konumları (`nesneOran`), duvara monte nesneler için `nesneY`, su göstergeleri, duman noktaları (jeneratör bacası, varil), kodla çizilen kolonlar birleşik şeritte kapalı, `PX_METRE` 74 (kapı 2,1 m ölçümü). Karakterler: yeni oyuncu (sırt çantalı) + bekle/yürü/çalış, sakin-1..4 yeni, örgülü kadın ve şapkalı gezgin bekle+yürü (ayak hizalı kesim). Ayrıca çöp yığını, iki saksı, Deniz portresi, iyi/kötü manzara, çatı. Kullanılmayanlar: yaşlı sakin ve usta yürüme setleri (opak hale, temizlenemedi; eski yaşlı işçi animasyonu da kaldırıldı), kampçı vanı (listede yok), tek tek oda görselleri ve sütunsuz şerit (sütunlu şerit seçildi), geçiş sütunu (şeritte var). Eski dosyalar `assets-orijinal/eski2/`. Doğrulama: 5 oda ekran görüntüsü, 8 etkileşimin ipucu, konsol hatası yok, derleme temiz.
+
+| Dosya | Açıklama |
+|---|---|
+| `public/assets/oda-*-tam.png` (yeni), `oda-*.png` (kaldırıldı) | Birleşik odalar |
+| `public/assets/*`, `public/assets/anim/*` | Yeni karakter, animasyon ve nesneler |
+| `src/data/rooms.js` | `ODA_GENISLIK` 739, `nesneY`, yeni oranlar |
+| `src/data/assets.js` | `PX_METRE` 74 |
+| `src/scenes/GameScene.js` | `nesneY` desteği; birleşik şeritte kod kolonu yok |
+
+- **Debt:** D15 kapandı (tek şerit, tek ölçek). Eksik: yaşlı sakin ve usta animasyonları, portrelerin (Deniz dışında) yeni stilde sürümleri.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-promptu-2`
+
+- **Prompt:** PR #8'i main ile birleştir ve merge et; sonra hiç asset yokmuş gibi oyunun güncel hâline göre düz bir liste ve asset rehberiyle birlikte yüklenecek düzgün bir prompt ver.
+- **Yapılan değişiklik:** main (Ayberk: 5 kart, Seviye II araştırma, üs inşası) birleştirildi, PR #8 merge edildi (`ed4338f`). `docs/asset-listesi.md` 38 maddelik düz liste (oyunda 42 dosya). `docs/asset-promptu.md`: PDF ile yüklenecek prompt; her yanıtta tek görsel, "next" ile ilerleme (önceki tek seferlik uzun prompt dağılıyordu); odalar orijinal görsellere göre etkileşimli nesneler içine çizili; oyuncu stil rehberindeki onaylı karaktere göre. PDF'in liste sayfası yenilendi.
+
+| Dosya | Açıklama |
+|---|---|
+| `docs/asset-listesi.md`, `docs/asset-promptu.md` | Yeni/yeniden |
+| `docs/asset-rehberi.pdf` | Liste sayfası güncel |
+| `PROJECT_LOG.md` | Asset Listesi, ağaç |
+
+- **Debt:** D15 sürüyor.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-promptu`
 

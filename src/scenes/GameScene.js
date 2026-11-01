@@ -489,6 +489,8 @@ export default class GameScene extends Phaser.Scene {
   odaGecisleriCiz() {
     const yerler = Object.values(this.odaYerlesimi);
     if (!yerler.length) return;
+    // Birleşik oda görselleri (tek şeritten kesilmiş) kendi sütunlarını içerir
+    if (yerler.length === ODALAR.length && yerler.every((y) => y.tam)) return;
     const ust = TAVAN_Y - 4;
     const alt = Math.max(...yerler.map((y) => y.alt));
     const g = this.add.graphics().setDepth(0.8);
@@ -696,7 +698,8 @@ export default class GameScene extends Phaser.Scene {
         const oranX = yer ? oda.gorsel?.nesneOran?.[ad] : null;
         const nx = oranX != null ? yer.sol + oranX * yer.W - x0 : n.x;
         const arkada = n.arka && !oda.gorsel?.onde?.includes(ad);
-        const ny = yer && arkada ? yer.duvarY + 4 : alt;
+        const yOran = yer ? oda.gorsel?.nesneY?.[ad] : null;
+        const ny = yOran != null ? yer.ust + yOran * yer.H : (yer && arkada ? yer.duvarY + 4 : alt);
         const s = this.add.sprite(x0 + nx, ny, anahtar).setOrigin(0.5, 1).setDepth(arkada || !yer ? 3 : 6);
         if (yer && arkada) s.ekOlcek = ARKA_OLCEK;
         this.olcekle(s, anahtar);
