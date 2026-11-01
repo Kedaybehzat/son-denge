@@ -8,6 +8,9 @@ import './style.css';
 sifirla();
 ui.hudKur();
 
+// Dil değişince HUD'un görünür metinleri yenilenmeli
+window.addEventListener('oyun:dilDegisti', () => ui.hudKur());
+
 // Ana menü müziği (autoplay engeli ilk tıklamada çözülür)
 muzikCal('muzik-ana');
 

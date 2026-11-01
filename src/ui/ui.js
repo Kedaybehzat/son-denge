@@ -24,6 +24,7 @@ import { KURUCULAR } from '../data/visitors.js';
 import { portreDosyasi, hikayeDosyasi, ARAYUZ_ASSET_KLASORU, ARAYUZ_IKONLARI, KARAR_GORSELLERI, SON_GORSELLERI, sakinGorselTanimi } from '../data/assets.js';
 import { assetVar } from '../assetListesi.js';
 import { muzikCal, sesCal, sesAcikMi, sesToggle, muzikSeviyesi, efektSeviyesi, muzikSeviyeAyarla, efektSeviyeAyarla } from '../sesler.js';
+import { t, cev, dilAktif, dilAyarla } from '../i18n.js';
 
 const hud = document.getElementById('hud');
 const modal = document.getElementById('modal');
@@ -196,51 +197,51 @@ export function hudKur() {
   if (resimli) hud.style.setProperty('--hud-zemin', cssUrl('hud-serit.jpg'));
   hud.innerHTML = resimli ? hudResimliHtml() : `
     <div class="hud-gun">
-      <div class="gun"><span data-gun-etiket>GÜN</span> <b data-gun></b><span data-gun-max>/ ${AYAR.maxGun}</span></div>
-      <div class="eylem-hakki" title="Kalan eylem hakkı"><span>${arayuzIkonu('eylem')} Eylem</span><span class="noktalar" data-eylem></span></div>
-      <div class="nufus" title="Sığınaktaki kişi sayısı">${arayuzIkonu('nufus', '👥')} <b data-nufus></b> kişi</div>
+      <div class="gun"><span data-gun-etiket>${t('hud.gun')}</span> <b data-gun></b><span data-gun-max>/ ${AYAR.maxGun}</span></div>
+      <div class="eylem-hakki" title="${t('hud.kalanEylem')}"><span>${arayuzIkonu('eylem')} ${t('hud.eylem')}</span><span class="noktalar" data-eylem></span></div>
+      <div class="nufus" title="${t('hud.sakin')}">${arayuzIkonu('nufus', '👥')} <b data-nufus></b> ${t('hud.kisi')}</div>
     </div>
     <div class="hud-kaynaklar">
       ${Object.entries(KAYNAKLAR).map(([ad, k]) => `
-        <div class="kaynak" data-k="${ad}" title="${k.ad}${k.yuksekIyi ? '' : ' (düşük olması iyi)'}">
+        <div class="kaynak" data-k="${ad}" title="${t('kaynak.' + ad)}${k.yuksekIyi ? '' : ' ' + t('kaynak.dusuksuIyi')}">
           <span class="ikon">${arayuzIkonu(ad, k.ikon)}</span>
-          <span class="kaynak-govde"><span class="kaynak-ad">${k.ad}</span><div class="bar"><i></i></div></span>
+          <span class="kaynak-govde"><span class="kaynak-ad">${t('kaynak.' + ad)}</span><div class="bar"><i></i></div></span>
           <b></b>
         </div>`).join('')}
     </div>
     <div class="hud-ekstra">
-      <div class="kaynak hud-arastirma" data-arastirma title="Aktif araştırma">
+      <div class="kaynak hud-arastirma" data-arastirma title="${t('hud.arastirmaTip')}">
         <span class="ikon" data-ar-ikon>${arayuzIkonu('arastirma', '🧪')}</span>
-        <span class="kaynak-govde"><span class="kaynak-ad">Araştırma</span><div class="bar"><i data-ar-bar></i></div></span>
+        <span class="kaynak-govde"><span class="kaynak-ad">${t('hud.arastirma')}</span><div class="bar"><i data-ar-bar></i></div></span>
         <b data-ar-puan></b>
       </div>
-      <div class="kaynak hud-memnuniyet" data-memnuniyet title="Sakinlerin memnuniyeti (yönetime güven)">
+      <div class="kaynak hud-memnuniyet" data-memnuniyet title="${t('hud.memnuniyetTip')}">
         <span class="ikon">${arayuzIkonu('memnuniyet', '🙂')}</span>
-        <span class="kaynak-govde"><span class="kaynak-ad">Memnuniyet</span><div class="bar"><i data-mem-bar></i></div></span>
+        <span class="kaynak-govde"><span class="kaynak-ad">${t('hud.memnuniyet')}</span><div class="bar"><i data-mem-bar></i></div></span>
         <b data-mem></b>
       </div>
-      <div class="kaynak hud-batarya" data-batarya title="Batarya deposu">
+      <div class="kaynak hud-batarya" data-batarya title="${t('hud.bataryaTip')}">
         <span class="ikon">${arayuzIkonu('bataryaHud', '🔋')}</span>
-        <span class="kaynak-govde"><span class="kaynak-ad">Batarya</span><div class="bar"><i data-bat-bar></i></div></span>
+        <span class="kaynak-govde"><span class="kaynak-ad">${t('hud.batarya')}</span><div class="bar"><i data-bat-bar></i></div></span>
         <b data-bat></b>
       </div>
     </div>
     <div class="hud-denge">
-      <div class="denge-etiket"><span>Distopya</span><b data-denge></b><span>Ütopya</span></div>
+      <div class="denge-etiket"><span>${t('hud.distopya')}</span><b data-denge></b><span>${t('hud.utopya')}</span></div>
       <div class="bar denge"><i></i></div>
     </div>`;
   const erisim = document.createElement('nav');
   erisim.className = 'yonetim-erisim';
-  erisim.setAttribute('aria-label', 'Sığınak yönetimi');
+  erisim.setAttribute('aria-label', t('hud.yonetim'));
   const altResimli = assetVar('alt-serit.jpg');
   erisim.classList.toggle('erisim-resimli', altResimli);
   if (altResimli) {
     const ay = (r) => yuzdeYer(r, 2172, 238);
     erisim.style.setProperty('--alt-zemin', cssUrl('alt-serit.jpg'));
     erisim.innerHTML = Object.entries(YONETIM_BOLUMLERI).map(([id, ad], i) => `<button data-yonetim="${id}" aria-label="${ad}" style="${ay(ERISIM_KUTULARI[i])}"></button>`).join('')
-      + `<button class="ayarlar-btn" data-ayarlar title="Ayarlar" aria-label="Ayarlar" style="${ay(hd(1545, 58, 1660, 155))}"></button><b class="er-malzeme" data-malzeme style="${ay(hd(1866, 64, 1934, 144))}" title="Geri kazanılmış yapı malzemesi; denge puanına dahil değildir"></b>`;
+      + `<button class="ayarlar-btn" data-ayarlar title="${t('menu.ayarlar')}" aria-label="${t('menu.ayarlar')}" style="${ay(hd(1545, 58, 1660, 155))}"></button><b class="er-malzeme" data-malzeme style="${ay(hd(1866, 64, 1934, 144))}" title="Geri kazanılmış yapı malzemesi; denge puanına dahil değildir"></b>`;
   } else erisim.innerHTML = Object.entries(YONETIM_BOLUMLERI).map(([id, ad]) => `<button data-yonetim="${id}">${ad}</button>`).join('')
-    + `<button class="ayarlar-btn" data-ayarlar title="Ayarlar">⚙</button><span class="malzeme-stok" title="Geri kazanılmış yapı malzemesi; denge puanına dahil değildir">${arayuzIkonu('malzeme')}Malzeme <b data-malzeme></b></span>`;
+    + `<button class="ayarlar-btn" data-ayarlar title="${t('menu.ayarlar')}">⚙</button><span class="malzeme-stok" title="Geri kazanılmış yapı malzemesi; denge puanına dahil değildir">${arayuzIkonu('malzeme')}Malzeme <b data-malzeme></b></span>`;
   document.querySelector('.yonetim-erisim')?.remove();
   modal.before(erisim);
   erisim.querySelectorAll('button[data-yonetim]').forEach((b) => b.addEventListener('click', () => {
@@ -1527,18 +1528,20 @@ function girisBitti(bitti) {
 export function baslangicEkrani(basla) {
   const kayit = kayitOku();
   hudGorunurlugu(false);
+  const sehir = t('oyun.sehir');
+  const girisAlt = t('menu.girisAlt', sehir).replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
   modalAc(`
     <div class="baslik-ekrani">
-      <span class="etiket">YEŞİLVADİ · 2071<i class="led"></i></span>
-      <h1 class="oyun-baslik">${varsaImg(`${ARAYUZ_ASSET_KLASORU}logo.png`, 'oyun-logo') || 'Son Denge'}</h1>
-      <p><b>Yeşilvadi</b>, Büyük Sessizlik'ten sonra kurulan son ütopya. Ne kadar dayanacağı senin kararlarına bağlı.</p>
-      <p>${AYAR.maxGun} gün boyunca enerjiyi, suyu, gıdayı ve atığı yönet. Kolay çözümlerin bir bedeli var.</p>
+      <span class="etiket">${t('panelUst.calismaAdi')}<i class="led"></i></span>
+      <h1 class="oyun-baslik">${varsaImg(`${ARAYUZ_ASSET_KLASORU}logo.png`, 'oyun-logo') || t('oyun.ad')}</h1>
+      <p>${girisAlt}</p>
+      <p>${t('menu.girisAciklama', AYAR.maxGun)}</p>
       <div class="menu-butonlar">
-        ${kayit ? `<button data-kayit-devam>Devam et · Gün ${kayit.durum.gun}</button>` : ''}
-        <button data-basla data-varsayilan>${kayit ? 'Yeni oyun' : 'Oyuna Başla'}</button>
-        <button class="ikincil" data-ayarlar>Ayarlar</button>
+        ${kayit ? `<button data-kayit-devam>${t('menu.devamGun', kayit.durum.gun)}</button>` : ''}
+        <button data-basla data-varsayilan>${kayit ? t('menu.yeniOyun') : t('menu.basla')}</button>
+        <button class="ikincil" data-ayarlar>${t('menu.ayarlar')}</button>
       </div>
-      <p class="aciklama kontrol-ozet"><kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> yürü · <kbd>Shift</kbd> koş · <kbd>E</kbd> etkileşim · <kbd>F</kbd> tam ekran</p>
+      <p class="aciklama kontrol-ozet"><kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> ${t('tus.yuru')} · <kbd>Shift</kbd> ${t('tus.kos')} · <kbd>E</kbd> ${t('tus.etkilesim')} · <kbd>F</kbd> ${t('tus.tamEkran')}</p>
     </div>`, { kapatma: false, sinif: 'baslangic' });
   kart.querySelector('[data-basla]').addEventListener('click', () => yeniOyunSecimi((egitim) => {
     sifirla({ prolog: egitim });
@@ -1561,67 +1564,83 @@ export function ayarlarAc(donus) {
   const sesDa = sesAcikMi();
   const mz = Math.round(muzikSeviyesi() * 100);
   const ef = Math.round(efektSeviyesi() * 100);
+  const d = dilAktif();
   const ay = (r) => yuzdeYer(r, 1448, 1086);
   if (assetVar('ekran-ayarlar.jpg')) modalAc(`
     <div class="ayarlar-resimli" style="--ayar:${cssUrl('ekran-ayarlar.jpg')}">
-      <button class="ar-satir" data-tamekran aria-label="Tam ekran" style="${ay([87, 206, 1363, 326])}"></button>
+      <button class="ar-satir" data-tamekran aria-label="${t('ayarlar.tamEkran')}" style="${ay([87, 206, 1363, 326])}"></button>
       <span class="ar-ikon" style="${ay([136, 230, 208, 300])}">${tamEkranDa ? '🗗' : '🖥️'}</span>
-      <span class="ar-chip ${tamEkranDa ? 'iyi' : 'kotu'}" style="${ay([266, 269, 367, 303])}">${tamEkranDa ? 'Açık' : 'Kapalı'}</span>
-      <button class="ar-satir" data-ses aria-label="Ses ve müzik" style="${ay([87, 349, 1363, 473])}"></button>
+      <span class="ar-chip ${tamEkranDa ? 'iyi' : 'kotu'}" style="${ay([266, 269, 367, 303])}">${tamEkranDa ? t('ayarlar.acik') : t('ayarlar.kapali')}</span>
+      <button class="ar-satir" data-ses aria-label="${t('ayarlar.sesMuzik')}" style="${ay([87, 349, 1363, 473])}"></button>
       <span class="ar-ikon" style="${ay([136, 375, 208, 445])}">${sesDa ? '🔊' : '🔇'}</span>
-      <span class="ar-chip ${sesDa ? 'iyi' : 'kotu'}" style="${ay([266, 413, 378, 450])}">${sesDa ? 'Açık' : 'Kapalı'}</span>
-      <span class="ar-sag" style="${ay([1262, 388, 1340, 430])}">${sesDa ? 'kapat' : 'aç'}</span>
-      <input class="ar-kaydirici" type="range" min="0" max="100" step="1" value="${mz}" data-muzik-seviye ${sesDa ? '' : 'disabled'} aria-label="Müzik sesi" style="${ay([372, 529, 1188, 565])};--deger:${mz}%">
+      <span class="ar-chip ${sesDa ? 'iyi' : 'kotu'}" style="${ay([266, 413, 378, 450])}">${sesDa ? t('ayarlar.acik') : t('ayarlar.kapali')}</span>
+      <span class="ar-sag" style="${ay([1262, 388, 1340, 430])}">${sesDa ? t('ayarlar.kapat') : t('ayarlar.ac')}</span>
+      <input class="ar-kaydirici" type="range" min="0" max="100" step="1" value="${mz}" data-muzik-seviye ${sesDa ? '' : 'disabled'} aria-label="${t('ayarlar.muzikAria')}" style="${ay([372, 529, 1188, 565])};--deger:${mz}%">
       <span class="ar-deger" data-muzik-deger style="${ay([1222, 522, 1324, 570])}">${mz}</span>
-      <input class="ar-kaydirici" type="range" min="0" max="100" step="1" value="${ef}" data-efekt-seviye ${sesDa ? '' : 'disabled'} aria-label="Efekt sesi" style="${ay([372, 598, 1188, 637])};--deger:${ef}%">
+      <input class="ar-kaydirici" type="range" min="0" max="100" step="1" value="${ef}" data-efekt-seviye ${sesDa ? '' : 'disabled'} aria-label="${t('ayarlar.efektAria')}" style="${ay([372, 598, 1188, 637])};--deger:${ef}%">
       <span class="ar-deger" data-efekt-deger style="${ay([1222, 592, 1324, 642])}">${ef}</span>
-      <span class="ar-tus" style="${ay([915, 826, 1205, 872])}"><kbd>F</kbd> tam ekran</span>
-      <button class="ar-satir ar-dugme" data-test-paneli aria-label="Test paneli" style="${ay([791, 918, 1117, 1012])}"></button>
-      <button class="ar-satir ar-dugme" data-kapat data-varsayilan aria-label="Kapat" style="${ay([1147, 918, 1374, 1012])}"></button>
+      <span class="ar-tus" style="${ay([915, 826, 1205, 872])}"><kbd>F</kbd> ${t('tus.tamEkran')}</span>
+      <button class="ar-satir ar-dugme" data-test-paneli aria-label="${d === 'en' ? 'Test Panel' : 'Test paneli'}" style="${ay([791, 918, 1117, 1012])}"></button>
+      <button class="ar-satir ar-dugme" data-kapat data-varsayilan aria-label="${t('ayarlar.kapatButon')}" style="${ay([1147, 918, 1374, 1012])}"></button>
+      <div class="ar-dil-secim">
+        <button class="dil ${d === 'tr' ? 'secili' : ''}" data-dil="tr">TR</button>
+        <button class="dil ${d === 'en' ? 'secili' : ''}" data-dil="en">EN</button>
+      </div>
     </div>`, { sinif: 'ayarlar-kart ayarlar-resimli-kart konsol-resimli-kart', kapatma: !donus });
   else modalAc(`
-    <div class="panel-ust"><span class="etiket">▸ AYARLAR<i class="led"></i></span><h2>Ayarlar</h2></div>
+    <div class="panel-ust"><span class="etiket">${t('ayarlar.etiket')}<i class="led"></i></span><h2>${t('ayarlar.baslik')}</h2></div>
     <div class="ayarlar">
       <button class="eylem" data-tamekran>
         <span class="no">${tamEkranDa ? '◧' : '⛶'}</span>
-        <span class="govde"><span class="ad">Tam ekran</span><span class="chipler"><span class="chip ${tamEkranDa ? 'iyi' : ''}">${tamEkranDa ? 'Açık' : 'Kapalı'}</span></span></span>
-        <span class="maliyet">F tuşu</span>
+        <span class="govde"><span class="ad">${t('ayarlar.tamEkran')}</span><span class="chipler"><span class="chip ${tamEkranDa ? 'iyi' : ''}">${tamEkranDa ? t('ayarlar.acik') : t('ayarlar.kapali')}</span></span></span>
+        <span class="maliyet">${t('ayarlar.fTusu')}</span>
       </button>
       <button class="eylem" data-ses>
         <span class="no">${sesDa ? '🔊' : '🔇'}</span>
-        <span class="govde"><span class="ad">Ses ve müzik</span><span class="chipler"><span class="chip ${sesDa ? 'iyi' : 'kotu'}">${sesDa ? 'Açık' : 'Kapalı'}</span></span></span>
-        <span class="maliyet">${sesDa ? 'kapat' : 'aç'}</span>
+        <span class="govde"><span class="ad">${t('ayarlar.sesMuzik')}</span><span class="chipler"><span class="chip ${sesDa ? 'iyi' : 'kotu'}">${sesDa ? t('ayarlar.acik') : t('ayarlar.kapali')}</span></span></span>
+        <span class="maliyet">${sesDa ? t('ayarlar.kapat') : t('ayarlar.ac')}</span>
       </button>
       <div class="ses-seviyeleri${sesDa ? '' : ' pasif'}">
         <label class="ses-slider">
-          <span class="ad">🎵 Müzik</span>
-          <input type="range" min="0" max="100" step="1" value="${mz}" data-muzik-seviye ${sesDa ? '' : 'disabled'} aria-label="Müzik sesi">
+          <span class="ad">${t('ayarlar.muzik')}</span>
+          <input type="range" min="0" max="100" step="1" value="${mz}" data-muzik-seviye ${sesDa ? '' : 'disabled'} aria-label="${t('ayarlar.muzikAria')}">
           <span class="deger" data-muzik-deger>${mz}</span>
         </label>
         <label class="ses-slider">
-          <span class="ad">🔔 Efektler</span>
-          <input type="range" min="0" max="100" step="1" value="${ef}" data-efekt-seviye ${sesDa ? '' : 'disabled'} aria-label="Efekt sesi">
+          <span class="ad">${t('ayarlar.efektler')}</span>
+          <input type="range" min="0" max="100" step="1" value="${ef}" data-efekt-seviye ${sesDa ? '' : 'disabled'} aria-label="${t('ayarlar.efektAria')}">
           <span class="deger" data-efekt-deger>${ef}</span>
         </label>
       </div>
+      <div class="dil-secim">
+        <span class="ad">🌐 ${t('ayarlar.dil')}</span>
+        <div class="dil-butonlar">
+          <button class="dil ${d === 'tr' ? 'secili' : ''}" data-dil="tr">Türkçe</button>
+          <button class="dil ${d === 'en' ? 'secili' : ''}" data-dil="en">English</button>
+        </div>
+      </div>
       <div class="kontroller">
-        <h3>Kontroller</h3>
+        <h3>${t('ayarlar.kontrollerBaslik')}</h3>
         <div class="kontrol-liste">
-          <span><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> yürü</span>
-          <span><kbd>Shift</kbd> koş</span>
-          <span><kbd>E</kbd> etkileşim</span>
-          <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> panel eylemi</span>
-          <span><kbd>F</kbd> tam ekran</span>
-          <span><kbd>Esc</kbd> pencereyi kapat</span>
-          <span><kbd>Enter</kbd> varsayılan düğme</span>
-          <span><kbd>F9</kbd> test paneli</span>
+          <span><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> ${t('tus.yuru')}</span>
+          <span><kbd>Shift</kbd> ${t('tus.kos')}</span>
+          <span><kbd>E</kbd> ${t('tus.etkilesim')}</span>
+          <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> ${t('tus.panelEylemi')}</span>
+          <span><kbd>F</kbd> ${t('tus.tamEkran')}</span>
+          <span><kbd>Esc</kbd> ${t('tus.pencereKapat')}</span>
+          <span><kbd>Enter</kbd> ${t('tus.varsayilanDugme')}</span>
+          <span><kbd>F9</kbd> ${d === 'en' ? 'test panel' : 'test paneli'}</span>
         </div>
       </div>
     </div>
     <div class="alt sag">
-      <button class="ikincil" data-test-paneli>🛠 Test paneli</button>
-      <button data-kapat data-varsayilan>Kapat</button>
+      <button class="ikincil" data-test-paneli>🛠 ${d === 'en' ? 'Test Panel' : 'Test paneli'}</button>
+      <button data-kapat data-varsayilan>${t('ayarlar.kapatButon')}</button>
     </div>`, { sinif: 'bilgi ayarlar-kart', kapatma: !donus });
+  kart.querySelectorAll('[data-dil]').forEach((b) => b.addEventListener('click', () => {
+    dilAyarla(b.dataset.dil);
+    ayarlarAc(donus);
+  }));
   kart.querySelector('[data-test-paneli]').addEventListener('click', () => { modalKapat(); testPaneliToggle(); });
   kart.querySelector('[data-tamekran]').addEventListener('click', () => {
     window.tamEkranToggle?.();
