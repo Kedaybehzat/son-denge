@@ -722,22 +722,11 @@ export default class GameScene extends Phaser.Scene {
     g.fillStyle(0x6e5a46).fillRect(0, ust, 14, alt - ust).fillRect(this.dunyaG - 14, ust, 14, alt - ust);
     g.fillStyle(0x5b4a3a).fillRect(-20, ust - 18, this.dunyaG + 40, 18);
     g.fillStyle(0x3f4a3a).fillRect(-20, ust - 30, this.dunyaG + 40, 12);
-    // Çatı: cati.png varsa yatayda döşenir (alt kenarı tavan kirişine oturur);
-    // yoksa kodla çizilen eğik, ayaklı güneş panelleri
-    if (this.gercekAsset('cati')) {
-      const h = ASSETLER.cati.yukseklik;
-      const kaynak = this.textures.get('cati').getSourceImage();
-      this.add.tileSprite(-20, ust - h, this.dunyaG + 40, h, 'cati').setOrigin(0).setDepth(0.6)
-        .setTileScale(h / kaynak.height, h / kaynak.height);
-    } else {
-      for (let x = 60; x < this.dunyaG; x += 180) {
-        const taban = ust - 30;
-        g.fillStyle(0x3a3a36).fillRect(x + 18, taban - 14, 4, 14).fillRect(x + 88, taban - 22, 4, 22); // ayaklar
-        g.fillStyle(0x23314f).fillPoints([{ x, y: taban - 12 }, { x: x + 110, y: taban - 28 }, { x: x + 110, y: taban - 20 }, { x, y: taban - 4 }], true);
-        g.lineStyle(2, 0x5b6470, 1).strokePoints([{ x, y: taban - 12 }, { x: x + 110, y: taban - 28 }, { x: x + 110, y: taban - 20 }, { x, y: taban - 4 }], true);
-        g.lineStyle(1, 0x7fa6d8, 0.5).lineBetween(x + 37, taban - 17, x + 37, taban - 9).lineBetween(x + 73, taban - 23, x + 73, taban - 15);
-      }
-    }
+    // Çatı güneş panelleri: başta 2 karo, Ek Güneş Paneli yapısı inşa edilince
+    // +2 karo. Dünya ortasında eşit aralıklı yerleştirilir. Yer tutucu asset
+    // yoksa her karo için kodla çizilen eğik panel.
+    this.catiPaneller = [];
+    this._cizCatiPanelleri();
     g.fillStyle(0x4b3b2c).fillRect(-20, alt, this.dunyaG + 40, 14);
     g.fillStyle(0x3a2e24).fillRect(-20, alt + 14, this.dunyaG + 40, EKRAN_Y - alt);
   }
@@ -1135,12 +1124,85 @@ export default class GameScene extends Phaser.Scene {
   // ---------------------------------------------------------------
   gorselGuncelle(s) {
     this.makineAnimGuncelle();
+    this._cizCatiPanelleri();
+    this._cizYapilar();
     this.tweens.killTweensOf(this.gorsel);
     this.tweens.add({
       targets: this.gorsel, d: s.denge, duration: 1200, ease: 'Sine.easeInOut',
       onUpdate: () => this.gorselUygula(),
     });
     this.gorselUygula();
+  }
+
+  // Çatı güneş panelleri: başlangıçta 2 karo, state.yapilar'daki her
+  // 'ekPanel' için +2 karo. Dünyada eşit aralıklı yerleştirilir.
+  _cizCatiPanelleri() {
+    const ekPanelSayisi = (state.yapilar || []).filter((y) => y === 'ekPanel').length;
+    const hedefKaro = 2 + ekPanelSayisi * 2;
+    if (!this.catiPaneller) this.catiPaneller = [];
+    if (this.catiPaneller.length === hedefKaro) return;
+    for (const sp of this.catiPaneller) sp.destroy();
+    this.catiPaneller = [];
+    const ust = TAVAN_Y;
+    const kaynak = this.gercekAsset('cati') ? this.textures.get('cati').getSourceImage() : null;
+    const h = kaynak ? ASSETLER.cati.yukseklik : 32;
+    const scale = kaynak ? h / kaynak.height : 1;
+    const karoGenislik = kaynak ? kaynak.width * scale : 140;
+    const toplamGenislik = hedefKaro * karoGenislik;
+    const startX = Math.max(80, (this.dunyaG - toplamGenislik) / 2);
+    for (let i = 0; i < hedefKaro; i++) {
+      const x = startX + i * karoGenislik;
+      let sp;
+      if (kaynak) {
+        sp = this.add.image(x, ust - h, 'cati').setOrigin(0, 0).setDepth(0.6).setScale(scale);
+      } else {
+        // Yer tutucu: eğik güneş paneli (kodla)
+        const g = this.add.graphics().setDepth(0.6);
+        const taban = ust - 2;
+        g.fillStyle(0x3a3a36).fillRect(x + 18, taban - 14, 4, 14).fillRect(x + 88, taban - 22, 4, 22);
+        g.fillStyle(0x23314f).fillPoints([{ x, y: taban - 12 }, { x: x + 110, y: taban - 28 }, { x: x + 110, y: taban - 20 }, { x, y: taban - 4 }], true);
+        g.lineStyle(2, 0x5b6470, 1).strokePoints([{ x, y: taban - 12 }, { x: x + 110, y: taban - 28 }, { x: x + 110, y: taban - 20 }, { x, y: taban - 4 }], true);
+        g.lineStyle(1, 0x7fa6d8, 0.5).lineBetween(x + 37, taban - 17, x + 37, taban - 9).lineBetween(x + 73, taban - 23, x + 73, taban - 15);
+        sp = g;
+      }
+      this.catiPaneller.push(sp);
+    }
+  }
+
+  // Yapılar (data/structures.js) inşa edilince sahnede görsel karşılık:
+  //  - yalitim : sığınak kenar duvarlarına açık renk kaplama
+  //  - bariyer : sera odasının önüne beton bariyer
+  //  - ekPanel : _cizCatiPanelleri() tarafından ele alınıyor
+  _cizYapilar() {
+    const yapilar = state.yapilar || [];
+    if (yapilar.includes('yalitim') && !this.yalitimKat) {
+      const g = this.add.graphics().setDepth(0.5);
+      // Dış duvar yalıtım kaplaması (sol ve sağ)
+      g.fillStyle(0xc8d4ba).fillRect(-10, TAVAN_Y - 6, 10, ZEMIN_Y - TAVAN_Y + 16);
+      g.fillRect(this.dunyaG, TAVAN_Y - 6, 10, ZEMIN_Y - TAVAN_Y + 16);
+      // Çizgili desen
+      g.lineStyle(1, 0x8ea385, 0.6);
+      for (let y = TAVAN_Y; y < ZEMIN_Y; y += 10) {
+        g.lineBetween(-10, y, 0, y);
+        g.lineBetween(this.dunyaG, y, this.dunyaG + 10, y);
+      }
+      this.yalitimKat = g;
+    }
+    if (yapilar.includes('bariyer') && !this.bariyerDekor) {
+      const seraOda = ODALAR.findIndex((o) => o.tip === 'sera');
+      if (seraOda >= 0) {
+        const x0 = seraOda * ODA_GENISLIK;
+        const g = this.add.graphics().setDepth(2.5);
+        g.fillStyle(0x6e7267).fillRect(x0 + 24, ZEMIN_Y - 24, ODA_GENISLIK - 48, 22);
+        g.fillStyle(0x4a4e45).fillRect(x0 + 24, ZEMIN_Y - 24, ODA_GENISLIK - 48, 4);
+        // Küçük sarı-siyah şerit uyarı deseni
+        g.fillStyle(0xd6a84a);
+        for (let i = 30; i < ODA_GENISLIK - 48; i += 24) {
+          g.fillRect(x0 + 24 + i, ZEMIN_Y - 20, 10, 3);
+        }
+        this.bariyerDekor = g;
+      }
+    }
   }
 
   gorselUygula() {

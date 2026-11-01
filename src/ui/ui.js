@@ -170,11 +170,15 @@ export function hudKur() {
   const erisim = document.createElement('nav');
   erisim.className = 'yonetim-erisim';
   erisim.setAttribute('aria-label', 'Sığınak yönetimi');
-  erisim.innerHTML = Object.entries(YONETIM_BOLUMLERI).map(([id, ad]) => `<button data-yonetim="${id}">${ad}</button>`).join('');
+  erisim.innerHTML = Object.entries(YONETIM_BOLUMLERI).map(([id, ad]) => `<button data-yonetim="${id}">${ad}</button>`).join('')
+    + `<button class="ayarlar-btn" data-ayarlar title="Ayarlar">⚙</button>`;
   hud.append(erisim);
-  erisim.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+  erisim.querySelectorAll('button[data-yonetim]').forEach((b) => b.addEventListener('click', () => {
     if ((!acik || panoAcik) && !state.bitti) panoAc(b.dataset.yonetim);
   }));
+  erisim.querySelector('[data-ayarlar]').addEventListener('click', () => {
+    if (!acik) ayarlarAc();
+  });
   abone(hudGuncelle);
   hudGuncelle(state);
 }
@@ -931,20 +935,60 @@ export function baslangicEkrani(basla) {
       <h1 class="oyun-baslik">${varsaImg(`${ARAYUZ_ASSET_KLASORU}logo.png`, 'oyun-logo') || 'Son Denge'}</h1>
       <p><b>Yeşilvadi</b>, Büyük Sessizlik'ten sonra kurulan son ütopya. Ne kadar dayanacağı senin kararlarına bağlı.</p>
       <p>${AYAR.maxGun} gün boyunca enerjiyi, suyu, gıdayı ve atığı yönet. Kolay çözümlerin bir bedeli var.</p>
-      <div class="kontroller">
-        <span><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> yürü</span>
-        <span><kbd>Shift</kbd> koş</span>
-        <span><kbd>E</kbd> etkileşim</span>
-        <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> panel eylemi</span>
-        <span><kbd>Esc</kbd> kapat</span>
+      <div class="menu-butonlar">
+        <button data-basla data-varsayilan>Oyuna Başla</button>
+        <button class="ikincil" data-ayarlar>Ayarlar</button>
       </div>
-      <button data-basla data-varsayilan>Başla</button>
+      <p class="aciklama kontrol-ozet"><kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> yürü · <kbd>Shift</kbd> koş · <kbd>E</kbd> etkileşim · <kbd>F</kbd> tam ekran</p>
     </div>`, { kapatma: false, sinif: 'baslangic' });
   kart.querySelector('[data-basla]').addEventListener('click', () => {
     hud.style.visibility = '';
     modalKapat();
     basla();
   });
+  kart.querySelector('[data-ayarlar]').addEventListener('click', () => ayarlarAc(() => baslangicEkrani(basla)));
+}
+
+// Ayarlar menüsü: hem başlangıç ekranından hem oyun içinden açılabilir.
+// `donus` → kapatınca nereye dönülecek. Boş geçilirse sadece kapatılır.
+export function ayarlarAc(donus) {
+  const tamEkranDa = !!document.fullscreenElement;
+  modalAc(`
+    <div class="panel-ust"><span class="etiket">▸ AYARLAR<i class="led"></i></span><h2>Ayarlar</h2></div>
+    <div class="ayarlar">
+      <button class="eylem" data-tamekran>
+        <span class="no">${tamEkranDa ? '◧' : '⛶'}</span>
+        <span class="govde"><span class="ad">Tam ekran</span><span class="chipler"><span class="chip ${tamEkranDa ? 'iyi' : ''}">${tamEkranDa ? 'Açık' : 'Kapalı'}</span></span></span>
+        <span class="maliyet">F tuşu</span>
+      </button>
+      <div class="kontroller">
+        <h3>Kontroller</h3>
+        <div class="kontrol-liste">
+          <span><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> yürü</span>
+          <span><kbd>Shift</kbd> koş</span>
+          <span><kbd>E</kbd> etkileşim</span>
+          <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> panel eylemi</span>
+          <span><kbd>F</kbd> tam ekran</span>
+          <span><kbd>Esc</kbd> pencereyi kapat</span>
+          <span><kbd>Enter</kbd> varsayılan düğme</span>
+        </div>
+      </div>
+    </div>
+    <div class="alt sag">
+      <button data-kapat data-varsayilan>Kapat</button>
+    </div>`, { sinif: 'bilgi ayarlar-kart', kapatma: !donus });
+  kart.querySelector('[data-tamekran]').addEventListener('click', () => {
+    window.tamEkranToggle?.();
+    // Kısa gecikme sonrası durumu yansıtmak için yeniden çiz
+    setTimeout(() => ayarlarAc(donus), 120);
+  });
+  if (donus) {
+    // Dönüş yolu belli (ör. ana menü): Kapat tuşu modalKapat yerine donus'u çağırır
+    const kapat = kart.querySelector('[data-kapat]');
+    const yeni = kapat.cloneNode(true);
+    kapat.replaceWith(yeni);
+    yeni.addEventListener('click', () => donus());
+  }
 }
 
 const SONLAR = {
