@@ -65,10 +65,12 @@ function akilliAtamalariYap() {
   }
 }
 
-// Akıllı araştırma kuyruğu: batarya varsa önce, sonra grisu
+// Akıllı araştırma kuyruğu: Seviye I önce, sonra Seviye II
 function akilliArastirmaSec() {
-  if (!arastirmaAcik('batarya')) arastirmaSec('batarya');
-  else if (!arastirmaAcik('grisu')) arastirmaSec('grisu');
+  const sira = ['batarya', 'grisu', 'turbin', 'hidroponik', 'havaFiltresi'];
+  for (const id of sira) {
+    if (!arastirmaAcik(id)) { arastirmaSec(id); break; }
+  }
 }
 
 function oyna(stilAd, stil, kapi, r) {

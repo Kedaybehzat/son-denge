@@ -454,8 +454,16 @@ export function kendinCalis(makine) {
 // ---------------------------------------------------------------
 export const arastirmaAcik = (id) => state.arastirma.acik.includes(id);
 
+// Seviye II koşulunu da dikkate alan seçilebilirlik
+export const arastirmaSecilebilir = (id) => {
+  const p = ARASTIRMALAR[id];
+  if (!p || arastirmaAcik(id)) return false;
+  return !p.onKosul || p.onKosul(state);
+};
+
 export function arastirmaSec(id) {
   if (!ARASTIRMALAR[id] || arastirmaAcik(id) || state.bitti) return;
+  if (!arastirmaSecilebilir(id)) return; // Seviye II koşulu sağlanmıyor
   state.arastirma.aktif = id;
   bildir();
 }
@@ -468,8 +476,9 @@ function puanEkle(puan, proje = state.arastirma.aktif) {
   a.puan[proje] = (a.puan[proje] || 0) + puan;
   if (a.puan[proje] < ARASTIRMALAR[proje].maliyet) return null;
   a.acik.push(proje);
+  // Yeni aktif proje: koşulu sağlanan ilk açık olmayan proje
   if (!a.aktif || a.acik.includes(a.aktif)) {
-    a.aktif = Object.keys(ARASTIRMALAR).find((id) => !a.acik.includes(id)) || null;
+    a.aktif = Object.keys(ARASTIRMALAR).find((id) => !a.acik.includes(id) && arastirmaSecilebilir(id)) || null;
   }
   return proje;
 }

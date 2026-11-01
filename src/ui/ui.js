@@ -686,12 +686,15 @@ function panoCiz() {
   const projeler = Object.entries(ARASTIRMALAR).map(([id, p]) => {
     const puan = Math.min(p.maliyet, a.puan[id] || 0);
     const acik = arastirmaAcik(id);
+    const kilitli = !acik && p.onKosul && !p.onKosul(state);
+    const disabled = acik || kilitli;
+    const durumEtiket = acik ? '✓' : a.aktif === id ? '◂ aktif' : kilitli ? '🔒 Seviye I bitince açılır' : '';
     return `
-      <button class="proje ${a.aktif === id ? 'secili' : ''} ${acik ? 'acik' : ''}" data-proje="${id}" ${acik ? 'disabled' : ''}>
-        <span class="ad">${p.ikon} ${kacis(p.ad)} ${acik ? '✓' : a.aktif === id ? '◂ aktif' : ''}</span>
+      <button class="proje ${a.aktif === id ? 'secili' : ''} ${acik ? 'acik' : ''} ${kilitli ? 'kilitli' : ''}" data-proje="${id}" ${disabled ? 'disabled' : ''}>
+        <span class="ad">${p.ikon} ${kacis(p.ad)} ${durumEtiket}</span>
         <span class="aciklama">${kacis(p.aciklama)}</span>
         <span class="bar"><i class="iyi" style="width:${(puan / p.maliyet) * 100}%"></i></span>
-        <span class="kalan">${acik ? 'Tamamlandı' : `${puan} / ${p.maliyet} puan`}</span>
+        <span class="kalan">${acik ? 'Tamamlandı' : kilitli ? 'Önce Seviye I' : `${puan} / ${p.maliyet} puan`}</span>
       </button>`;
   }).join('');
 
