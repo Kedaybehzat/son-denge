@@ -283,8 +283,8 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 - **Prompt:** Son değişiklikleri push ve merge et; önce güncel repoyu kontrol et.
 - **Yapılan değişiklik:** Uzak repo ve açık PR'lar kontrol edildi. `main`, yerelden iki commit ileride: `a056a6d` ses efekti entegrasyonu, `390a8bd` on MP3 ve gitignore düzeltmesi. Açık PR yok; bu değişiklikler korunarak öğrenme paketi `gelistirme/iklim-ogrenme` dalında güncel main ile çakışmasız birleştirildi.
 - **Dosya / Açıklama:** Öğrenme paketinin kapsamı önceki kayıtta; `PROJECT_LOG.md` — repo kontrolü ve yayın talimatı; `SOUNDS.md` — main’e gelen on efektin güncel entegrasyon kaydı.
-- **Doğrulama:** Güncel main ile birleşmiş sürümde npm test, normal ve tek build geçti. Öğrenme tarayıcı testi yeniden çalıştırılıyor; merge için GitHub CI beklenecek.
-- **Debt:** Bu kaydın commit anında PR ve yayın henüz tamamlanmadı; kesin sonuç GitHub PR/Actions ve kullanıcıya son yanıtta verilir. Yeni ses efektleri `SOUNDS.md` içinde hazır olarak işlendi; radyo dosya adı ve adım aralıkları koda göre düzeltildi.
+- **Doğrulama:** Güncel main ile birleşmiş sürümde npm test, normal ve tek build geçti. Birleşmiş sürümün öğrenme tarayıcı testi geçti (JS exception yok, iki ekran boyutunda yatay taşma yok); merge için GitHub CI beklenecek.
+- **Debt:** Öğrenme paketi [PR #14](https://github.com/Kedaybehzat/son-denge/pull/14) üzerinden yayınlanıyor; bu kaydın commit anında merge ve yayın henüz tamamlanmadı; kesin sonuç GitHub PR/Actions ve kullanıcıya son yanıtta verilir. Yeni ses efektleri `SOUNDS.md` içinde hazır olarak işlendi; radyo dosya adı ve adım aralıkları koda göre düzeltildi.
 
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · İklim odağı ve öğrenme adımları
