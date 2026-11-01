@@ -1134,14 +1134,15 @@ export default class GameScene extends Phaser.Scene {
     this.gorselUygula();
   }
 
-  // Çatı güneş panelleri: başlangıçta 2 karo, state.yapilar'daki her
-  // 'ekPanel' için +2 karo. Dünyada eşit aralıklı yerleştirilir.
+  // Çatı: cati.png panel karoları + boş alanlar düz dolgun çatı malzemesi
+  // ile doldurulur. Panel sayısı: 2 + state.yapilar'daki her 'ekPanel' için +2.
   _cizCatiPanelleri() {
     const ekPanelSayisi = (state.yapilar || []).filter((y) => y === 'ekPanel').length;
     const hedefKaro = 2 + ekPanelSayisi * 2;
     if (!this.catiPaneller) this.catiPaneller = [];
-    if (this.catiPaneller.length === hedefKaro) return;
+    if (this.catiPaneller.length === hedefKaro && this.catiBos) return;
     for (const sp of this.catiPaneller) sp.destroy();
+    if (this.catiBos) this.catiBos.destroy();
     this.catiPaneller = [];
     const ust = TAVAN_Y;
     const kaynak = this.gercekAsset('cati') ? this.textures.get('cati').getSourceImage() : null;
@@ -1150,13 +1151,35 @@ export default class GameScene extends Phaser.Scene {
     const karoGenislik = kaynak ? kaynak.width * scale : 140;
     const toplamGenislik = hedefKaro * karoGenislik;
     const startX = Math.max(80, (this.dunyaG - toplamGenislik) / 2);
+    // Önce boş alanlar için dolgun çatı malzemesi (koyu, panelsiz yan kısım)
+    const bos = this.add.graphics().setDepth(0.55);
+    const kiremitUst = ust - h + 6;
+    const kiremitAlt = ust - 2;
+    const ciz = (x1, x2) => {
+      if (x2 - x1 < 4) return;
+      // Çatı malzemesi (ana koyu kahverengi)
+      bos.fillStyle(0x4b3d2d).fillRect(x1, kiremitUst, x2 - x1, kiremitAlt - kiremitUst);
+      // Üst saçak çizgisi (metal profil)
+      bos.fillStyle(0x2d2318).fillRect(x1, kiremitUst, x2 - x1, 3);
+      // Alt saçak (gölge)
+      bos.fillStyle(0x3a2e22).fillRect(x1, kiremitAlt - 3, x2 - x1, 3);
+      // Dikey kiremit/panel şeritleri (hafif)
+      bos.lineStyle(1, 0x5e4e3c, 0.55);
+      for (let x = x1 + 14; x < x2; x += 28) bos.lineBetween(x, kiremitUst + 4, x, kiremitAlt - 4);
+      // Yüzeyde hafif yatay nokta deseni (açık doku)
+      bos.fillStyle(0x6a5944, 0.5);
+      for (let x = x1 + 7; x < x2 - 2; x += 10) bos.fillRect(x, kiremitUst + Math.round((kiremitAlt - kiremitUst) / 2), 2, 1);
+    };
+    ciz(-20, startX);
+    ciz(startX + toplamGenislik, this.dunyaG + 20);
+    this.catiBos = bos;
+    // Sonra panel karoları (üstünde)
     for (let i = 0; i < hedefKaro; i++) {
       const x = startX + i * karoGenislik;
       let sp;
       if (kaynak) {
         sp = this.add.image(x, ust - h, 'cati').setOrigin(0, 0).setDepth(0.6).setScale(scale);
       } else {
-        // Yer tutucu: eğik güneş paneli (kodla)
         const g = this.add.graphics().setDepth(0.6);
         const taban = ust - 2;
         g.fillStyle(0x3a3a36).fillRect(x + 18, taban - 14, 4, 14).fillRect(x + 88, taban - 22, 4, 22);
