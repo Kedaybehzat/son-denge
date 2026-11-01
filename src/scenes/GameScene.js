@@ -1125,6 +1125,7 @@ export default class GameScene extends Phaser.Scene {
   gorselGuncelle(s) {
     this.makineAnimGuncelle();
     this._cizCatiPanelleri();
+    this._cizYapilar();
     this.tweens.killTweensOf(this.gorsel);
     this.tweens.add({
       targets: this.gorsel, d: s.denge, duration: 1200, ease: 'Sine.easeInOut',
@@ -1165,6 +1166,42 @@ export default class GameScene extends Phaser.Scene {
         sp = g;
       }
       this.catiPaneller.push(sp);
+    }
+  }
+
+  // Yapılar (data/structures.js) inşa edilince sahnede görsel karşılık:
+  //  - yalitim : sığınak kenar duvarlarına açık renk kaplama
+  //  - bariyer : sera odasının önüne beton bariyer
+  //  - ekPanel : _cizCatiPanelleri() tarafından ele alınıyor
+  _cizYapilar() {
+    const yapilar = state.yapilar || [];
+    if (yapilar.includes('yalitim') && !this.yalitimKat) {
+      const g = this.add.graphics().setDepth(0.5);
+      // Dış duvar yalıtım kaplaması (sol ve sağ)
+      g.fillStyle(0xc8d4ba).fillRect(-10, TAVAN_Y - 6, 10, ZEMIN_Y - TAVAN_Y + 16);
+      g.fillRect(this.dunyaG, TAVAN_Y - 6, 10, ZEMIN_Y - TAVAN_Y + 16);
+      // Çizgili desen
+      g.lineStyle(1, 0x8ea385, 0.6);
+      for (let y = TAVAN_Y; y < ZEMIN_Y; y += 10) {
+        g.lineBetween(-10, y, 0, y);
+        g.lineBetween(this.dunyaG, y, this.dunyaG + 10, y);
+      }
+      this.yalitimKat = g;
+    }
+    if (yapilar.includes('bariyer') && !this.bariyerDekor) {
+      const seraOda = ODALAR.findIndex((o) => o.tip === 'sera');
+      if (seraOda >= 0) {
+        const x0 = seraOda * ODA_GENISLIK;
+        const g = this.add.graphics().setDepth(2.5);
+        g.fillStyle(0x6e7267).fillRect(x0 + 24, ZEMIN_Y - 24, ODA_GENISLIK - 48, 22);
+        g.fillStyle(0x4a4e45).fillRect(x0 + 24, ZEMIN_Y - 24, ODA_GENISLIK - 48, 4);
+        // Küçük sarı-siyah şerit uyarı deseni
+        g.fillStyle(0xd6a84a);
+        for (let i = 30; i < ODA_GENISLIK - 48; i += 24) {
+          g.fillRect(x0 + 24 + i, ZEMIN_Y - 20, 10, 3);
+        }
+        this.bariyerDekor = g;
+      }
     }
   }
 
