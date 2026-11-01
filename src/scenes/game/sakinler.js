@@ -136,9 +136,9 @@ export const sakinler = {
       const hiz = Math.abs(s.sprite.x - (s.oncekiX ?? s.sprite.x)) * 1000 / Math.max(dt, 1);
       const hareket = hiz > 8;
       s.oncekiX = s.sprite.x;
-      if (s.ozelDoku) continue; // karaktere özel görselde genel animasyon yok
-      const ad = `sakin-${(s.tip ?? 0) + 1}-${hareket ? 'yuru' : 'bekle'}`;
-      if (!this.animOynat(s.sprite, ad)) this.animDurdur(s.sprite, 'sakin' + (s.tip ?? 0));
+      const kok = s.ozelDoku ? 'sakin-' + s.id : `sakin-${(s.tip ?? 0) + 1}`;
+      const ad = `${kok}-${hareket ? 'yuru' : 'bekle'}`;
+      if (!this.animOynat(s.sprite, ad)) this.animDurdur(s.sprite, s.doku || 'sakin' + (s.tip ?? 0));
       s.sprite.anims.timeScale = hareket ? Phaser.Math.Clamp(hiz / SAKIN_HIZI, 0.6, 1.4) : 1;
     }
   },
@@ -172,14 +172,13 @@ export const sakinler = {
         // Gün 0'da gelen kurucu kapıdan girip çalışma odasına yürür
         const kapi = state.gun === 0 ? this.kapiSpritesi() : null;
         const baslangicX = kapi ? kapi.x : hedefX;
-        const sprite = this.olcekle(this.add.sprite(baslangicX, ZEMIN_Y - 55, sakinDoku)
+        const sprite = this.olcekle(this.add.sprite(baslangicX, ZEMIN_Y, sakinDoku)
           .setOrigin(0.5, 1).setDepth(5).setAlpha(0), sakinDoku);
         sprite.setVisible(kaynakSakin.gorev !== 'kesif');
         const yeni = { uid: kaynakSakin.uid, id: kaynakSakin.id, gorev: kaynakSakin.gorev, sprite, hedefX, wander: null, tip: gorsel.tip, oncekiX: baslangicX,
           doku: sakinDoku, ozelDoku: sakinDoku === ozel };
-        this.tweens.add({ targets: sprite, alpha: 1, duration: 350 });
-        this.tweens.add({
-          targets: sprite, y: ZEMIN_Y, duration: 720, ease: 'Bounce.easeOut',
+        // Gelişte y ekseninde zıplatma yok: ayak tabanı bütün karelerde zeminde.
+        this.tweens.add({ targets: sprite, alpha: 1, duration: 350,
           onComplete: () => (kapi ? this.sakinTasi(yeni, hedefX) : this.sakinIdleBaslat(yeni)),
         });
         this.sakinler.push(yeni);

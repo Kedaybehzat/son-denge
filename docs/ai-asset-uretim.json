@@ -1,0 +1,40 @@
+{
+  "tarih": "2026-11-01",
+  "arac": "Yerleşik image_gen; CLI/API kullanılmadı",
+  "kaynakKlasor": "assets-orijinal/ai-uretim/2026-11-01",
+  "ikonlar": [
+    "ikon-malzeme.png",
+    "ikon-yagmur-suyu.png",
+    "ikon-dinlen.png",
+    "ikon-yagmur-deposu.png",
+    "ikon-su-hatti.png",
+    "ikon-onarim-tezgahi.png",
+    "ikon-insaat.png",
+    "kesif-siginak.png"
+  ],
+  "harita": "yonetim-kesif.png",
+  "animasyonlar": [
+    {
+      "kaynak": "sakin-1-sheet.png",
+      "ad": "sakin-1",
+      "sutun": 2,
+      "satirKesimleri": [
+        0,
+        522,
+        1024,
+        1536
+      ]
+    },
+    {
+      "kaynak": "sakin-3-sheet.png",
+      "ad": "sakin-3",
+      "sutun": 2,
+      "satirKesimleri": [
+        0,
+        532,
+        1022,
+        1536
+      ]
+    }
+  ]
+}

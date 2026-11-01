@@ -3,7 +3,7 @@
 import { ASSETLER } from '../../data/assets.js';
 import { assetVar } from '../../assetListesi.js';
 import { ANIMASYONLAR, animKareAnahtari, animKareDosyasi } from '../../data/animations.js';
-import { MAKINELER, makineCalisiyorMu } from '../../state.js';
+import { MAKINELER, makineCalisiyorMu, makineKapali } from '../../state.js';
 import { CIZIM_OLCEGI, DOKU_PAYI } from './ayarlar.js';
 import { ICERIK_KUTULARI } from './dokuOnbellegi.js';
 
@@ -71,11 +71,16 @@ export const animasyonlar = {
   makineAnimGuncelle() {
     for (const n of this.nesneler || []) {
       if (n.def.tip !== 'panel' || !MAKINELER[n.def.panel]) continue;
-      const calisiyor = makineCalisiyorMu(n.def.panel);
+      const calisiyor = makineCalisiyorMu(n.def.panel) && !makineKapali(n.def.panel);
       const ozelAnim = n.statik === 'panel' ? 'panel-calis' : n.statik.replace('panel-geriDonusum', 'panel-geri') + '-calis';
-      if (!(calisiyor && this.animOynat(n.sprite, ozelAnim))) this.animDurdur(n.sprite, n.statik, n.statik);
+      // Birleşik oda sprite'ı görünmez: boşa animasyon oynatmak yerine
+      // çizilmiş panelin gerçek LED noktasındaki ışık durumunu güncelle.
+      if (!(calisiyor && !n.sprite.gorseldeCizili && this.animOynat(n.sprite, ozelAnim))) this.animDurdur(n.sprite, n.statik, n.statik);
+      const oda = this.odaYerlesimi[n.def.panel === 'geriDonusum' ? 'geri' : n.def.panel];
+      const led = n.def.calismaIsigi;
+      const nokta = oda && led ? oda.nokta(...led) : { x: n.sprite.x, y: n.sprite.y - this.gorunurY(n.sprite) - 7 };
       if (!n.isik) {
-        n.isik = this.add.circle(n.sprite.x, n.sprite.y - this.gorunurY(n.sprite) - 7, 4, 0x52e3a4).setDepth(4);
+        n.isik = this.add.circle(nokta.x, nokta.y, oda && led ? 2.2 : 4, 0x52e3a4).setDepth(4);
         n.isikTween = this.tweens.add({ targets: n.isik, alpha: 0.35, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       }
       n.isik.setFillStyle(calisiyor ? 0x52e3a4 : 0xe85d4a);

@@ -13,6 +13,8 @@
 //  ne     : ne zaman oynar (liste ve PROJECT_LOG için açıklama)
 // =============================================================
 
+import { KURUCULAR, ZIYARETCILER } from './visitors.js';
+
 export const ANIMASYONLAR = {
   'oyuncu-bekle': { kare: 4, fps: 4,  dongu: true,  sahip: 'oyuncu', ne: 'Oyuncu dururken (nefes alma)' },
   'oyuncu-yuru':  { kare: 6, fps: 10, dongu: true,  sahip: 'oyuncu', ne: 'Oyuncu yürürken (varsa kodla zıplama kapanır)' },
@@ -35,6 +37,13 @@ export const ANIMASYONLAR = {
   'panel-sera-calis':   { kare: 3, fps: 6, dongu: true, sahip: 'panel-sera', ne: 'Sera paneli çalışırken' },
   'panel-geri-calis':   { kare: 3, fps: 6, dongu: true, sahip: 'panel-geriDonusum', ne: 'Geri dönüşüm paneli çalışırken' },
 };
+
+// Karaktere özel set varsa genel sakin yerine kendi kimliğiyle oynar.
+for (const k of [...KURUCULAR, ...ZIYARETCILER]) {
+  const sahip = 'sakin-' + k.id;
+  ANIMASYONLAR[sahip + '-bekle'] = { kare: 2, fps: 2, dongu: true, sahip, ne: k.ad + ' dururken' };
+  ANIMASYONLAR[sahip + '-yuru'] = { kare: 4, fps: 8, dongu: true, sahip, ne: k.ad + ' yürürken' };
+}
 
 export const ANIM_KLASOR = 'anim/';
 export const animKareAnahtari = (ad, n) => `anim:${ad}-${n}`;

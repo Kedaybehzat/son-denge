@@ -34,10 +34,10 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Yorgunluk ve ayrılma (Faz 2 / M2) | `src/state.js` → `yarinkiYorgunluk()`, `ayrilmaSansi()`, `yorgunlukGecesi()` (gunuBitir içinde), `AYAR.yorgunluk*`; arayüz: `ui.js` → `yorgunlukChip()`; sahne: `GameScene.js` + `game/` modülleri → `sakinGuncelle()` (ayrılan figür solar) |
 | Hazırlıklı olaylar (tahmin, hazırlık) | Veri: `events.js` (`uyari`, `hazirlik`, `HAZIRLIK_MALIYETI`); kurallar: `state.js` → `state.tahmin`, `olayEtkisi()`, `hazirlan()`, `gunuBitir()` (tahmin → olay); arayüz: `ui.js` → `tahminHtml()`, `olayHtml()`, `hazirlikBagla()` |
 | Eğitici karar kartları | Veri: `src/data/cards.js` → `KARTLAR`; kurallar: `state.js` → `kartKontrol()` (gunuBitir sonunda), `kartSec()`, `kartSecenekleri()`, `state.kartGeceEtki` (geceHesapla); arayüz: `ui.js` → `kararKartiGoster()`, `sabahGoster()` |
-| Keşif (sefer, dönüş) | Veri: `src/data/exploration.js` → `KESIF_NOKTALARI`; kurallar: `state.js` → `kesfeGonder()`, `kesifSansi()`, `seferSabahi()` (gunuBitir sabahı), `state.sefer`; arayüz: `ui.js` → `kesifHtml()` (pano), `seferHtml()` (gece raporu); sahne: `sakinGuncelle()` keşiftekini gizler |
+| Keşif (sefer, dönüş) | Veri: `src/data/exploration.js` → `KESIF_NOKTALARI` (`harita.alan`: geniş tıklama bölgeleri); kurallar: `state.js` → `kesfeGonder()`, `kesifSansi()`, `seferSabahi()` (gunuBitir sabahı), `state.sefer`; arayüz: `ui.js` → `kesifHtml()` (pano), `seferHtml()` (gece raporu); sahne: `sakinGuncelle()` keşiftekini gizler |
 | Memnuniyet, itiraz kartı, güven oylaması | `state.js` → `AYAR.memnuniyet*`, `memnuniyetGecesi()`, `state.guvenDusukGece`, `gunuBitir()` (`guvenKaybi` sonu); kart: `cards.js` → `itiraz`; arayüz: `ui.js` → HUD `[data-memnuniyet]`, `memnuniyetHtml()`, `SONLAR.guvenKaybi` |
 | Araştırma ve batarya | `src/state.js` → `arastirmaSec()`, `masadaArastir()`, `puanEkle()`, `geceHesapla()`; veri: `src/data/research.js` |
-| Koloni / Odalar / Keşif / Araştırma / İnşaat / Hedefler panelleri | `ui.js` → `panoAc(bolum)`, `panoCiz()` (mockup zeminli dal: `yonetim-<bölüm>.jpg` + `konsol-yerlesim.json` → `yonetim`, `.yonetim-resimli`, `.kr-sekme`; yoksa ortak CSS kabuk, `data-bilgi` durum ekranı, prolog turu), `koloniHtml` (görev tahtası, sürükle-bırak), `odaKartlariHtml`, `kesifHaritaHtml` + `kesifDetayHtml`, `arastirmaAgaciHtml`, `insaatPlaniHtml`, `hedefPanosuHtml`, `yonetimOzeti`, `gorevEtkisi`, `yorgunlukPili`, `sakinBilgisi`, `cssUrl`; veri: `exploration.js` → `harita`, `research.js` → `seviye`; stil: `style.css` "SIĞINAK YÖNETİMİ"; `YONETIM_BOLUMLERI`; alt erişim: `hudKur()`; nesne: `rooms.js` (`tip: 'pano'`), doku: `GameScene.js` + `game/` modülleri → `dokulariUret()` |
+| Koloni / Odalar / Keşif / Araştırma / İnşaat / Hedefler panelleri | `ui.js` → `panoAc(bolum)`, `panoCiz()` (öncelik: ortak `ui-*` parçaları + `.yonetim-parcali`, canlı sekme/başlık/stok; yedek mockup dalı: `yonetim-<bölüm>.jpg` + `konsol-yerlesim.json` → `yonetim`, `.yonetim-resimli`, `.kr-sekme`; yoksa ortak CSS kabuk, `data-bilgi` durum ekranı, prolog turu), `koloniHtml` (görev tahtası, sürükle-bırak), `odaKartlariHtml`, `kesifHaritaHtml` + `kesifDetayHtml`, `arastirmaAgaciHtml`, `insaatPlaniHtml`, `hedefPanosuHtml`, `yonetimOzeti`, `gorevEtkisi`, `yorgunlukPili`, `sakinBilgisi`, `cssUrl`; veri: `exploration.js` → `harita`, `research.js` → `seviye`; stil: `style.css` "SIĞINAK YÖNETİMİ"; `YONETIM_BOLUMLERI`; alt erişim: `hudKur()`; nesne: `rooms.js` (`tip: 'pano'`), doku: `GameScene.js` + `game/` modülleri → `dokulariUret()` |
 | Malzeme / oda modları / bakım | `state.js` → `state.malzeme`, `geriKazanimMiktari`, `makineModuSec`, `makineUretimi`, `bakimYap`; veri: `src/data/production.js` |
 | İnşaat iş gücü / iptal / yardım | `state.js` → `insaatci`, `insaatTahmini`, `insaataYardimEt`, `insaatDuraklat`, `insaatIptal`; UI: `insaatYonetimiHtml()` |
 | Sakinlerle konuşma | `src/data/dialogues.js`; `ui.js` → `sakinleKonus`; `state.js` → `moralVer`, `moralVerebilirMi`; sahne: E/T |
@@ -56,7 +56,7 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Ziyaretçiler | `src/data/visitors.js` → `ZIYARETCILER` |
 | "Biliyor muydun?" kartları | `src/data/facts.js` → `BILGILER`, `GENEL_BILGILER`; seçim: `state.js` → `bilgiSec()` |
 | Açılış hikayesi metinleri | `src/data/story.js` → `HIKAYE` |
-| Oda düzeni, pencereler, nesne konumları | `src/data/rooms.js` → `ODALAR`, `ODA_GENISLIK`, `TAVAN_Y`, `ZEMIN_Y` |
+| Oda düzeni, pencereler, nesne konumları | `src/data/rooms.js` → `ODALAR` (`nesneler[].calismaIsigi`: panel LED oranı), `ODA_GENISLIK`, `TAVAN_Y`, `ZEMIN_Y` |
 | Yapılacak görsellerin listesi ve durumu | Bu dosya → **Asset Listesi** bölümü (tek tablo); durum kontrolü: `node tools/asset-durum.mjs` |
 | Animasyonlar (kare yükleme, oynatma) | Tanım: `src/data/animations.js` → `ANIMASYONLAR`; yükleme: `GameScene.js` + `game/` modülleri → `preload()` (1. kare), `animasyonlariYukle()`; oynatma: `animOynat()`, `animDurdur()`, `makineAnimGuncelle()`, `sakinAnimGuncelle()`, `update()` (oyuncu), `efektZiyaretci()` (kapı); dosyalar: `public/assets/anim/` |
 | Arka planlar (oda, manzara) | Yerleşim ayarları: `rooms.js` → `ODA_GENISLIK` (739, birleşik oda şeridine göre), `GORSEL_ZEMIN_ORANI`, `GORSEL_DUVAR_ORANI`, `ARKA_OLCEK`, `ODALAR[].gorsel` (`nesneOran`, `bitkiOran`, `copOran`, `suGostergeleri`, `duman`); rework şablonları: `docs/oda-sablonlari/`; brif ve promptlar: `CLAUDE.md` 6.12; `GameScene.js` + `game/` modülleri → `odaGorseliYerlestir()` (oran korur, kırpar, `odaYerlesimi`, `dumanNoktasi`), `odaGecisleriCiz()` (kolon + gölge), `evCiz()` (oda-*, oda adı etiketi, arka nesne perspektifi), `dekorCiz()` (oda görseli varken süs çizimleri atlanır, tank/saksı stili), `disariCiz()` + `gorselUygula()` (manzara-*, iyi↔kötü geçiş) |
@@ -96,6 +96,12 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Devir rehberi ve güncel asset PDF üretimi | `docs/devralma.md`, `README.md`, `tools/rehber-uret.py` (Python 3 + Pillow; `docs/asset-rehberi.pdf` üretir) |
 | PR kontrolleri | `.github/workflows/checks.yml`: Node 22, npm ci/test/build/build:tek |
 | Takım dokümanı (hikaye, mekanik, görsel promptları) | `CLAUDE.md` |
+| Karakter seti üretimi / eksik kontrolü | `docs/karakter-setleri.md`, `docs/karakter-uretim-istekleri.json`, `docs/korunan-assetler.json`; `tools/karakter-setleri-hazirla.py`, `tools/karakter-setleri.mjs`; `animations.js` → otomatik `sakin-<id>` tanımları; `sakinler.js` → özel animasyon seçimi |
+| AI ikon / harita / genel animasyon üretimi | `docs/ai-asset-uretim.md`, `docs/ai-asset-uretim.json`, `tools/ai-asset-hazirla.py`; raw: `assets-orijinal/ai-uretim/` |
+| Apoclimate logosu ve kare diyalog portreleri | `ui.js` → `oyunLogosu`, `diyalogPortresi`, `yuzPortresi`, `sakinleKonus`; `index.html` favicon/başlık; `logo-apoclimate.png`, `portre-oyuncu.png` |
+| Parçalı konsol assetleri / canlı kontrol | `docs/asset-parcalari.md`; tarif: `src/data/arayuz-parcalari.json`; `tools/asset-parcala.py`, `tools/animasyon-hizala.py`, `tools/animasyon-canli.mjs`; `ui.js` → `konsolParcalariHazir`, `konsolOdaParcasiHtml` |
+| Yeni asset/ekran incelemesi ve düzeltme sırası | `docs/asset-inceleme.md` (görsel örnekler + animasyon kareleri + kod bulguları) |
+| Tasarım rehberi (palet, tipografi, bileşenler, etkileşim, mockup akışı, kontrol listesi) | `docs/tasarim-rehberi.md`; görsel özeti `docs/asset-rehberi.pdf` (Tasarım sistemi sayfaları); örnekler `docs/arayuz-ornekleri/` |
 | Codex proje yönergeleri ve proje dokümanı | `AGENTS.md` (CLAUDE.md içeriğinin Codex uyarlaması; bölüm 0.1 çalışma kuralları) |
 | Mekanik tasarım (GDD v2.0; [ÖNERİ]'ler hackathon kapsamında, faz sırası bölüm 14) | `Son_Denge_Mekanik_Tasarim_GDD.pdf` |
 
@@ -119,6 +125,20 @@ src/ui/ui.js               HTML/CSS arayüz katmanı
 src/ui/testPaneli.js       F9 test paneli (durum düzenleme, olay/kart/son tetikleme)
 src/data/prolog.js         Prolog ayarları, günleri, kurucu dersleri, konsol rehber adımları, pano turu
 tools/prolog-test.mjs      Prolog akış ve devir regresyonları
+tools/ai-asset-hazirla.py AI ikon/harita/genel animasyonları ham kaynaklardan hazırlar
+tools/karakter-setleri-hazirla.py Yalnız eksik özel sprite/kare/rozetleri keser
+tools/karakter-setleri.mjs 10 sakin seti, eşleşme ve korunan görsel hash kontrolü
+docs/karakter-setleri.md   Kanonik portre, sprite ve animasyon eşleştirmeleri
+docs/karakter-uretim-istekleri.json Gerçek image_gen karakter prompt ve referansları
+docs/korunan-assetler.json 13 mevcut portrenin/rozetin korunmuş SHA-256 listesi
+docs/ai-asset-uretim.md    Üretim kapsamı, ikon/harita prompt seti ve logo kaynağı
+docs/ai-asset-uretim.json  İkon ve genel animasyon kesim kaynak tarifi
+tools/asset-parcala.py     Mockup kaynak kutularından 9-dilim çerçeve, düğme, doku ve oda parçaları
+tools/animasyon-hizala.py  Yürüme karelerinin hatalı kesim tabanını orijinalden hizalar
+tools/kesif-tiklama-canli.mjs Şehir alanı/simge/etiket seçimi ve sefer engelleri tarayıcı kontrolü
+tools/animasyon-canli.mjs Playwright ile canlı animasyon/etkileşim ve üç boyutta konsol kontrolü
+src/data/arayuz-parcalari.json UI parçalarının kaynak kesim kutuları ve 9-dilim ölçüleri
+docs/asset-parcalari.md   Parça kullanımı, yeniden üretim, kapsam ve canlı kontrol komutları
 tools/mockup-kes.py        Mockup'lardan kutu sahneleri, tank görseli ve yüz rozetlerini keser (python3 tools/mockup-kes.py)
 tools/kenar-temizle.py     Şeffaf görsellerde sis/leke/delik/saçak temizliği; kart/son/menü kenar şeridini opaklaştırır (yedek assets-orijinal/kenar-oncesi/)
 tools/ekran-zemin.py       Mockup'tan arıza konsolu, Ayarlar, HUD/alt şerit ve hikaye zeminlerini üretir
@@ -154,8 +174,10 @@ docs/oda-sablonlari/       Oda görselleri rework şablonları (sablon-<oda>.png
 assets-orijinal/           Küçültülmeden önceki asset yedekleri (git'e girmez, .gitignore)
 docs/olcek-standardi.md    Asset üretiminde tek ölçü standardı (ölçek dizisi) + prompt
 docs/olcek-sablonu.png     Ölçek dizisi şablonu (tek taban, 1 m = 300 px, 10 yuva)
-docs/asset-rehberi.pdf     Güncel 22 sayfalık asset rehberi: 132 satır, hedef görünüm (mockup) sayfası, örnekler, odalar, yeni arayüz ekranları, sanat stili
-docs/arayuz-ornekleri/     Konsol ve yönetim panosu ekran görüntüleri (asset yerleşim referansı)
+docs/asset-rehberi.pdf     Güncel 30 sayfalık (tasarım sistemi sayfaları dahil) asset rehberi: 158 satır, hedef görünüm (mockup) sayfası, örnekler, odalar, yeni arayüz ekranları, sanat stili
+docs/asset-inceleme.md    Yeni ekran ve animasyon incelemesi, öncelikli düzeltmeler
+docs/tasarim-rehberi.md    Tasarım sistemi: palet, tipografi, ölçü, bileşen kataloğu, etkileşim, mockup akışı, stil blokları, kontrol listesi
+docs/arayuz-ornekleri/     Güncel konsol, yönetim, HUD, Ayarlar, hikaye ekran görüntüleri
 docs/tasarim-referans/     17 mockup: konsolların ve yönetim panosunun hedef görünümü (oyuna girmez; orijinaller assets-orijinal/tasarim-referans/)
 docs/devralma.md           Asset/mekanik/arayüz geliştirmesine devam rehberi
 tools/rehber-uret.py       PDF üreticisi (Python 3 + Pillow)
@@ -178,7 +200,9 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | D10 | Tarihsel simülasyon bulgusu (güncel kodda ayrılma eşiği 5 ve pay %20; aşağıdaki eski oranlar yeniden ölçülmeli): Yorgunluk ayarlarıyla dinlendirme stratejisi kötü: herkes 0'dan başlayıp 4. gece aynı anda riske giriyor; riskteki herkesi dinlendiren akıllı stil iyi sonu %82 → %20 düşürüyor. Öneri: kurucuları farklı yorgunlukla başlatmak ya da dinlenmeyi −3 / eşiği 5 yapmak (karar bekliyor) | `AYAR.yorgunluk*`, `KURUCULAR` | 2026-11-01 |
 | D12 | Tarihsel denge bulgusu (güncel 36.000 oyunluk sonuçlar CLAUDE.md 4.11'de; aşağıdaki eski karşılaştırma yeniden ölçülmeli): Hazırlıklı olaylarla zararlı olaylar ~1,6 kat sertleştirildi (hazırlık bir eylem değerinde olsun diye). Toplam zorluk arttı: akıllı+herkesi al iyi son %83 → %61 (hazırlanarak; hazırlıksız %62). 1,3 katta hazırlık bazen kötü seçim çıkıyordu. Dengeleme D10 ile birlikte yapılmalı | `events.js`, `AYAR` | 2026-11-01 |
 | D15 | Prolog, oda konsolları, yönetim panosu (sürükle-bırak dahil) ve test paneli headless Chromium betiğiyle uçtan uca denendi; gerçek tarayıcıda insan playtesti, dokunmatik (hover yok: önizleme odakla çalışır) ve küçük ekran yerleşimi kontrol edilmedi. Test paneli herkese açık (F9) ve bilinen hataları var | `src/ui/testPaneli.js`, `src/data/prolog.js`, `ui.js` konsol | 2026-11-01 |
-| D14 | Oda/manzara PNG'leri ve eklenen UI seti yükleme maliyetini artırıyor; UI seti 28,1 → 13,9 MB küçültüldü. WebP ve ihtiyaç halinde yükleme iyileştirmesi açık; güncel açılış boyutu ayrıca ölçülmeli | `public/assets/oda-*`, `manzara-*`, `assets.js` | 2026-11-01 |
+| D17 | Dört oda konsolu ve altı yönetim bölümü parçalara geçti; HUD/Ayarlar/hikaye tek resim zeminleri hâlâ ayrıştırılacak. Küçük portre ekranda okunabilir yeniden yerleşim açık | `docs/asset-parcalari.md` | 2026-11-01 |
+| D16 | Kısmen giderildi: dört konsolun bulanık tam ekran zeminleri ve ayak tabanı sıçraması düzeltildi; sakinlerin eksik kareleri/özel setleri tamamlandı; kapı açılışı ve tam panel hareketi, diğer bozuk simgeler ve kesik genel panel kareleri açık; yönetim temizleme izleri aktif yoldan kaldırıldı; ayrıntı ve öncelikler inceleme raporunda | `docs/asset-inceleme.md` | 2026-11-01 |
+| D14 | Oda/manzara PNG'leri ve eklenen UI seti yükleme maliyetini artırıyor; UI seti 28,1 → 13,9 MB küçültüldü; tüm sakinlere özel setler ve AI harita da eklendi, açılış yükü yeniden ölçülmeli. WebP ve ihtiyaç halinde yükleme iyileştirmesi açık; güncel açılış boyutu ayrıca ölçülmeli | `public/assets/oda-*`, `manzara-*`, `assets.js` | 2026-11-01 |
 
 ---
 
@@ -186,7 +210,7 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 
 > Kopyası `docs/asset-listesi.md` · rehber `docs/asset-rehberi.pdf`.
 
-**Durum:** ✅ oyunda hazır (99) · 🔁 var ama yenilenmeli (10) · ⏳ eksik (30). Toplam 139 satır. Ayrı `oda-<oda>.png` dosyaları gerekmez: oyun birleşik `oda-<oda>-tam.png` görsellerini kullanır (`asset-durum` bunları yedek olarak ⏳ gösterir).
+**Durum:** ✅ oyunda hazır (138) · 🔁 var ama yenilenmeli (10) · ⏳ eksik (10). Toplam 158 satır. Ayrı `oda-<oda>.png` dosyaları gerekmez: oyun birleşik `oda-<oda>-tam.png` görsellerini kullanır (`asset-durum` bunları yedek olarak ⏳ gösterir).
 
 **Tasarım referansı:** `docs/tasarim-referans/` içindeki 17 mockup (kutu sahneleri, tanklar ve 3 yüz rozeti bunlardan kesilip oyuna bağlandı) (konsollar, kapalı konsol, yönetim bölümleri, pano turu) hedef görünümü gösterir. Oyuna doğrudan girmezler: yazı/sayı gömülü. Üretilen görseller yazısız olmalı.
 
@@ -217,20 +241,20 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | 19 | `sakin-2.png` | Örgülü kadın | 2:3, şeffaf | 1,7 m | ✅ |  |
 | 20 | `sakin-3.png` | Deri önlüklü usta | 2:3, şeffaf | 1,7 m | ✅ |  |
 | 21 | `sakin-4.png` | Hardal şapkalı gezgin | 2:3, şeffaf | 1,7 m | ✅ |  |
-| 22 | `sakin-1-bekle + sakin-1-yuru` | Yaşlı sakin: 2 kare bekleme + 4 kare yürüme | 2:3, 2×3 | 1,7 m | ⏳ | Gelen sette opak duman halesi vardı; temiz arka planla yeniden |
+| 22 | `sakin-1-bekle + sakin-1-yuru` | Yaşlı sakin: 2 kare bekleme + 4 kare yürüme | 512×512 kare, 2 bekle + 4 yürü | 1,7 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
 | 23 | `sakin-2-bekle + sakin-2-yuru` | Örgülü kadın | 2:3, 2×3 | 1,7 m | ✅ |  |
-| 24 | `sakin-3-bekle + sakin-3-yuru` | Usta | 2:3, 2×3 | 1,7 m | ⏳ | Aynı hale sorunu; yeniden |
-| 25 | `sakin-4-bekle + sakin-4-yuru` | Gezgin | 2:3, 2×3 | 1,7 m | ✅ |  |
-| 26 | `sakin-selin.png` | Sahnede Selin, tam boy | 2:3, şeffaf | 1,7 m | ⏳ | Önerilir: prologda kapıdan girip odasına yürürken öne çıkar; yoksa genel sakin görseli |
-| 27 | `sakin-burak.png` | Sahnede Burak, tam boy | 2:3, şeffaf | 1,7 m | ⏳ | Önerilir: prologda kapıdan girip odasına yürürken öne çıkar; yoksa genel sakin görseli |
-| 28 | `sakin-nur.png` | Sahnede Nur, tam boy | 2:3, şeffaf | 1,7 m | ⏳ | Önerilir: prologda kapıdan girip odasına yürürken öne çıkar; yoksa genel sakin görseli |
-| 29 | `sakin-can.png` | Sahnede Can, tam boy | 2:3, şeffaf | 1,7 m | ⏳ | Önerilir: prologda kapıdan girip odasına yürürken öne çıkar; yoksa genel sakin görseli |
-| 30 | `sakin-muhendis.png` | Sahnede Deniz, tam boy | 2:3, şeffaf | 1,7 m | ⏳ | İsteğe bağlı; yoksa genel sakin görseli kullanılır |
-| 31 | `sakin-ciftci.png` | Sahnede Hasan + Elif, tam boy | 2:3, şeffaf | 1,7 m | ⏳ | İsteğe bağlı; yoksa genel sakin görseli kullanılır |
-| 32 | `sakin-bilim.png` | Sahnede Dr. Leyla, tam boy | 2:3, şeffaf | 1,7 m | ⏳ | İsteğe bağlı; yoksa genel sakin görseli kullanılır |
-| 33 | `sakin-cocuklar.png` | Sahnede Mert + Ada (1,3 m), tam boy | 2:3, şeffaf | 1,7 m | ⏳ | İsteğe bağlı; yoksa genel sakin görseli kullanılır |
-| 34 | `sakin-tamirci.png` | Sahnede Kemal, tam boy | 2:3, şeffaf | 1,7 m | ⏳ | İsteğe bağlı; yoksa genel sakin görseli kullanılır |
-| 35 | `sakin-kafile.png` | Sahnede 4 kişilik aile, tam boy | 2:3, şeffaf | 1,7 m | ⏳ | İsteğe bağlı; yoksa genel sakin görseli kullanılır |
+| 24 | `sakin-3-bekle + sakin-3-yuru` | Usta | 512×512 kare, 2 bekle + 4 yürü | 1,7 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 25 | `sakin-4-bekle + sakin-4-yuru` | Gezgin | 2:3, 2×3 | 1,7 m | ✅ | 2026-11-01: yürüme 3. kare +32 px hizalandı; ayak tabanı 507 px |
+| 26 | `sakin-selin.png` | Sahnede Selin, tam boy | 512×512, şeffaf | 1,7 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 27 | `sakin-burak.png` | Sahnede Burak, tam boy | 512×512, şeffaf | 1,7 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 28 | `sakin-nur.png` | Sahnede Nur, tam boy | 512×512, şeffaf | 1,7 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 29 | `sakin-can.png` | Sahnede Can, tam boy | 512×512, şeffaf | 1,7 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 30 | `sakin-muhendis.png` | Sahnede Deniz, tam boy | 512×512, şeffaf | 1,7 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 31 | `sakin-ciftci.png` | Sahnede Hasan + Elif, tam boy | 512×512, şeffaf | 1,7 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 32 | `sakin-bilim.png` | Sahnede Dr. Leyla, tam boy | 512×512, şeffaf | 1,7 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 33 | `sakin-cocuklar.png` | Sahnede Mert + Ada (1,3 m), tam boy | 512×512, şeffaf | 1,3 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 34 | `sakin-tamirci.png` | Sahnede Kemal, tam boy | 512×512, şeffaf | 1,7 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 35 | `sakin-kafile.png` | Sahnede 4 kişilik aile, tam boy | 512×512, şeffaf | 1,7 m | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
 | 36 | `cop-yigini.png` | Çöp yığını | 3:2, şeffaf | 0,9 × 1,8 m | ✅ |  |
 | 37 | `bitki.png` | Saksıda fide | 2:3, şeffaf | 0,65 m | ✅ |  |
 | 38 | `bitki-solgun.png` | Solgun fide | 2:3, şeffaf | 0,65 m | ✅ |  |
@@ -289,13 +313,13 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | 91 | `ikon-komsu.png` | Pano ikonu: Keşif: komşu yerleşim | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
 | 92 | `ikon-rezervuar.png` | Pano ikonu: Keşif: rezervuar | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
 | 93 | `kod:sakin-is` | Sakin sulama/onarım/inceleme/düzenleme hareketleri ve işaretleri | Phaser tween + Graphics | Mevcut karakter boyu | ✅ | Yeni PNG yok; prompt: yok, kodla çiziliyor; `activities.js` hedefleri; 2026-11-01 |
-| 94 | `ikon-yagmur-suyu.png` | Pano ikonu: Yağmur Suyu Pompası araştırması (yağmur damlası + küçük pompa) | en çok 256×256, şeffaf | — | ⏳ | Kod bağlı; yoksa 💧 |
-| 95 | `ikon-yagmur-deposu.png` | Pano ikonu: Yağmur Suyu Deposu yapısı (oluk + tank) | en çok 256×256, şeffaf | — | ⏳ | Kod bağlı; yoksa Gri Su ikonu |
-| 96 | `ikon-su-hatti.png` | Pano ikonu: Su Geri Kazanım Hattı (boru + geri dönüş oku) | en çok 256×256, şeffaf | — | ⏳ | Kod bağlı; yoksa Gri Su ikonu |
-| 97 | `ikon-onarim-tezgahi.png` | Pano ikonu: Onarım Tezgâhı (tezgâh + anahtar) | en çok 256×256, şeffaf | — | ⏳ | Kod bağlı; yoksa Atık ikonu |
-| 98 | `ikon-insaat.png` | Görev ikonu: İnşaat (çekiç + tuğla) | en çok 256×256, şeffaf | — | ⏳ | Koloni panelinde görev düğmesi; yoksa 🔨 |
-| 99 | `ikon-dinlen.png` | Görev ikonu: Dinlen (yastık / uyku) | en çok 256×256, şeffaf | — | ⏳ | Koloni panelinde görev düğmesi; yoksa 💤 |
-| 100 | `ikon-malzeme.png` | Alt şerit ikonu: Malzeme stoğu (vida + metal levha yığını) | en çok 256×256, şeffaf | — | ⏳ | Sol alttaki Malzeme kutusu; yoksa yalnız yazı |
+| 94 | `ikon-yagmur-suyu.png` | Pano ikonu: Yağmur Suyu Pompası araştırması (yağmur damlası + küçük pompa) | en çok 256×256, şeffaf | — | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 95 | `ikon-yagmur-deposu.png` | Pano ikonu: Yağmur Suyu Deposu yapısı (oluk + tank) | en çok 256×256, şeffaf | — | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 96 | `ikon-su-hatti.png` | Pano ikonu: Su Geri Kazanım Hattı (boru + geri dönüş oku) | en çok 256×256, şeffaf | — | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 97 | `ikon-onarim-tezgahi.png` | Pano ikonu: Onarım Tezgâhı (tezgâh + anahtar) | en çok 256×256, şeffaf | — | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 98 | `ikon-insaat.png` | Görev ikonu: İnşaat (çekiç + tuğla) | en çok 256×256, şeffaf | — | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 99 | `ikon-dinlen.png` | Görev ikonu: Dinlen (yastık / uyku) | en çok 256×256, şeffaf | — | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
+| 100 | `ikon-malzeme.png` | Alt şerit ikonu: Malzeme stoğu (vida + metal levha yığını) | en çok 256×256, şeffaf | — | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
 | 101 | `konsol-enerji.png` | Enerji konsolunun arka plan yüzeyi (sade, koyu, perçinli metal plaka; oda temasında ince süsler) | 16:9, ~1600×900, opak | — | ✅ | Karşılandı: konsol artık mockup zemininde çiziliyor (`panel-<id>.jpg`, satır 136). Ayrı arka plan gerekmez; 2026-11-01 |
 | 102 | `konsol-su.png` | Su arıtma konsolunun arka plan yüzeyi (sade, koyu, perçinli metal plaka; oda temasında ince süsler) | 16:9, ~1600×900, opak | — | ✅ | Karşılandı: konsol artık mockup zemininde çiziliyor (`panel-<id>.jpg`, satır 136). Ayrı arka plan gerekmez; 2026-11-01 |
 | 103 | `konsol-sera.png` | Sera konsolunun arka plan yüzeyi (sade, koyu, perçinli metal plaka; oda temasında ince süsler) | 16:9, ~1600×900, opak | — | ✅ | Karşılandı: konsol artık mockup zemininde çiziliyor (`panel-<id>.jpg`, satır 136). Ayrı arka plan gerekmez; 2026-11-01 |
@@ -316,11 +340,11 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | 118 | `prolog-3.png` | Prolog 3. gün kartı görseli: Döngüyü kapat: dört kurucu akşam ışığında atölyede | 3:2 yatay | — | ⏳ | İsteğe bağlı; yoksa görselsiz kart. Prompt: asset-promptu P8; 2026-11-01 |
 | 119 | `yonetim-koloni.png` | Koloni görev tahtası arka planı: duvara monte ahşap/metal pano, sütun çizgileri hafif | 16:10, ~1600×1000, opak | — | ✅ | Karşılandı: bölüm mockup zemininde çiziliyor (`yonetim-<bölüm>.jpg`, satır 137). Ayrı arka plan gerekmez; 2026-11-01 |
 | 120 | `yonetim-odalar.png` | Odalar arka planı: sığınak kesit planı gibi sade metal yüzey | 16:10, ~1600×1000, opak | — | ✅ | Karşılandı: bölüm mockup zemininde çiziliyor (`yonetim-<bölüm>.jpg`, satır 137). Ayrı arka plan gerekmez; 2026-11-01 |
-| 121 | `yonetim-kesif.png` | Keşif haritası: yukarıdan, çorak bölge; ortada tepe/sığınak boşluğu, köşelerde santral, eski şehir, komşu köy, kuru rezervuar bölgeleri (pinler oyunca eklenir) | 3:2, ~1500×1000, opak | — | ✅ | Karşılandı: bölüm mockup zemininde çiziliyor (`yonetim-<bölüm>.jpg`, satır 137). Ayrı arka plan gerekmez; 2026-11-01 |
+| 121 | `yonetim-kesif.png` | Keşif haritası: yukarıdan, çorak bölge; ortada tepe/sığınak boşluğu, köşelerde santral, eski şehir, komşu köy, kuru rezervuar bölgeleri (pinler oyunca eklenir) | 3:2, ~1500×1000, opak | — | ✅ | 2026-11-01: yazısız bağımsız harita image_gen ile üretildi, 1536×1024; `AGENTS.md` 6.15 |
 | 122 | `yonetim-arastirma.png` | Araştırma arka planı: laboratuvar tezgâhı/tahta yüzeyi, sade orta | 16:10, ~1600×1000, opak | — | ✅ | Karşılandı: bölüm mockup zemininde çiziliyor (`yonetim-<bölüm>.jpg`, satır 137). Ayrı arka plan gerekmez; 2026-11-01 |
 | 123 | `yonetim-insaat.png` | İnşaat arka planı: mavi plan kâğıdı dokusu (blueprint), ızgara | 16:10, ~1600×1000, opak | — | ✅ | Karşılandı: bölüm mockup zemininde çiziliyor (`yonetim-<bölüm>.jpg`, satır 137). Ayrı arka plan gerekmez; 2026-11-01 |
 | 124 | `yonetim-hedefler.png` | Hedefler arka planı: mantar pano dokusu, ahşap çerçeve | 16:10, ~1600×1000, opak | — | ✅ | Karşılandı: bölüm mockup zemininde çiziliyor (`yonetim-<bölüm>.jpg`, satır 137). Ayrı arka plan gerekmez; 2026-11-01 |
-| 125 | `kesif-siginak.png` | Keşif haritasında sığınak işareti: tepeye gömülü küçük eko-sığınak, yukarıdan/yandan | 1:1, en çok 256×256, şeffaf | — | ✅ | Karşılandı: sığınak işareti keşif mockup zemininden geliyor; 2026-11-01 |
+| 125 | `kesif-siginak.png` | Keşif haritasında sığınak işareti: tepeye gömülü küçük eko-sığınak, yukarıdan/yandan | 1:1, en çok 256×256, şeffaf | — | ✅ | 2026-11-01: bağımsız şeffaf sığınak işareti üretildi, 256×256; `AGENTS.md` 6.15 |
 | 126 | `ikon-sekme-koloni.png` | Yönetim panosu sekme ikonu: iki kişi silueti + liste | en çok 256×256, şeffaf | — | ⏳ | İsteğe bağlı; yoksa yalnız yazı. Prompt: asset-promptu P9; 2026-11-01 |
 | 127 | `ikon-sekme-odalar.png` | Yönetim panosu sekme ikonu: sığınak kesiti / ev | en çok 256×256, şeffaf | — | ⏳ | İsteğe bağlı; yoksa yalnız yazı. Prompt: asset-promptu P9; 2026-11-01 |
 | 128 | `ikon-sekme-kesif.png` | Yönetim panosu sekme ikonu: pusula + harita | en çok 256×256, şeffaf | — | ⏳ | İsteğe bağlı; yoksa yalnız yazı. Prompt: asset-promptu P9; 2026-11-01 |
@@ -330,17 +354,159 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | 132 | `konsol-cerceve.png` | Konsol ve yönetim penceresi çerçevesi: yıpranmış pirinç/ahşap kenar, köşelerde sarmaşık yaprakları, üst ortada boş tabela (yazısız) | 512×512, 9-dilim (köşe 96 px), şeffaf orta | — | ⏳ | İsteğe bağlı; yoksa `kart-cerceve.png`. Hedef görünüm `docs/tasarim-referans/konsol-enerji.jpg`. Prompt: asset-promptu P7; 2026-11-01 |
 | 133 | `konsol-tank.png` | Su konsolunun oda görseli: iki mavi tank (canlı seviye camını oyun çizer) | ~608×142, opak | — | ✅ | Mockup'tan kesildi (`tools/mockup-kes.py`); 2026-11-01 |
 | 134 | `rozet-selin.png`, `rozet-burak.png`, `rozet-can.png` | Küçük yüz rozetleri (konsol operatörü, koloni kartları, keşif/inşaat seçimleri) | 128×128, opak | — | ✅ | Mockup'tan kesildi; 1:1 portreden önce kullanılır; 2026-11-01 |
-| 135 | `rozet-nur.png` ve ziyaretçiler `rozet-<id>.png` | Diğer küçük yüz rozetleri | 128×128 | — | ⏳ | İsteğe bağlı; yoksa 1:1 portre. Mockup'taki "Nur" Selin'in kopyası çıktığı için alınmadı. Yeni kurucu portresi gelince ondan kesilebilir; 2026-11-01 |
+| 135 | `rozet-nur.png` ve ziyaretçiler `rozet-<id>.png` | Diğer küçük yüz rozetleri | 128×128 | — | ✅ | 2026-11-01: eksik parça tamamlandı; yerleşik image_gen / mevcut portreden rozet; `AGENTS.md` 6.15, `docs/karakter-setleri.md` |
 | 136 | `panel-enerji.jpg`, `panel-su.jpg`, `panel-sera.jpg`, `panel-geriDonusum.jpg` | Mockup zeminli oda konsolları: çerçeve, sarmaşık, tabela, başlık, oda çizimi ve düğme çizimleri korunur; değişken bölgeler bulanık (canlı katman üstüne gelir) | 1672×941 JPEG (~240 KB) | — | ✅ | `python3 tools/konsol-arka.py` üretir; yerleşim `src/data/konsol-yerlesim.json`. Mockup değişirse kutular yeniden ölçülmeli; 2026-11-01 |
-| 137 | `yonetim-koloni.jpg`, `yonetim-odalar.jpg`, `yonetim-kesif.jpg`, `yonetim-arastirma.jpg`, `yonetim-insaat.jpg`, `yonetim-hedefler.jpg` | Mockup zeminli yönetim panosu: çerçeve, sekmeler (seçili sekme çizimde), başlık, harita, plan kâğıdı süsleri, mantar pano, alt şerit ve Kapat çizimi korunur; değişken bölgeler bulanık | 1672×941 JPEG (~180–270 KB) | — | ✅ | `python3 tools/konsol-arka.py` üretir; yerleşim `konsol-yerlesim.json` → `yonetim`; 2026-11-01 |
+| 137 | `yonetim-koloni.jpg`, `yonetim-odalar.jpg`, `yonetim-kesif.jpg`, `yonetim-arastirma.jpg`, `yonetim-insaat.jpg`, `yonetim-hedefler.jpg` | Parçalı yönetim panosunun JPEG yedeği: çerçeve, sekmeler (seçili sekme çizimde), başlık, harita, plan kâğıdı süsleri, mantar pano, alt şerit ve Kapat çizimi korunur; değişken bölgeler bulanık | 1672×941 JPEG (~180–270 KB) | — | ✅ | `python3 tools/konsol-arka.py` üretir; ortak parçalar eksikse kullanılır; yerleşim `konsol-yerlesim.json` → `yonetim`; 2026-11-01 |
 | 138 | `hikaye-ekran-1..4.jpg`, `ekran-ayarlar.jpg`, `hud-serit.jpg`, `alt-serit.jpg`, `panel-<id>-kapali.jpg` (4) | Mockup zeminli tam hikaye ekranları (metin görselde, story.js ile aynı), Ayarlar, üst kaynak şeridi, alt yönetim şeridi ve operatörsüz konsol zeminleri | JPEG, ~110–300 KB | — | ✅ | `python3 tools/ekran-zemin.py` üretir; story.js metni değişirse hikaye ekranları güncellenmeli (yoksa eski HTML ekranı için dosyayı kaldırın); 2026-11-01 |
 | 139 | `anim/panel-calis-1..3.png` | Genel konsol çalışma animasyonu kareleri | 400×600, şeffaf | 1,5 m | 🔁 | Kareler sprite sheet'ten dar kesilmiş: konsolun sağ yanı kesik (2026-11-01 kenar analizi). Aynı stilde, kenarda boşluk bırakılarak yeniden kesilmeli/üretilmeli |
+| 140 | `ui-panel-cerceve.png` | Konsol ve yönetimin ortak, ortası saydam dış çerçevesi | 512×512, 9-dilim 64 px | — | ✅ | Kaynak mockup kesimi; `AGENTS.md` 6.14, `arayuz-parcalari.json`; 2026-11-01 |
+| 141 | `ui-panel-metal.jpg` | Tekrarlanabilir, yazısız metal panel dokusu | 330×104, opak | — | ✅ | Aynalı doku; `AGENTS.md` 6.14; 2026-11-01 |
+| 142 | `ui-dugme-cerceve.png` | Konsol düğmesi ve yönetim sekmesi için yazısız kenar | 215×80, 9-dilim 18 px | — | ✅ | Ortası saydam, metin HTML; `AGENTS.md` 6.14; 2026-11-01 |
+| 143 | `ui-bakim.png` | Bağımsız bakım düğmesi çizimi | 88×78 | — | ✅ | `AGENTS.md` 6.14, kaynak mockup kesimi; 2026-11-01 |
+| 144 | `ui-oda-sera.png` | Konsoldaki bağımsız sera/saksı sahnesi | 634×162 | — | ✅ | Canlı sağlık filtresi; `AGENTS.md` 6.14; 2026-11-01 |
+| 145 | `ui-oda-geri.png` | Konsoldaki bağımsız hurda sahnesi | 630×116 | — | ✅ | Malzeme sayısı ayrı HTML; `AGENTS.md` 6.14; 2026-11-01 |
+| 146 | `sakin-selin-bekle + sakin-selin-yuru` | selin: özel 2 bekleme + 4 yürüme karesi | 512×512, şeffaf | 1,7 m | ✅ | 2 fps bekle / 8 fps yürü, döngü; sahip `sakin-selin`; `anim/sakin-selin-<tur>-<n>.png`; `AGENTS.md` 6.15; 2026-11-01 |
+| 147 | `sakin-burak-bekle + sakin-burak-yuru` | burak: özel 2 bekleme + 4 yürüme karesi | 512×512, şeffaf | 1,7 m | ✅ | 2 fps bekle / 8 fps yürü, döngü; sahip `sakin-burak`; `anim/sakin-burak-<tur>-<n>.png`; `AGENTS.md` 6.15; 2026-11-01 |
+| 148 | `sakin-nur-bekle + sakin-nur-yuru` | nur: özel 2 bekleme + 4 yürüme karesi | 512×512, şeffaf | 1,7 m | ✅ | 2 fps bekle / 8 fps yürü, döngü; sahip `sakin-nur`; `anim/sakin-nur-<tur>-<n>.png`; `AGENTS.md` 6.15; 2026-11-01 |
+| 149 | `sakin-can-bekle + sakin-can-yuru` | can: özel 2 bekleme + 4 yürüme karesi | 512×512, şeffaf | 1,7 m | ✅ | 2 fps bekle / 8 fps yürü, döngü; sahip `sakin-can`; `anim/sakin-can-<tur>-<n>.png`; `AGENTS.md` 6.15; 2026-11-01 |
+| 150 | `sakin-muhendis-bekle + sakin-muhendis-yuru` | muhendis: özel 2 bekleme + 4 yürüme karesi | 512×512, şeffaf | 1,7 m | ✅ | 2 fps bekle / 8 fps yürü, döngü; sahip `sakin-muhendis`; `anim/sakin-muhendis-<tur>-<n>.png`; `AGENTS.md` 6.15; 2026-11-01 |
+| 151 | `sakin-ciftci-bekle + sakin-ciftci-yuru` | ciftci: özel 2 bekleme + 4 yürüme karesi | 512×512, şeffaf | 1,7 m | ✅ | 2 fps bekle / 8 fps yürü, döngü; sahip `sakin-ciftci`; `anim/sakin-ciftci-<tur>-<n>.png`; `AGENTS.md` 6.15; 2026-11-01 |
+| 152 | `sakin-bilim-bekle + sakin-bilim-yuru` | bilim: özel 2 bekleme + 4 yürüme karesi | 512×512, şeffaf | 1,7 m | ✅ | 2 fps bekle / 8 fps yürü, döngü; sahip `sakin-bilim`; `anim/sakin-bilim-<tur>-<n>.png`; `AGENTS.md` 6.15; 2026-11-01 |
+| 153 | `sakin-cocuklar-bekle + sakin-cocuklar-yuru` | cocuklar: özel 2 bekleme + 4 yürüme karesi | 512×512, şeffaf | 1,3 m | ✅ | 2 fps bekle / 8 fps yürü, döngü; sahip `sakin-cocuklar`; `anim/sakin-cocuklar-<tur>-<n>.png`; `AGENTS.md` 6.15; 2026-11-01 |
+| 154 | `sakin-tamirci-bekle + sakin-tamirci-yuru` | tamirci: özel 2 bekleme + 4 yürüme karesi | 512×512, şeffaf | 1,7 m | ✅ | 2 fps bekle / 8 fps yürü, döngü; sahip `sakin-tamirci`; `anim/sakin-tamirci-<tur>-<n>.png`; `AGENTS.md` 6.15; 2026-11-01 |
+| 155 | `sakin-kafile-bekle + sakin-kafile-yuru` | kafile: özel 2 bekleme + 4 yürüme karesi | 512×512, şeffaf | 1,7 m | ✅ | 2 fps bekle / 8 fps yürü, döngü; sahip `sakin-kafile`; `anim/sakin-kafile-<tur>-<n>.png`; `AGENTS.md` 6.15; 2026-11-01 |
+| 156 | `portre-oyuncu.png` | Oyuncunun kare baş/omuz diyalog portresi | 512×512, opak | — | ✅ | Mevcut oyuncu referansından image_gen; `AGENTS.md` 6.15; 2026-11-01 |
+| 157 | `logo-apoclimate.png` | Kullanıcının Apoclimate logosunun oyuna uygun sürümü | 1280×249, şeffaf | — | ✅ | Kaynak `Apoclimate Metalik Logo.png` korunur; ana menü ve son ekranı; kullanıcı görseli, AI üretimi değil; 2026-11-01 |
+| 158 | `favicon.png` | Logonun A harfinden tarayıcı simgesi | 64×64, şeffaf | — | ✅ | Kullanıcı logosundan kesim; 2026-11-01 |
 
 ---
 
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Mevcut sürümü PR ile birleştirme
+
+- **Prompt:** Şu anki halini push, PR ve merge yap.
+- **Yapılan değişiklik:** Mevcut asset, animasyon, diyalog, logo ve keşif düzeltmeleri birlikte commit/push ve main'e PR üzerinden birleştirme için hazırlandı; uzak main güncellendi ve GitHub kontrolleri izlenecek.
+
+| Dosya | Açıklama |
+|---|---|
+| `PROJECT_LOG.md` | Kullanıcı tarafından istenen commit/push/PR/merge işleminin kaydı; önceki kayıtlarda tüm ürün dosyaları listelidir |
+
+- **Debt:** Yeni borç yok; D14/D16/D17 mevcut kapsamlarıyla açık. Project Map ve asset listesinde yeni ürün değişikliği yok.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Karakter setleri, logo ve keşif seçimi
+
+- **Prompt:** Eksik assetleri doğrudan üret; kare diyalog portreleri ve her sakinin eksik setini tamamla, eşleştirmeleri kontrol et, yüklenen logoyu kullan; keşif şehirleri zor seçiliyor.
+- **Yapılan değişiklik:** Eksik görseller üretildi, on karakter/grup kendi animasyon ve portrelerine bağlandı, logo kullanıldı ve keşifte şehir çizimlerinin tamamı tutarlı seçim alanlarına dönüştürüldü.
+
+| Dosya | Açıklama |
+|---|---|
+| `public/assets/sakin-*.png`, `public/assets/anim/sakin-*.png` | On özel karakter/grup için eksik statik ve 60 animasyon karesi; genel sakin-1/3 için eksik 12 kare; taban hizası sabit |
+| `public/assets/rozet-*.png`, `public/assets/portre-oyuncu.png` | Eksik yedi rozet mevcut portrelerden; oyuncu için kare baş/omuz portresi; mevcut kanonik portreler korundu |
+| `public/assets/ikon-*.png`, `public/assets/kesif-siginak.png`, `public/assets/yonetim-kesif.png` | Eksik yedi ikon, sığınak ve yazısız keşif haritası |
+| `public/assets/logo-apoclimate.png`, `public/assets/favicon.png`, `index.html` | Yüklenen logodan boyutlandırılmış menü/sonuç logosu ve favicon; sayfa başlığı |
+| `src/data/animations.js`, `src/data/assets.js`, `src/scenes/game/sakinler.js` | Özel animasyon kayıtları, portre/logo dosyaları ve karakter kimliğine göre animasyon seçimi |
+| `src/data/exploration.js` | Şehir çizimlerini kapsayan yüzde tabanlı tıklama bölgeleri |
+| `src/ui/ui.js`, `src/style.css` | İki tarafta kare diyalog portresi/konuşan vurgusu; yeni logo; geniş keşif düğmeleri, kararlı tekrar seçim ve sefer engeli açıklaması |
+| `tools/ai-asset-hazirla.py`, `tools/karakter-setleri-hazirla.py`, `tools/karakter-setleri.mjs` | Eksik parçaları hazırlama, kimlik/ölçü/kayıt kontrolü ve korunan 13 görsel için hash doğrulaması |
+| `tools/animasyon-canli.mjs`, `tools/kesif-tiklama-canli.mjs` | On karakter eşleşmesi, portre/animasyon ve iki ekran boyutunda dört bölgenin şehir/simge/etiket/tekrar tıklama kontrolleri |
+| `docs/ai-asset-uretim.*`, `docs/karakter-setleri.md`, `docs/karakter-uretim-istekleri.json`, `docs/korunan-assetler.json` | Üretim kaynakları/promptları, koruma listesi ve eşleştirme rehberi |
+| `docs/arayuz-ornekleri/`, `tools/rehber-uret.py`, `docs/asset-rehberi.pdf` | Karakter/diyalog/logo/harita örnekleri; 158 satırlık, 30 sayfalık güncel rehber |
+| `AGENTS.md`, `docs/asset-promptu.md`, `docs/asset-listesi.md`, `PROJECT_LOG.md` | Üretim prompt referansları, asset durumları, harita ve kayıt |
+
+- **Doğrulama:** `npm test`; canlı animasyon/arayüz kontrolü; keşif tıklama kontrolü (1440×900 ve 960×540), sürmekte/gidilmiş/geç sefer açıklamaları; on set 9/9, korunan 13 görsel değişmedi; 37/37 animasyon hazır.
+- **Debt:** D16 karakter seti eksikleri kapandı; tam kapı/panel katman animasyonu devam ediyor. D14 indirme boyutu ve D17 kalan UI parçalama işleri açık. Yeni keşif mekaniği/denge değişikliği yok.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Parçalı yönetim ve gerçek makine ışıkları
+
+- **Prompt:** Devam et; başka neler yapabiliriz?
+- **Yapılan değişiklik:** Altı yönetim bölümü mevcut ortak UI parçalarına geçirildi; çizili makine LED konumları ve enerji nedeniyle kapanma durumu düzeltildi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/ui/ui.js` | `.yonetim-parcali` ortak kabuk, canlı sekme/başlık/alt satır, JPEG yedeği; sekme kabuktan dışarı taşınmaz; okunur konuşma/yardım/iptal/kilit metinleri ve sığınak etiketi |
+| `src/style.css` | Yönetim kabuğu/sekme/scroll gövde/sabit alt satır; kompakt inşaat filtreleri, detay/harita boyutu |
+| `src/scenes/game/animasyonlar.js` | Gizli panel sprite’ında animasyon durur; mevcut LED çizimin noktasına yerleşir; enerji kapanışı ışıkta hesaba katılır |
+| `src/data/rooms.js` | Dört panel için görsel oranına bağlı `calismaIsigi` koordinatı |
+| `tools/animasyon-canli.mjs` | Altı yönetim sekmesi, 1440×900/960×540 yerleşimi, görev atama/araştırma/inşaat/keşif ve kapalı makine LED kontrolleri eklendi; harita img yüklenmesi beklenir |
+| `docs/asset-parcalari.md` | Altı yönetim bölümü paylaşımı, LED kapsamı ve kalan işler |
+| `docs/tasarim-rehberi.md`, `AGENTS.md` | Güncel ortak kabuk/parça kullanım rehberi |
+| `docs/asset-inceleme.md` | Yönetim/ışık bulgularının uygulama durumu |
+| `docs/asset-listesi.md`, `PROJECT_LOG.md` | Mevcut çerçeve/düğme kullanımı ve JPEG yedek durumu; harita/D16/D17/log |
+| `docs/arayuz-ornekleri/yonetim-parcali-koloni.jpg`, `yonetim-parcali-odalar.jpg`, `yonetim-parcali-kesif.jpg`, `yonetim-parcali-arastirma.jpg`, `yonetim-parcali-insaat.jpg`, `yonetim-parcali-hedefler.jpg` | Yeni kabukla altı bölümün güncel tarayıcı görüntüsü |
+| `tools/rehber-uret.py`, `docs/asset-rehberi.pdf` | Yönetim örnekleri güncel parçalı ekranlara bağlandı |
+
+- **Doğrulama:** `npm test`, `npm run build`, `npm run build:tek` başarılı. Canlı kontrollerde altı bölümün iki masaüstü boyutunda yerleşimi, gerçek görev/araştırma/inşaat/keşif işlemleri ve LED renkleri doğrulandı. Önceki konsol/yürüme kontrolleri de korundu. Geliştirme sunucusunun otomatik yenilemesinin bir test turunu kesmesi sonrasında temiz sunucuda tekrar kontrol edildi.
+- **Debt:** D17 kısmen giderildi: yönetim parçalara geçti; HUD/Ayarlar/hikaye ve dar portre okunabilirliği açık. D16 kısmen giderildi: makine LED’i doğru yerde/durumda; tam panel/kapı hareketi ve eksik/kesik kareler açık. Yeni bitmap/animasyon eklenmedi; mevcut assetler yeniden kullanıldı. Mekanik sayılar değişmedi, simülasyon gerekmedi.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Canlı animasyon ve parçalı konsollar
+
+- **Prompt:** Canlı animasyon akıcılığını incele ve düzeltmeye başla; tam ekran yüklenen panel görsellerini dinamik düzenlenebilen bağımsız asset parçalarına ayır.
+- **Yapılan değişiklik:** Dört konsol altı ortak/oda parçasından kuruldu; hatalı yürüyüş karesi ve sakin giriş sıçraması düzeltildi, canlı tarayıcı kontrolü ve üretim tarifleri eklendi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/ui/ui.js` | Parça hazır kontrolü, bağımsız oda sahnesi, dört konsolun parçalı/CSS yerleşimi ve JPEG yedeği; okunur ikon/süre/kilit yedekleri |
+| `src/style.css` | 9-dilim çerçeve/düğme, metal doku, bağımsız oda sahnesi, konsol yerleşimi, metin ikonu; geri dönüşüm malzeme satırı taşma düzeltmesi |
+| `src/data/assets.js` | Altı parça ve oyunda kullanılan 21 JPEG arayüz envanterine eklendi |
+| `src/data/arayuz-parcalari.json` | Kaynak dosya/kesim kutusu/çıktı boyutu/9-dilim tarifi |
+| `tools/asset-parcala.py` | Mockup parçalarını yazısız/saydam merkezle ve aynalı doku ile tekrar üretir |
+| `tools/kenar-temizle.py` | Üretilmiş UI 9-dilimleri toplu serbest sprite temizliğinden hariç tutar |
+| `public/assets/ui-panel-cerceve.png` | 512×512 ortak saydam çerçeve |
+| `public/assets/ui-panel-metal.jpg` | 330×104 tekrar eden metal doku |
+| `public/assets/ui-dugme-cerceve.png` | 215×80 bağımsız yazısız düğme kenarı |
+| `public/assets/ui-bakim.png` | 88×78 bakım düğmesi |
+| `public/assets/ui-oda-sera.png` | 634×162 ayrı saksı sahnesi |
+| `public/assets/ui-oda-geri.png` | 630×116 ayrı hurda sahnesi |
+| `public/assets/anim/sakin-4-yuru-3.png` | +32 px taşıma ile ortak 507 px tabana hizalandı; orijinal git dışı yedeklendi |
+| `src/scenes/game/sakinler.js` | Gelişte zeminde belirme, dikey Bounce kaldırıldı |
+| `tools/animasyon-hizala.py` | Yanlış kesilmiş yürüme tabanlarını yedekten güvenle hizalar |
+| `tools/animasyon-canli.mjs` | İsteğe bağlı Playwright canlı kare/taban, hareket, panel etkileşimi, prolog kilidi, yedek ve üç ekran boyutu kontrolü |
+| `docs/asset-parcalari.md` | Parçalar, komutlar, kapsam, test sonuçları ve kalan işler |
+| `docs/asset-inceleme.md` | Önceki rapora canlı bulgular ve ilk düzeltmeler eklendi |
+| `docs/tasarim-rehberi.md`, `docs/asset-promptu.md` | Yeni konsol parça yöntemi ve eski tam zeminlerin yedek durumu |
+| `AGENTS.md` | 6.14 parça üretim/kesim referansı ve yenileme promptu |
+| `docs/asset-listesi.md`, `PROJECT_LOG.md` | Altı yeni asset (145 satır), mevcut kare düzeltmesi, harita/ağaç/debt/log |
+| `docs/arayuz-ornekleri/asset-parcalari.jpg` | Altı bağımsız parçanın görsel dökümü |
+| `docs/arayuz-ornekleri/konsol-parcali-enerji.jpg`, `konsol-parcali-su.jpg`, `konsol-parcali-sera.jpg`, `konsol-parcali-geri.jpg`, `konsol-parcali-kapali.jpg` | Güncel tarayıcı görüntüleri |
+| `tools/rehber-uret.py`, `docs/asset-rehberi.pdf` | Güncel envanter ve yeni bağımsız parça sayfası |
+
+- **Doğrulama:** `npm test`, `npm run build`, `npm run build:tek` başarılı. Canlı Chromium: dört yürüme karesi, görünen taban farkı 0 px; önizleme kaynak harcamıyor, eylem doğru bedel/kazanç veriyor, mod değişiyor, modalda hareket duruyor, Esc/kilit/JPEG yedeği çalışıyor. 1440×900, 960×540 ve 390×844 boyutlarında dört konsolda dış/yatay taşma yok; tarayıcı/HTTP hatası yok. Headless SwiftShader sürelerinden gerçek GPU FPS iddiası çıkarılmadı. Mekanik sayılar değişmedi, simülasyon gerekmedi.
+- **Debt:** D16 kısmen giderildi; eksik/kesik animasyon kareleri, odada gizli kapı/panel sprite’ları ve diğer rapor işleri açık. D17 eklendi: kalan ekranların parçalanması ve dar portre ekran okunabilirliği. Kurucu kimlikleri için yeni görsel üretilmedi. Gerçek GPU ve insan playtesti D15 kapsamında açık. Oyun zamanı değişikliği uygulanmadı.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Yeni asset ve ekran incelemesi
+
+- **Prompt:** Animasyonların ve ekranların yeni hâlini ve asset rehberini incele; düzeltilecek yerleri tespit et.
+- **Yapılan değişiklik:** 25 sayfalık PDF, 11 ekran örneği, 45 kare ve ilgili kod incelenerek öncelikli bulgu raporu yazıldı.
+
+| Dosya | Açıklama |
+|---|---|
+| `docs/asset-inceleme.md` | 11 görsel/entegrasyon bulgusu, envanter tutarsızlıkları, düzeltme sırası ve doğrulama sınırları |
+| `PROJECT_LOG.md` | Harita/ağaç, PDF satır sayısı, D16 ve bu kayıt |
+
+- **Debt:** D16 eklendi; inceleme bulguları henüz uygulanmadı. Yeni asset veya animasyon eklenmedi; asset tablosunun durumları değiştirilmedi. Tarayıcıda canlı hareket testi yapılmadı; mevcut D15 geçerli.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Tasarım rehberi
+
+- **Prompt:** Tasarım rehberini bu zamana kadar yapılan yeniden tasarımları da ekleyerek düzenle; yeni tasarımlarda bütünlük sağlasın.
+- **Yapılan değişiklik:** `docs/tasarim-rehberi.md` yazıldı. İçerik: tasarım fikri ve 3 ilke, mockup'lardan ölçülen arayüz paleti, dünya ve anlam renkleri, tipografi, ölçü birimleri (`--p/--h/--a/--s`), 23 bileşenlik katalog (kod karşılıklarıyla), 8 etkileşim kuralı, görsel üretim ve mockup'tan ekran kurma akışı, kenar temizliği, yeni stil blokları E/F, hareket/ses, kontrol listesi, bilinen tutarsızlıklar. Arayüz örnekleri güncel ekranlarla yenilendi; PDF'e 3 tasarım sistemi sayfası eklendi.
+
+| Dosya | Açıklama |
+|---|---|
+| `docs/tasarim-rehberi.md` | Yeni tasarım rehberi |
+| `docs/arayuz-ornekleri/*.jpg` | 11 güncel ekran görüntüsü (eski CSS dönemi görüntüleri silindi) |
+| `tools/rehber-uret.py`, `docs/asset-rehberi.pdf` | Tasarım sistemi sayfaları (palet örnekleri, bileşenler, mockup akışı); 25 sayfa |
+| `CLAUDE.md` | Bölüm 6 başına rehber yönlendirmesi |
+| `PROJECT_LOG.md` | Harita, ağaç, bu kayıt |
+
+- **Debt:** Yok. Rehberin "Bilinen tutarsızlıklar" bölümü açık görsel işleri listeler.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Push, PR ve merge (prolog + konsollar + mockup arayüz)
 

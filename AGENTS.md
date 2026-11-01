@@ -790,6 +790,19 @@ Tüm nesne/karakterler **ölçek dizisi** yöntemiyle üretilir: aynı kategorid
 
 ---
 
+### 6.14 Mevcut mockup’lardan bağımsız UI parçaları
+
+Dört konsol ve altı yönetim bölümü aynı bağımsız UI parçalarını paylaşır. Yeni resim üretimi gerekmez: `python3 tools/asset-parcala.py` mevcut kaynak mockup’tan parçaları keser. Kesim tarifleri `src/data/arayuz-parcalari.json`, kullanım `docs/asset-parcalari.md` içinde. Dosyalar: `ui-panel-cerceve.png` (512×512, 64 px 9-dilim, orta saydam), `ui-panel-metal.jpg` (330×104, yazısız tekrarlanan doku), `ui-dugme-cerceve.png` (215×80, 18 px 9-dilim, orta saydam), `ui-bakim.png` (88×78), `ui-oda-sera.png` (634×162), `ui-oda-geri.png` (630×116). Eklenme: 2026-11-01.
+
+Yenileme gerekirse prompt: “Match the existing Son Denge console illustration exactly. Deliver only the requested independent component, no surrounding screen, no text or numbers. Preserve worn brass, olive painted metal, warm upper-left light and dark umber outlines. Frame/button: transparent centre, continuous border, corners contained within the specified nine-slice margins. Texture: seamlessly tileable, low contrast. Room scene: opaque illustration, no UI labels or values.” Kesim kaynağında gizli kalan/eksik çizim varsa otomatik kırpma onu geri getirmez; o parça ayrıca üretilmelidir.
+
+
+### 6.15 Doğrudan üretilmiş eksik setler (1 Kasım 2026)
+
+Yerleşik `image_gen` ile eksik ikonlar, harita/sığınak işareti, genel sakin-1/3 kareleri ve 10 karakterin eksik tam boy/animasyon parçaları üretildi. Mevcut portre ve hazır rozetler korunur. Tam prompt ve referans kayıtları `docs/karakter-uretim-istekleri.json`, ikon/harita prompt seti `docs/ai-asset-uretim.md`, eşleştirme `docs/karakter-setleri.md` içindedir. Yerleşik araç gerçek şeffaf alfa destekler; bu yolda beyaz arka plan silme gerekmez. Kareler 512×512, ortak taban 480 px; ikonlar/harita işareti 256×256, oyuncu portresi 512×512. Kare adı `anim/sakin-<id>-bekle-1..2.png`, `anim/sakin-<id>-yuru-1..4.png`; statik `sakin-<id>.png`. Küçük rozet 128×128, mevcut portreden kesilir. Sakinlerin grupları korunur (2 çiftçi, 2 çocuk, 4 kişilik aile). Hazır bir parçayı yenilemeden önce `node tools/karakter-setleri.mjs --kontrol` çalıştırın; yalnız eksikleri üretin.
+
+Kullanıcının Apoclimate logosu yeniden üretilmez: kaynak `public/assets/Apoclimate Metalik Logo.png`, oyun kopyası `logo-apoclimate.png`, tarayıcı simgesi `favicon.png`. Kaynak korunur; logo gibi markalı görseller "yazısız asset" kuralının bilinçli istisnasıdır.
+
 ## 7. Sunum notları
 
 **Ana mesaj:** "Ütopya ancak hem sürdürülebilir hem paylaşılan olduğunda gerçek olur."

@@ -1,0 +1,90 @@
+[
+  {
+    "id": "selin",
+    "prompt": "Use case: identity-preserve. Input image is the canonical portrait of this character. Extend THIS EXACT PERSON into a production full-body 2D game animation sheet: same face, hairstyle, age, clothes, colors and painted art style. Sheet layout exactly 2 columns by 3 rows, equal square cells, approximately 1024x1536, no dividers. First two cells: idle then subtle breathing. Last four cells: sequential right-facing walk loop, contact-passing-opposite contact-passing, distinct leg/arm phases. Strict RIGHT-FACING SIDE VIEW, natural adult proportions. Every cell shows the complete head-to-boots person, same head size, same body height and same foot baseline. Generous 10% empty space around figure within every cell. Flat painted illustration, clean dark umber outlines, warm muted sage/olive/ochre/cream/leather palette, light gouache texture. Genuine transparent alpha background, no ground shadow, glow, mist, haze, checkerboard, text, numbers or labels. Character details: Selin, young woman energy technician. Preserve short asymmetrical brown hair with shaved side, freckles, olive patched work jacket, rusty red neck scarf, fingerless brown gloves and tool straps from the portrait. Practical brown cargo trousers and boots.",
+    "referanslar": [
+      "kurucu-selin.png"
+    ],
+    "saydam": true
+  },
+  {
+    "id": "burak",
+    "prompt": "Use case: identity-preserve. Input image is the canonical portrait of this character. Extend THIS EXACT PERSON into a production full-body 2D game animation sheet: same face, hairstyle, age, clothes, colors and painted art style. Sheet layout exactly 2 columns by 3 rows, equal square cells, approximately 1024x1536, no dividers. First two cells: idle then subtle breathing. Last four cells: sequential right-facing walk loop, contact-passing-opposite contact-passing, distinct leg/arm phases. Strict RIGHT-FACING SIDE VIEW, natural adult proportions. Every cell shows the complete head-to-boots person, same head size, same body height and same foot baseline. Generous 10% empty space around figure within every cell. Flat painted illustration, clean dark umber outlines, warm muted sage/olive/ochre/cream/leather palette, light gouache texture. Genuine transparent alpha background, no ground shadow, glow, mist, haze, checkerboard, text, numbers or labels. Character details: Burak, adult male water operator. Preserve dark curly hair with grey streaks, trimmed beard, faded blue-green rolled-sleeve work shirt and leather cross-body straps, small brass pump tool at chest. Worn olive work trousers and brown boots.",
+    "referanslar": [
+      "kurucu-burak.png"
+    ],
+    "saydam": true
+  },
+  {
+    "id": "nur",
+    "prompt": "Use case: identity-preserve. Input image is the canonical portrait of this character. Extend THIS EXACT PERSON into a production full-body 2D game animation sheet: same face, hairstyle, age, clothes, colors and painted art style. Sheet layout exactly 2 columns by 3 rows, equal square cells, approximately 1024x1536, no dividers. First two cells: idle then subtle breathing. Last four cells: sequential right-facing walk loop, contact-passing-opposite contact-passing, distinct leg/arm phases. Strict RIGHT-FACING SIDE VIEW, natural adult proportions. Every cell shows the complete head-to-boots person, same head size, same body height and same foot baseline. Generous 10% empty space around figure within every cell. Flat painted illustration, clean dark umber outlines, warm muted sage/olive/ochre/cream/leather palette, light gouache texture. Genuine transparent alpha background, no ground shadow, glow, mist, haze, checkerboard, text, numbers or labels. Character details: Nur, older woman greenhouse keeper. Preserve grey-streaked hair under rust-red headscarf, olive jacket, cream shirt, chest pocket seed packets. Practical loose dark brown trousers and gardening boots. Upright gentle capable posture, not young.",
+    "referanslar": [
+      "kurucu-nur.png"
+    ],
+    "saydam": true
+  },
+  {
+    "id": "can",
+    "prompt": "Use case: identity-preserve. Input image is the canonical portrait of this character. Extend THIS EXACT PERSON into a production full-body 2D game animation sheet: same face, hairstyle, age, clothes, colors and painted art style. Sheet layout exactly 2 columns by 3 rows, equal square cells, approximately 1024x1536, no dividers. First two cells: idle then subtle breathing. Last four cells: sequential right-facing walk loop, contact-passing-opposite contact-passing, distinct leg/arm phases. Strict RIGHT-FACING SIDE VIEW, natural adult proportions. Every cell shows the complete head-to-boots person, same head size, same body height and same foot baseline. Generous 10% empty space around figure within every cell. Flat painted illustration, clean dark umber outlines, warm muted sage/olive/ochre/cream/leather palette, light gouache texture. Genuine transparent alpha background, no ground shadow, glow, mist, haze, checkerboard, text, numbers or labels. Character details: Can, young male recycling worker. Preserve wavy chestnut hair, clean-shaven face, cream rolled-sleeve shirt, dark brown patched tool apron, rust cloth on shoulder and green straps. Dark olive trousers and brown boots.",
+    "referanslar": [
+      "kurucu-can.png"
+    ],
+    "saydam": true
+  },
+  {
+    "id": "muhendis",
+    "prompt": "Use case: identity-preserve. Input is the canonical portrait. Extend THIS EXACT CHARACTER into a complete full-body game sprite animation sheet, preserving face, age, hair, clothing and colors. 2 columns by 3 rows, equal square cells approximately 1024x1536. First two cells idle and subtle breathing; remaining four are distinct sequential right-facing walking poses (contact, passing, opposite contact, passing). STRICT RIGHT-FACING SIDE VIEW, consistent body height/head size, all feet on a common baseline per cell. Full body and footwear, no clipping, 10% blank cell margin. Hand-painted flat 2D illustration, dark umber outlines, warm muted olive/sage/ochre/cream/leather colors, light gouache texture. Genuine transparent background alpha. No text, numbers, grid lines, ground shadow, fog, glow, haze or checkerboard. Subject: Deniz, woman engineer. Same short tousled dark brown hair, olive utility jacket with faded lightning symbol, rust neck scarf, yellow hardhat attached to backpack. Brown cargo trousers and boots. Tired but capable, no face mask.",
+    "referanslar": [
+      "ziyaretci-muhendis.png"
+    ],
+    "saydam": true
+  },
+  {
+    "id": "bilim",
+    "prompt": "Use case: identity-preserve. Input is the canonical portrait. Extend THIS EXACT CHARACTER into a complete full-body game sprite animation sheet, preserving face, age, hair, clothing and colors. 2 columns by 3 rows, equal square cells approximately 1024x1536. First two cells idle and subtle breathing; remaining four are distinct sequential right-facing walking poses (contact, passing, opposite contact, passing). STRICT RIGHT-FACING SIDE VIEW, consistent body height/head size, all feet on a common baseline per cell. Full body and footwear, no clipping, 10% blank cell margin. Hand-painted flat 2D illustration, dark umber outlines, warm muted olive/sage/ochre/cream/leather colors, light gouache texture. Genuine transparent background alpha. No text, numbers, grid lines, ground shadow, fog, glow, haze or checkerboard. Subject: Dr. Leyla, mature female scientist. Same short dark hair with broad grey streak, round glasses, worn off-white lab coat over olive shirt and cross-body leather pouch; small green notebook held against side. Dark trousers and practical brown boots.",
+    "referanslar": [
+      "ziyaretci-bilim.png"
+    ],
+    "saydam": true
+  },
+  {
+    "id": "tamirci",
+    "prompt": "Use case: identity-preserve. Input is the canonical portrait. Extend THIS EXACT CHARACTER into a complete full-body game sprite animation sheet, preserving face, age, hair, clothing and colors. 2 columns by 3 rows, equal square cells approximately 1024x1536. First two cells idle and subtle breathing; remaining four are distinct sequential right-facing walking poses (contact, passing, opposite contact, passing). STRICT RIGHT-FACING SIDE VIEW, consistent body height/head size, all feet on a common baseline per cell. Full body and footwear, no clipping, 10% blank cell margin. Hand-painted flat 2D illustration, dark umber outlines, warm muted olive/sage/ochre/cream/leather colors, light gouache texture. Genuine transparent background alpha. No text, numbers, grid lines, ground shadow, fog, glow, haze or checkerboard. Subject: Kemal, older male repair worker. Same tousled grey-streaked hair, thick greying moustache/beard, cream rolled-sleeve shirt, patched leather tool apron with wrench and gloves. Olive trousers and brown work boots, broad shoulders.",
+    "referanslar": [
+      "ziyaretci-tamirci.png"
+    ],
+    "saydam": true
+  },
+  {
+    "id": "ciftci",
+    "prompt": "Use case: identity-preserve. Canonical reference: supplied group portrait. Extend EXACTLY these same people, faces, hair, ages, clothes and colors into SIX full-body group sprite poses. Layout: precisely 2 columns by 3 rows, equal square cells, around 1024x1536. Each cell contains the complete SAME group. First two cells: idle and tiny breathing. Last four: sequential right-facing walking loop with distinct leg phases. All group members face RIGHT in strict side view in EVERY cell. Groups remain compact, overlapping naturally but every person clearly identifiable, no heads or feet clipped; same scale and common foot baseline within each cell, at least 8% empty margin. Same flat hand-painted 2D illustration with dark umber outline and warm muted earthy palette. Actual transparent alpha; no text, labels, grid, numbers, shadow, fog, haze, halos or checkerboard. Exact group: Exactly TWO people: Hasan the middle-aged farmer with dark greying hair and beard, olive patched jacket, cream shirt and leather straps; and his young daughter Elif with dark braided hair and rust/olive patched vest over cream shirt. Daughter about 70% of father's height. Practical trousers and brown boots. No extra people or hats.",
+    "referanslar": [
+      "ziyaretci-ciftci.png"
+    ],
+    "saydam": true
+  },
+  {
+    "id": "cocuklar",
+    "prompt": "Use case: identity-preserve. Canonical reference: supplied group portrait. Extend EXACTLY these same people, faces, hair, ages, clothes and colors into SIX full-body group sprite poses. Layout: precisely 2 columns by 3 rows, equal square cells, around 1024x1536. Each cell contains the complete SAME group. First two cells: idle and tiny breathing. Last four: sequential right-facing walking loop with distinct leg phases. All group members face RIGHT in strict side view in EVERY cell. Groups remain compact, overlapping naturally but every person clearly identifiable, no heads or feet clipped; same scale and common foot baseline within each cell, at least 8% empty margin. Same flat hand-painted 2D illustration with dark umber outline and warm muted earthy palette. Actual transparent alpha; no text, labels, grid, numbers, shadow, fog, haze, halos or checkerboard. Exact group: Exactly TWO CHILDREN, never adults: older curly-haired boy Mert in a mustard patched jacket, green scarf and small backpack; his younger sister Ada wearing the same knitted green cap, rust scarf and mustard/olive coat from reference, holding a small tin plant pot. Sister about 75% of brother's height. Brown boots, practical trousers. Gentle hopeful mood, no weapons.",
+    "referanslar": [
+      "ziyaretci-cocuklar.png"
+    ],
+    "saydam": true
+  },
+  {
+    "id": "kafile",
+    "prompt": "Use case: identity-preserve. Canonical reference: supplied group portrait. Extend EXACTLY these same people, faces, hair, ages, clothes and colors into SIX full-body group sprite poses. Layout: precisely 2 columns by 3 rows, equal square cells, around 1024x1536. Each cell contains the complete SAME group. First two cells: idle and tiny breathing. Last four: sequential right-facing walking loop with distinct leg phases. All group members face RIGHT in strict side view in EVERY cell. Groups remain compact, overlapping naturally but every person clearly identifiable, no heads or feet clipped; same scale and common foot baseline within each cell, at least 8% empty margin. Same flat hand-painted 2D illustration with dark umber outline and warm muted earthy palette. Actual transparent alpha; no text, labels, grid, numbers, shadow, fog, haze, halos or checkerboard. Exact group: Exactly FOUR family members from the supplied reference: bearded dark-haired father in olive jacket and rust scarf; dark-haired mother with rust headband and olive clothes; young boy with dark wavy hair and olive/mustard jacket; younger girl with brown hair, mustard jacket holding a small soft striped toy. Two adults and two children exactly, no additional or missing people. Keep them in a compact slightly staggered formation facing right, with adults behind and children visible in front, not a straight wide row. Brown boots and practical patched trousers. Maximum combined group width less than character adult height so it fits square cells.",
+    "referanslar": [
+      "ziyaretci-kafile.png"
+    ],
+    "saydam": true
+  },
+  {
+    "id": "oyuncu",
+    "prompt": "Use case: identity-preserve. Transform the supplied full-body player sprite into a square 1:1 dialogue portrait showing ONLY head and shoulders, not full body. Preserve the exact young adult face, short curly brown hair, rust red scarf, patched olive jacket and backpack straps. View at a gentle three-quarter angle looking to the right, calm attentive expression. Head fills upper half; shoulders visible, face clearly readable at 128px. Same flat hand-painted 2D style with clean dark umber outlines, warm muted earthy palette and subtle gouache texture. Soft warm upper-left light, plain low-contrast warm beige background. Opaque square image. NO frame, text, letters, numbers, logo, watermark, photorealism, neon, anime or 3D.",
+    "referanslar": [
+      "oyuncu.png"
+    ],
+    "saydam": false
+  }
+]
