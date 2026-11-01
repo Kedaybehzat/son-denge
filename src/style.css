@@ -960,7 +960,14 @@ button.ret:hover:not(:disabled) {
    BAŞLANGIÇ EKRANI
    ============================================================= */
 .kart.baslangic { --tema: var(--yesil); }
-.baslik-ekrani { text-align: center; padding: 1cqw 0.5cqw 0.5cqw; }
+.baslik-ekrani {
+  text-align: center;
+  padding: 1cqw 0.5cqw 0.5cqw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6cqw;
+}
 .baslik-ekrani .etiket { margin: 0 auto; }
 .baslik-ekrani h1 {
   font-size: 6.5cqw;
@@ -1207,9 +1214,14 @@ button.gorev.dolu { opacity: 0.6; }
   border: 0.12cqw solid color-mix(in oklab, var(--tema) 50%, transparent);
 }
 .hikaye-ekrani .hikaye-gorsel {
-  display: block; width: 100%;
-  aspect-ratio: 16 / 9; max-height: 24cqw; object-fit: cover;
-  border-radius: 0.6cqw; margin-bottom: 1cqw;
+  display: block;
+  width: 100%;
+  max-width: 48cqw;
+  max-height: 26cqw;
+  object-fit: contain; /* görselin tamamı sığsın, kenarlar kırpılmasın */
+  border-radius: 0.6cqw;
+  margin: 0 auto 1cqw;
+  background: #0a0d08;
 }
 
 /* ---------- Yarın için tahmin (hazırlıklı olaylar) ---------- */
@@ -1316,7 +1328,8 @@ button.gorev.dolu { opacity: 0.6; }
 .hud-denge { min-width: 11cqw; padding: 0.2cqw 0.5cqw; }
 .denge-etiket { letter-spacing: 0.1em; }
 #modal.menu-ortami {
-  background: linear-gradient(#08100b66, #08100bcc), url('/assets/menu-arka.png') center / cover;
+  /* Vite base './' ile uyumlu relative path (GitHub Pages subpath çalışır) */
+  background: linear-gradient(#08100b66, #08100bcc), url('./assets/menu-arka.png') center / cover;
   backdrop-filter: none;
 }
 .kart.baslangic { width: min(64cqw, 92%); background: #3b4b37f5; }
