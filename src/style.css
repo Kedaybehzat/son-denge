@@ -116,6 +116,40 @@ body { display: grid; place-items: center; }
 .ses-slider input[type=range]::-moz-range-thumb { width: 1.4cqw; height: 1.4cqw; border-radius: 50%; background: var(--yesil); border: 0.14cqw solid #0a140f; box-shadow: 0 0 0.5cqw var(--yesil); cursor: grab; }
 .ses-slider input[type=range]:disabled { cursor: not-allowed; }
 
+/* Dil seçimi (ayarlar menüsünde) */
+.dil-secim {
+  display: grid;
+  grid-template-columns: 8cqw 1fr;
+  align-items: center;
+  gap: 0.9cqw;
+  padding: 0.9cqw 1.2cqw;
+  background: var(--terminal-ekran);
+  border-radius: 0.5cqw;
+  border: 0.08cqw solid #ffffff14;
+  font-size: 1.05cqw;
+}
+.dil-secim .ad { font-weight: 600; letter-spacing: 0.04em; color: var(--terminal-metin); }
+.dil-butonlar { display: flex; gap: 0.5cqw; }
+button.dil {
+  flex: 1;
+  padding: 0.4cqw 0.9cqw;
+  background: transparent;
+  color: var(--terminal-metin);
+  border: 0.1cqw solid #ffffff22;
+  border-radius: 0.4cqw;
+  font-size: 1cqw;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+button.dil:hover:not(.secili) { background: #ffffff10; border-color: var(--yesil); }
+button.dil.secili {
+  background: color-mix(in oklab, var(--yesil) 20%, transparent);
+  border-color: var(--yesil);
+  color: var(--yesil);
+  box-shadow: 0 0 0.5cqw color-mix(in oklab, var(--yesil) 30%, transparent);
+  font-weight: 600;
+}
+
 /* HUD'daki küçük ayarlar düğmesi */
 .yonetim-erisim .ayarlar-btn { padding: 0.3cqw 0.6cqw; font-size: 1.4cqw; line-height: 1; min-width: 2.4cqw; }
 

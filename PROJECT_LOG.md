@@ -388,7 +388,7 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Mevcut sürümü PR ile birleştirme
 
 - **Prompt:** Şu anki halini push, PR ve merge yap.
-- **Yapılan değişiklik:** Mevcut asset, animasyon, diyalog, logo ve keşif düzeltmeleri birlikte commit/push ve main'e PR üzerinden birleştirme için hazırlandı; uzak main güncellendi ve GitHub kontrolleri izlenecek.
+- **Yapılan değişiklik:** Mevcut asset, animasyon, diyalog, logo ve keşif düzeltmeleri birlikte commit/push ve main'e PR üzerinden birleştirme için hazırlandı; uzak main dil desteği korunarak birleştirildi; GitHub kontrolleri izlenecek.
 
 | Dosya | Açıklama |
 |---|---|
