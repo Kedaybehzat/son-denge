@@ -6,8 +6,8 @@ import { PANELLER } from '../data/panels.js';
 import { ASSETLER } from '../data/assets.js';
 import { ANIMASYONLAR } from '../data/animations.js';
 import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet, MAKINELER, makineOperatoru, sakinTanimi,
-  gun0Aktif, gun0Tamam, gun0KapidakiKurucu, gun0KapiyaGel, gun0Karsila, gun0Bitir } from '../state.js';
-import { GUN0_METIN } from '../data/gun0.js';
+  prologAktif, prologGunTamam, prologGunHedefi, prologKapidakiKurucu, prologKapiyaGel, prologKarsila, prologBitir, prologGecesi } from '../state.js';
+import { PROLOG_METIN } from '../data/prolog.js';
 import { KURUCULAR } from '../data/visitors.js';
 import * as ui from '../ui/ui.js';
 import { sesCal } from '../sesler.js';
@@ -49,7 +49,7 @@ export default class GameScene extends Phaser.Scene {
     this.sehirRenkleri = null;
     this.hedefDenge = state.denge;
     this.kapiTakTakTimer = null;
-    this.gun0Timer = null;
+    this.prologTimer = null;
     // Sahne tekrar başlatıldığında (Tekrar oyna) eski Graphics referansları
     // "truthy" kalmasın: _cizCatiPanelleri/_cizYapilar null kontrolü yapıyor.
     this.catiTemel = null;
@@ -129,17 +129,17 @@ export default class GameScene extends Phaser.Scene {
       eylem: (e) => this.efektEylem(e.detail),
       ziyaretci: (e) => this.efektZiyaretci(e.detail),
       gunBasligi: (e) => this.gunBasligiGoster(e.detail.gun, e.detail.olayAd, e.detail.onBitti),
-      gun0Planla: () => this.gun0Planla(),
-      gun0Atla: () => this.gun0BitirAkisi(),
+      prologPlanla: () => this.prologPlanla(),
+      prologAtla: () => this.prologAtlaAkisi(),
       // Test paneli olayları
-      testGunuBitir: () => { if (this.gecisVar || state.bitti) return; ui.modalKapat(); gun0Aktif() ? this.gun0BitirAkisi() : this.gunuBitirAkisi(); },
+      testGunuBitir: () => { if (this.gecisVar || state.bitti) return; ui.modalKapat(); prologAktif() ? this.prologGeceAkisi(true) : this.gunuBitirAkisi(); },
       testSon: (e) => { ui.modalKapat(); state.bitti = true; ui.sonGoster({ tip: e.detail.tip, bilgi: null }, () => ui.yeniOyunSecimi((egitim) => this.yeniOyun(egitim))); },
       testKart: () => { if (state.kart) ui.kararKartiGoster(); },
-      testYeniOyun: (e) => { ui.modalKapat(); this.yeniOyun(e.detail.gun0); },
+      testYeniOyun: (e) => { ui.modalKapat(); this.yeniOyun(e.detail.prolog); },
     };
     for (const ad of ['testGunuBitir', 'testSon', 'testKart', 'testYeniOyun']) window.addEventListener('oyun:' + ad, this.dinleyiciler[ad]);
-    window.addEventListener('oyun:gun0Planla', this.dinleyiciler.gun0Planla);
-    window.addEventListener('oyun:gun0Atla', this.dinleyiciler.gun0Atla);
+    window.addEventListener('oyun:prologPlanla', this.dinleyiciler.prologPlanla);
+    window.addEventListener('oyun:prologAtla', this.dinleyiciler.prologAtla);
     window.addEventListener('oyun:eylemYapildi', this.dinleyiciler.eylem);
     window.addEventListener('oyun:ziyaretciKabul', this.dinleyiciler.ziyaretci);
     window.addEventListener('oyun:gunBasligi', this.dinleyiciler.gunBasligi);
@@ -158,9 +158,9 @@ export default class GameScene extends Phaser.Scene {
       window.removeEventListener('oyun:eylemYapildi', this.dinleyiciler.eylem);
       window.removeEventListener('oyun:ziyaretciKabul', this.dinleyiciler.ziyaretci);
       window.removeEventListener('oyun:gunBasligi', this.dinleyiciler.gunBasligi);
-      window.removeEventListener('oyun:gun0Planla', this.dinleyiciler.gun0Planla);
-      window.removeEventListener('oyun:gun0Atla', this.dinleyiciler.gun0Atla);
-      this.gun0Timer?.remove();
+      window.removeEventListener('oyun:prologPlanla', this.dinleyiciler.prologPlanla);
+      window.removeEventListener('oyun:prologAtla', this.dinleyiciler.prologAtla);
+      this.prologTimer?.remove();
       for (const ad of ['testGunuBitir', 'testSon', 'testKart', 'testYeniOyun']) window.removeEventListener('oyun:' + ad, this.dinleyiciler[ad]);
       this.kapiTakTakDurdur();
       if (this.lambaTitremeTimer) this.lambaTitremeTimer.remove();
@@ -286,7 +286,7 @@ export default class GameScene extends Phaser.Scene {
     }
     if (enYakin) {
       let metin = enYakin.def.etiket;
-      if (enYakin.def.tip === 'kapi' && (state.ziyaretci || gun0KapidakiKurucu())) {
+      if (enYakin.def.tip === 'kapi' && (state.ziyaretci || prologKapidakiKurucu())) {
         metin = 'Kapı: biri kapıyı çalıyor!';
       } else if (enYakin.def.tip === 'panel' && MAKINELER[enYakin.def.panel]) {
         const op = makineOperatoru(enYakin.def.panel);
@@ -322,29 +322,29 @@ export default class GameScene extends Phaser.Scene {
         break;
       case 'radyo':
         sesCal('ses-radyo-ac');
-        if (gun0Aktif()) ui.bilgi('Yeşilvadi Radyosu', GUN0_METIN.radyo);
+        if (prologAktif()) ui.bilgi('Yeşilvadi Radyosu', PROLOG_METIN.radyo);
         else ui.olayGoster(state.olay);
         break;
       case 'pano':
         ui.panoAc();
         break;
       case 'yatak':
-        if (gun0Aktif()) {
-          if (gun0Tamam()) ui.onay('Gün 1\'e başla', 'Ekip yerinde. Uyuduğunda Gün 1 sabahı başlar: 3 eylem hakkın olacak ve makineler o geceden itibaren üretecek.', 'Uyu', () => this.gun0BitirAkisi());
-          else ui.bilgi('Yatak', state.gun0.sira >= KURUCULAR.length ? 'Uyumadan önce yaşam alanındaki Sığınak Yönetimi panosuna bir göz at.' : GUN0_METIN.yatakErken(state.gun0.sira, KURUCULAR.length));
+        if (prologAktif()) {
+          if (prologGunTamam()) ui.prologUyuOnay(() => this.prologGeceAkisi());
+          else ui.bilgi('Yatak', PROLOG_METIN.yatakErken);
           break;
         }
         ui.gunuBitirOnay(() => this.gunuBitirAkisi());
         break;
       case 'kapi': {
-        if (gun0Aktif()) {
-          const k = gun0KapidakiKurucu();
+        if (prologAktif()) {
+          const k = prologKapidakiKurucu();
           if (!k) {
-            ui.bilgi('Kapı', state.gun0.sira >= KURUCULAR.length ? 'Ekibin tamamı içeride. Gün 1\'den itibaren kapıya iklim göçmenleri gelecek.' : GUN0_METIN.kapiBos);
+            ui.bilgi('Kapı', state.prolog.sira >= KURUCULAR.length ? PROLOG_METIN.kapiTamam : state.prolog.sira >= prologGunHedefi() ? PROLOG_METIN.kapiGunBitti : PROLOG_METIN.kapiBos);
             break;
           }
-          ui.gun0KapiGoster(k, () => {
-            gun0Karsila(); // sıradaki kişi, yeni gelenin paneli incelenince çağrılır
+          ui.prologKapiGoster(k, () => {
+            prologKarsila(); // sıradaki kişi, yeni gelenin paneli incelenince çağrılır
           });
           break;
         }
@@ -370,24 +370,49 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // Gün 0: sıradaki kurucu birkaç saniye sonra kapıyı çalar
-  gun0Planla(gecikme = 3500) {
-    if (!gun0Aktif() || gun0Tamam() || state.gun0.kapida || this.gun0Timer) return;
-    this.gun0Timer = this.time.delayedCall(gecikme, () => {
-      this.gun0Timer = null;
-      if (gun0KapiyaGel()) sesCal('ses-kapi-cal');
+  prologPlanla(gecikme = 3500) {
+    if (!prologAktif() || state.prolog.kapida || state.prolog.sira >= prologGunHedefi() || this.prologTimer) return;
+    this.prologTimer = this.time.delayedCall(gecikme, () => {
+      this.prologTimer = null;
+      if (prologKapiyaGel()) sesCal('ses-kapi-cal');
     });
   }
 
-  // Gün 0 → Gün 1 (eğitimi atlamak da buradan geçer)
-  gun0BitirAkisi() {
-    if (!gun0Aktif()) return;
+  // Prolog gecesi: rapor, sonra yeni prolog günü ya da Gün 1. zorla: test panelinden
+  prologGeceAkisi(zorla = false) {
+    if (!prologAktif() || this.gecisVar) return;
+    if (zorla && !prologGunTamam()) return this.prologAtlaAkisi();
     this.gecisVar = true;
-    this.gun0Timer?.remove();
-    this.gun0Timer = null;
+    this.prologTimer?.remove();
+    this.prologTimer = null;
     const kam = this.cameras.main;
     kam.fadeOut(700, 10, 8, 20);
     kam.once('camerafadeoutcomplete', () => {
-      gun0Bitir();
+      const sonuc = prologGecesi();
+      kam.fadeIn(900, 10, 8, 20);
+      this.gecisVar = false;
+      if (sonuc.bitti) {
+        ui.prologGeceRaporu(sonuc.rapor, true, () => {
+          ui.modalKapat();
+          this.gecisVar = true;
+          this.gunBasligiGoster(state.gun, state.olay.baslik, () => { this.gecisVar = false; ui.olayGoster(state.olay); });
+        });
+      } else {
+        ui.prologGeceRaporu(sonuc.rapor, false, () => { ui.modalKapat(); ui.prologGunuBaslat(); });
+      }
+    });
+  }
+
+  // Prologu atla: Gün 1 her zamanki başlangıçla açılır
+  prologAtlaAkisi() {
+    if (!prologAktif()) return;
+    this.gecisVar = true;
+    this.prologTimer?.remove();
+    this.prologTimer = null;
+    const kam = this.cameras.main;
+    kam.fadeOut(700, 10, 8, 20);
+    kam.once('camerafadeoutcomplete', () => {
+      prologBitir();
       kam.fadeIn(900, 10, 8, 20);
       this.gunBasligiGoster(state.gun, state.olay.baslik, () => {
         this.gecisVar = false;
@@ -398,7 +423,7 @@ export default class GameScene extends Phaser.Scene {
 
   // Yeni oyun: Gün 0 (eğitim) ya da Gün 1
   yeniOyun(egitim) {
-    sifirla({ gun0: egitim });
+    sifirla({ prolog: egitim });
     this.scene.restart();
     // Yeni sahnenin create() tamamlanmasını bekleyip ilk gün başlığını göster
     setTimeout(() => ui.oyunuBaslat(), 80);

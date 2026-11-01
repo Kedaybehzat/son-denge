@@ -49,7 +49,7 @@ export const ARASTIRMALAR = {
     maliyet: 12,
     aciklama: 'Rüzgar türbini bakım ve kanat profili yenilenir: her gece +4 enerji.',
     geceEtki: { enerji: +4 },
-    onKosul: seviyeII,
+    onKosul: seviyeII, seviye: 2,
     bilgi: 'ruzgar',
   },
   hidroponik: {
@@ -58,7 +58,7 @@ export const ARASTIRMALAR = {
     maliyet: 12,
     aciklama: 'Kapalı döngü su ile dikey ekim: her gece +3 gıda, −1 su (toplam su daha verimli).',
     geceEtki: { gida: +3, su: -1 },
-    onKosul: seviyeII,
+    onKosul: seviyeII, seviye: 2,
     bilgi: 'sulama',
   },
   havaFiltresi: {
@@ -67,7 +67,7 @@ export const ARASTIRMALAR = {
     maliyet: 12,
     aciklama: 'Partikül ve CO₂ filtresi: her gece −3 karbon. Toz fırtınasında da panelleri korur.',
     geceEtki: { karbon: -3 },
-    onKosul: seviyeII,
+    onKosul: seviyeII, seviye: 2,
     bilgi: 'ruzgar',
   },
 };

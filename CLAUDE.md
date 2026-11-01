@@ -46,6 +46,7 @@ Bu dosyayı bir yapay zeka asistanına veriyorsan, asistan şunları bilmeli:
    - Doğrudan sahnede çizilen nesne ise `src/data/assets.js` → `ASSETLER`'e de ekle (yer tutucusu `dokulariUret()`'te kalsın) ve Asset Listesi'ne (tek tablo, kategori yok) satır ekle.
    - `CLAUDE.md` bölüm 6'ya görsel promptunu ekle (yoksa listede "yok, yazılacak" yaz).
    - Asset geldiğinde ya da kaldırıldığında `node tools/asset-durum.mjs` çalıştır ve Durum sütununu güncelle.
+   - **Kenar temizliği:** Yeni şeffaf görsel eklendiğinde `python3 tools/kenar-temizle.py public/assets/<dosya>.png` çalıştırılır. Betik arka plan sisini, kopuk lekeleri, yarı silinmiş delikleri ve açık saçağı temizler; orijinal `assets-orijinal/kenar-oncesi/` altına yedeklenir.
    - **Dosya boyutu:** Oyun her şeyi tarayıcıda indirir. Gelen görselleri repoya koymadan önce oyunun ihtiyacına küçült (orijinali `assets-orijinal/` altına yedekle, git'e girmez): nesne/karakter/animasyon karesi en fazla 600 px yükseklik, portre 512×512, hikaye 1280 px genişlik. Oda ve manzara görselleri olduğu gibi kalır.
 
 ---
@@ -818,7 +819,7 @@ Tüm nesne/karakterler **ölçek dizisi** yöntemiyle üretilir: aynı kategorid
 
 ## 8. Yapılacaklar
 
-- [ ] Kalan 2 sakin animasyon seti ve 9 portre yenilemesini üret; 10 özel sakin sprite'ı isteğe bağlı (`docs/asset-promptu.md`)
+- [ ] Asset üretimi (`docs/asset-promptu.md`, sıra `docs/asset-listesi.md`): 4 kurucu portresi (prolog, öncelikli), sakin-1/3 animasyonları, 5 ziyaretçi portresi, 7 yeni ikon, hikaye-2; özel sakin sprite'ları önerilir; konsol, yönetim panosu (keşif haritası dahil) ve prolog görselleri isteğe bağlı
 - [x] Mevcut oyun ve arayüz assetlerini bağla; eksik/yenilenecek dosyalar `docs/asset-listesi.md`'de
 - [ ] "Biliyor muydun?" rakamlarını kaynaklarından kontrol et
 - [ ] Oyunun ve şehrin adını kesinleştir
@@ -851,10 +852,39 @@ GameScene 362 satırdır; çizim/doku/animasyon/NPC/efekt yöntemleri `src/scene
 
 `state.kararGecmisi` başarılı panel eylemlerinin gerçek kaynak/malzeme değişimini, seçilen kartın kendi sonuç metnini, hazırlığı ve gece gerçekten çalışan makinelerin son üretim modunu saklar. İnceleme kayıtları yalnız ilk gün rehberine hizmet eder. `src/ogrenme.js` bir gece/son özeti için en çok üç kayıt seçer. Önizleme, başarısız işlem veya vazgeçilen üretim modu gerçekleşmiş tercih sayılmaz. Eski kayıtta geçmiş yoksa boş başlar; geçmiş uydurulmaz. Gece raporundaki seçim anı değişimleri gece tüketimine tekrar eklenmez. Son ekranda oyun puanı/zaman ölçeği açıklanır. `tools/ogrenme-test.mjs`, `npm test` içindedir. Bu özellik öğrenme fırsatı sağlar; öğrenme kazanımının oyuncularla ölçüldüğü iddia edilmez.
 
-### 4.24 Gün 0 öğreticisi ve test paneli (1 Kasım 2026)
+### 4.24 Prolog, oda konsolları ve test paneli (1 Kasım 2026)
 
-"Oyuna Başla / Yeni oyun" düğmesi önce **Eğitimle başla (Gün 0)** / **Eğitimi atla (Gün 1)** sorar (Tekrar oyna'da da). Gün 0'da sığınak boştur, eylem hakkı 0'dır ve paneller "Kullanılamaz" ekranı gösterir. Kurucular (Selin → Burak → Nur → Can) kapıyı sırayla çalar; kapı kartında bir ders (operatör, kaynak çubukları, eylem hakkı, denge) vardır, kişi kendi odasına yürür. Oyuncu o odanın paneline gidince 4 bölümlü panel rehberi (operatör, çalışma modu, aşınma/bakım, eylemler + kurucunun ipucu) açılır; "Anladım" sonrası sıradaki gelir. Dördü bitince Sığınak Yönetimi panosu sayfa sayfa tanıtılır, sonra yatakla Gün 1 başlar. Gün 0 kaynakları değiştirmez ve kaydedilmez; Gün 1 her zamanki başlangıçla açılır. Metinler `src/data/gun0.js`, test `tools/gun0-test.mjs`.
+**Prolog (3 gün, `src/data/prolog.js`):** "Oyuna Başla / Yeni oyun" ve "Tekrar oyna" önce *Prologla başla / Prologu atla (Gün 1)* sorar. Sığınak boş başlar. Kurucular günlere bölünerek gelir: 1. gün Selin, 2. gün Burak ve Nur, 3. gün Can ve ardından Sığınak Yönetimi panosu turu. Kapı kartında kısa bir ders vardır; kurucu kendi odasına yürür. Oyuncu o odanın konsolunu açınca rehber balonları adım adım ilerler: operatör, oda hesabı, mod anahtarı, önizleme, rehberli eylem, kirli seçenek, aşınma. Rehber, istenen etkileşim yapılmadan geçmez. Konsol öğrenilmeden sıradaki kurucu gelmez. Operatörü gelmemiş konsollar "OPERATÖR YOK" ile kapalıdır. Prologda boş makinede kendin çalışma, bakım ve araştırma yoktur.
+- Günlük eylem hakkı: 2 / 3 / 2.
+- Gece: normal hesap, ancak sabit tüketim yaklaşık yarıdır (`PROLOG_AYAR.geceDegisim`: −10 enerji, −4 su, −4 gıda, +6 atık, −1 karbon). Ayrıca kişi tüketimi ve operatörlü makinelerin üretimi işler. Olay, ziyaretçi, yorgunluk, aşınma ve memnuniyet işlemez.
+- Başlangıç: `PROLOG_AYAR.baslangic` 45/60/48/37/38, malzeme 2. Rehberli oynanış Gün 1'i yaklaşık normal başlangıçla açar (`tools/prolog-test.mjs`: 50/50/50/36/35, malzeme 8).
+- Kaynaklar, malzeme ve modlar Gün 1'e devreder. Prologu atlamak normal başlangıcı verir. Prolog kaydedilmez. Simülasyon prologu kullanmaz.
 
-**Test paneli (F9):** kaynakları ve diğer değişkenleri kaydırıcıyla değiştirir; sakin görev/yorgunluğu, ziyaretçi getirme/alma, bugünün olayı/yarının tahmini, karar kartı, araştırma/yapı açma, günü bitirme, son ekranı ve yeni oyun tetikler. Yalnız test içindir (`src/ui/testPaneli.js`, `state.js` → `testDegistir`).
+**Oda konsolları (`panels.js` → `konsol`, `ui.js` → `konsolHtml`):** Her oda paneli, metin listesi yerine fiziksel bir konsol olarak çizilir:
+- CRT ekran ve göstergeler. Bir kontrolün üstüne gelince ekran eylemi anlatır, göstergelerde sonucun gölgesi ve "→ yeni değer" görünür.
+- Oda canlı görseli: enerji sayacı ibresi, su tankları, sera saksıları, atık yığını ve malzeme.
+- Oda hesabı: gece tüketimi veya birikimi, makine üretimi ve bu gecenin net değeri.
+- Fiziksel kontroller: kol, çark, tehlike şalteri, vana, kartuş, düğme. Basınca animasyon oynar; 1/2/3 tuşları da çalışır.
+- Alt şerit: kayar mod anahtarı, 10 dilimli aşınma ve bakım anahtarı, eylem noktaları, Kapat.
 
-HUD artık pencerelerin üstünde kalır; kaynak adları barların üstünde yazar.
+**Sığınak Yönetimi panosu (`ui.js` → `panoCiz`):** Altı bölüm aynı konsol prensibiyle çizilir. Üstte bir durum ekranı vardır; fareyle bir öğenin üstüne gelince ayrıntıyı orada gösterir. Altta malzeme, eylem ve Kapat yer alır.
+- **Koloni:** görev tahtası. Sütunlar görev yerleridir (4 makine + Laboratuvar + Dinlen + varsa İnşaat), her sütunda durum ışığı var. Sakin kartında portre, ★ uzmanlık ve yorgunluk pili bulunur. Sakin seçilip sütuna tıklanır ya da sürüklenir; seçiliyken her sütunda orada ne üreteceği önizlenir.
+- **Odalar:** oda görselli kartlar. Her kartta operatör, ışık, gece üretimi, T/N/Y mod anahtarı, aşınma, konsol ve iyileştirme düğmeleri var.
+- **Keşif:** harita. Rotalar ve pinler (`exploration.js` → `harita`) var; pin seçilince erzak, ödül, süre ve başarı halkalı kişi seçimi açılır. Sefer sırasında ekip işaretçisi rota üstünde görünür, ara karar düğmeleri çıkar.
+- **Araştırma:** teknoloji ağacı. İlerleme halkalı düğümler (Seviye I → II, `research.js` → `seviye`), laboratuvar tezgâhı ve "masa başında" düğmesi, batarya göstergesi.
+- **İnşaat:** mavi plan kâğıdı. İskele görünümlü iş puanı ilerlemesi, portreyle işçi seçimi, yardım/duraklat/iptal düğmeleri, oda sekmeleri ve damgalı plan kartları (KURULDU / İNŞADA / KİLİTLİ).
+- **Hedefler:** mantar pano üstünde raptiyeli notlar ve durum damgaları.
+
+Prolog pano turu bu gerçek bölümlerin üstünde, salt okunur balonlarla 7 sayfa ilerler.
+
+**Mockup zeminli konsollar:** `public/assets/panel-<id>.jpg` varsa konsol mockup görselinin üstünde çizilir. Çerçeve, sarmaşık, tabela ve oda çizimleri görselden gelir; canlı öğeler `src/data/konsol-yerlesim.json` kutularına oturur. Zemin `python3 tools/konsol-arka.py` ile üretilir; mockup orijinalleri git dışındaki `assets-orijinal/tasarim-referans/` klasöründedir. Zemin yoksa CSS konsolu kullanılır.
+
+**Mockup zeminli HUD, alt şerit, Ayarlar, hikaye ve arıza konsolu:** `hud-serit.jpg`, `alt-serit.jpg`, `ekran-ayarlar.jpg`, `hikaye-ekran-N.jpg` ve `panel-<id>-kapali.jpg` varsa ilgili arayüz bunların üstünde çizilir (`python3 tools/ekran-zemin.py`). Hikaye ekranlarının metni görselde gömülü olduğundan `story.js` metni değişirse görsel yenilenmeli ya da o dosya kaldırılmalıdır. Dosya kaldırılırsa eski HTML arayüz kullanılır.
+
+**Mockup zeminli yönetim panosu:** `public/assets/yonetim-<bölüm>.jpg` varsa pano bölümü kendi mockup'ının üstünde çizilir. Sekmeler, çerçeve, başlık, harita, plan kâğıdı ve mantar pano görselden gelir; durum ekranı, bölüm içeriği, malzeme ve eylem canlıdır. Yerleşim `konsol-yerlesim.json` → `yonetim`; zeminler aynı betikle üretilir.
+
+İsteğe bağlı görseller: `konsol-<oda>.png`, `modul-<ad>.png`, `prolog-1..3.png`, `yonetim-<bölüm>.png`, `kesif-siginak.png` ve `ikon-sekme-<bölüm>.png` (asset listesi satır 101–131). Görsellerin nereye oturduğu `docs/arayuz-ornekleri/` ve rehber PDF'te gösterilir.
+
+**Test paneli (F9):** Kaynakları ve diğer değişkenleri değiştirir. Sakinleri, ziyaretçiyi, olayı ve kartı düzenler. Araştırma ve yapıları açar; günü bitirir, son ekranını gösterir, prologdan ya da Gün 1'den yeni oyun başlatır.
+
+HUD pencerelerin üstünde kalır; kaynak adları barların üstünde yazar.
