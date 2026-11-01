@@ -45,6 +45,12 @@ window.oyun = new Phaser.Game({
   scene: [GameScene],
 });
 
+window.addEventListener('oyun:kayitYuklendi', (e) => {
+  const sahne = window.oyun.scene.getScene('Game');
+  sahne.events.once('create', () => e.detail.onBitti());
+  sahne.scene.restart();
+});
+
 ui.girisHikayesi(() => ui.baslangicEkrani(() => {
   ui.gunBasligi(state.gun, state.olay.baslik, () => ui.olayGoster(state.olay));
 }));

@@ -1,73 +1,93 @@
 // =============================================================
-//  SES YÖNETİCİSİ (müzikler + tek seferlik sesler)
-//  Döngülü müzikler crossfade ile değişir, tek sefer sesler play.
-//  Ses açık/kapalı localStorage'da; ayarlar menüsünden toggle edilir.
-//  Tarayıcı autoplay engeline karşı ilk kullanıcı etkileşiminde
-//  bekleyen müzik tekrar dener.
-//
-//  Dosya listesi, kullanım yerleri ve isimlendirme: SOUNDS.md
+//  SES YÖNETİCİSİ — aynı anda tek müzik, iptal edilebilir fade-in.
+//  Kapatma tüm müzik/efektleri anında susturur. Geciken play()
+//  yanıtları ve autoplay denemeleri eski parçayı canlandıramaz.
+//  Dosyalar ve kullanım noktaları: SOUNDS.md
 // =============================================================
-
-const SES_YOLU = '/sounds/';
+const SES_YOLU = `${import.meta.env?.BASE_URL ?? './'}sounds/`;
 const DEPO_ANAHTAR = 'sondenge:ses';
 const FADE_ADIM_MS = 70;
 const FADE_ADIM = 0.05;
 
-let sesAcik = typeof localStorage !== 'undefined' ? localStorage.getItem(DEPO_ANAHTAR) !== 'kapali' : true;
-let aktifLoop = null;      // { ad, audio, hedefSes }
-let bekleyen = null;       // autoplay engeli olunca ilk tıklamada denenecek
-const birDefa = new Set(); // önceden yüklenmiş ses nesneleri
+let sesAcik = true;
+try { sesAcik = localStorage.getItem(DEPO_ANAHTAR) !== 'kapali'; } catch {}
+let aktifLoop = null;
+let bekleyen = null;
+const birDefa = new Set();
+const fadeZamanlayicilari = new Map();
+const yol = (ad) => SES_YOLU + ad + '.mp3';
 
-function yol(ad) {
-  return SES_YOLU + ad + '.mp3';
+function fadeIptal(audio) {
+  clearTimeout(fadeZamanlayicilari.get(audio));
+  fadeZamanlayicilari.delete(audio);
 }
 
-function fade(audio, hedef, bitince) {
-  if (!audio) return bitince?.();
+function sustur(audio) {
+  fadeIptal(audio);
+  audio.muted = true;
+  audio.volume = 0;
+  audio.pause();
+}
+
+function fade(parca) {
+  const { audio, hedefSes } = parca;
+  fadeIptal(audio);
   const adim = () => {
-    const fark = hedef - audio.volume;
-    if (Math.abs(fark) < FADE_ADIM + 0.001) {
-      audio.volume = Math.max(0, Math.min(1, hedef));
-      if (hedef === 0) audio.pause();
-      bitince?.();
+    if (!sesAcik || aktifLoop !== parca || audio.paused) {
+      fadeIptal(audio);
       return;
     }
-    audio.volume = Math.max(0, Math.min(1, audio.volume + Math.sign(fark) * FADE_ADIM));
-    setTimeout(adim, FADE_ADIM_MS);
+    audio.volume = Math.min(hedefSes, audio.volume + FADE_ADIM);
+    if (audio.volume < hedefSes) fadeZamanlayicilari.set(audio, setTimeout(adim, FADE_ADIM_MS));
+    else fadeZamanlayicilari.delete(audio);
   };
   adim();
 }
 
+function muzikBaslat(parca) {
+  if (!sesAcik || aktifLoop !== parca) return;
+  const deneme = ++parca.deneme;
+  bekleyen = null;
+  parca.audio.muted = false;
+  parca.audio.play().then(() => {
+    if (!sesAcik || aktifLoop !== parca) { sustur(parca.audio); return; }
+    if (parca.deneme !== deneme) return;
+    fade(parca);
+  }).catch((hata) => {
+    if (!sesAcik || aktifLoop !== parca || parca.deneme !== deneme) return;
+    // Yalnız autoplay engeli kullanıcı etkileşimiyle yeniden denenir.
+    if (hata?.name === 'NotAllowedError') bekleyen = parca;
+  });
+}
+
 export function muzikCal(ad, { hedefSes = 0.55, loop = true } = {}) {
-  if (!ad) return;
-  if (aktifLoop?.ad === ad) return;
-  const yeni = new Audio(yol(ad));
-  yeni.loop = loop;
-  yeni.volume = 0;
-  if (sesAcik) {
-    yeni.play().then(() => fade(yeni, hedefSes)).catch(() => { bekleyen = { ad, hedefSes, loop }; });
-  }
-  const eski = aktifLoop;
-  aktifLoop = { ad, audio: yeni, hedefSes, loop };
-  if (eski) fade(eski.audio, 0);
+  if (!ad || aktifLoop?.ad === ad) return;
+  muzikDurdur(); // Yeni play çağrısından önce eski parçayı kesin olarak durdur.
+  const audio = new Audio(yol(ad));
+  audio.loop = loop;
+  audio.volume = 0;
+  audio.muted = !sesAcik;
+  aktifLoop = { ad, audio, hedefSes: Math.max(0, Math.min(1, hedefSes)), loop, deneme: 0 };
+  muzikBaslat(aktifLoop);
 }
 
 export function muzikDurdur() {
-  if (!aktifLoop) return;
+  bekleyen = null;
   const eski = aktifLoop;
   aktifLoop = null;
-  fade(eski.audio, 0);
+  if (eski) sustur(eski.audio);
 }
 
-// Tek seferlik ses (tıklama, panel bip, kapı çalma gibi). Aynı anda
-// birden fazla kez çalabilir; önce yüklendiyse yeniden kullanılır.
 export function sesCal(ad, { ses = 0.7 } = {}) {
   if (!sesAcik || !ad) return;
-  const a = new Audio(yol(ad));
-  a.volume = ses;
-  a.play().catch(() => {});
-  birDefa.add(a);
-  a.addEventListener('ended', () => birDefa.delete(a));
+  const audio = new Audio(yol(ad));
+  audio.volume = Math.max(0, Math.min(1, ses));
+  birDefa.add(audio);
+  audio.addEventListener('ended', () => birDefa.delete(audio), { once: true });
+  audio.addEventListener('error', () => birDefa.delete(audio), { once: true });
+  audio.play().then(() => {
+    if (!sesAcik || !birDefa.has(audio)) sustur(audio);
+  }).catch(() => { sustur(audio); birDefa.delete(audio); });
 }
 
 export function sesAcikMi() { return sesAcik; }
@@ -75,22 +95,30 @@ export function sesAcikMi() { return sesAcik; }
 export function sesToggle() {
   sesAcik = !sesAcik;
   try { localStorage.setItem(DEPO_ANAHTAR, sesAcik ? 'acik' : 'kapali'); } catch {}
+  bekleyen = null;
   if (!sesAcik) {
-    if (aktifLoop) fade(aktifLoop.audio, 0);
-  } else if (aktifLoop) {
-    aktifLoop.audio.play().then(() => fade(aktifLoop.audio, aktifLoop.hedefSes)).catch(() => {});
-  }
+    if (aktifLoop) sustur(aktifLoop.audio);
+    for (const audio of birDefa) sustur(audio);
+    birDefa.clear();
+  } else if (aktifLoop) muzikBaslat(aktifLoop);
   return sesAcik;
 }
 
-// Autoplay engeline karşı ilk kullanıcı etkileşiminde bekleyeni dene
 function etkilesimCozucu() {
-  if (bekleyen && sesAcik && aktifLoop?.ad === bekleyen.ad) {
-    aktifLoop.audio.play().then(() => fade(aktifLoop.audio, aktifLoop.hedefSes)).catch(() => {});
-  }
-  bekleyen = null;
+  const parca = bekleyen;
+  if (sesAcik && parca && aktifLoop === parca) muzikBaslat(parca);
 }
 if (typeof window !== 'undefined') {
   window.addEventListener('pointerdown', etkilesimCozucu, { capture: true });
   window.addEventListener('keydown', etkilesimCozucu, { capture: true });
 }
+
+// Vite canlı yenilemesi eski modülün seslerini ve dinleyicilerini bırakmamalı.
+if (import.meta.hot) import.meta.hot.dispose(() => {
+  sesAcik = false;
+  muzikDurdur();
+  for (const audio of birDefa) sustur(audio);
+  birDefa.clear();
+  window.removeEventListener('pointerdown', etkilesimCozucu, { capture: true });
+  window.removeEventListener('keydown', etkilesimCozucu, { capture: true });
+});

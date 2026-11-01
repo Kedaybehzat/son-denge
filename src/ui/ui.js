@@ -5,16 +5,18 @@
 // =============================================================
 import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, ziyaretciNetEtki, geceTahmini, AYAR, KAYNAKLAR,
   sakinTanimi, sakinCiktisi, gorevAta, arastirmaSec, arastirmaAcik, masadaArastir, masadaArastirabilirMi,
-  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi, kapaliMakineler, makineKapali, YAPILAR, yapiAcik, yapiKur, yapiKurabilirMi } from '../state.js';
+  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi, kapaliMakineler, makineKapali, YAPILAR, yapiAcik, yapiKur, yapiKurabilirMi, CALISMA_MODLARI, BAKIM, makineModu, makineModuSec, makineUretimi, bakimYap, bakimYapabilirMi, geriKazanimMiktari, insaatci, insaatTahmini, insaatDuraklat, insaatIptal, insaataYardimEt, moralVer, moralVerebilirMi, havaUretimEtkisi, dinlenmeSozuVer, dinlenmeSozuVerebilirMi, SENARYO_HEDEFLERI, hedefYardimiGonder, hedefYardimiGonderebilirMi, kesifKarariSec, kesifKarariYapabilirMi, kayittanDevamEt } from '../state.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, OYUNCU_CALISMA_MALIYETI } from '../data/research.js';
 import { ODALAR } from '../data/rooms.js';
 import { PANELLER } from '../data/panels.js';
+import { kayitOku, gunBasiniKaydet } from '../kayit.js';
+import { DIYALOG } from '../data/dialogues.js';
 import { HIKAYE } from '../data/story.js';
 import { HAZIRLIK_MALIYETI } from '../data/events.js';
 import { BILGILER } from '../data/facts.js';
 import { KESIF_NOKTALARI } from '../data/exploration.js';
 import { KURUCULAR } from '../data/visitors.js';
-import { portreDosyasi, hikayeDosyasi, ARAYUZ_ASSET_KLASORU, ARAYUZ_IKONLARI, KARAR_GORSELLERI, SON_GORSELLERI } from '../data/assets.js';
+import { portreDosyasi, hikayeDosyasi, ARAYUZ_ASSET_KLASORU, ARAYUZ_IKONLARI, KARAR_GORSELLERI, SON_GORSELLERI, sakinGorselTanimi } from '../data/assets.js';
 import { assetVar } from '../assetListesi.js';
 import { muzikCal, sesAcikMi, sesToggle } from '../sesler.js';
 
@@ -61,8 +63,9 @@ function arayuzIkonu(id, yedek = '') {
 }
 const arayuzGorseli = (onek, ad, sinif) => ad ? varsaImg(`${ARAYUZ_ASSET_KLASORU}${onek}-${ad}.png`, sinif) : '';
 
+const sakinPortresi = (id, sinif = '') => varsaImg(`${ARAYUZ_ASSET_KLASORU}${sakinGorselTanimi(id, assetVar).dosya}`, `sakin-portre ${sinif}`);
 const portreRozet = (id, ikon) =>
-  `<span class="ikon-rozet portre">${varsaImg(portreDosyasi(portreOneki(id), id))}<span class="ikon-yedek">${ikon}</span></span>`;
+  `<span class="ikon-rozet portre">${state.sakinler?.some((s) => s.id === id) ? sakinPortresi(id) : varsaImg(portreDosyasi(portreOneki(id), id))}<span class="ikon-yedek">${ikon}</span></span>`;
 const portreBuyuk = (id) => varsaImg(portreDosyasi(portreOneki(id), id), 'portre-buyuk');
 
 const paragraf = (s) => kacis(s).split('\n\n').map((p) => `<p>${p}</p>`).join('');
@@ -129,6 +132,13 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+function hudGorunurlugu(gorunur) {
+  const deger = gorunur ? '' : 'hidden';
+  hud.style.visibility = deger;
+  const erisim = document.querySelector('.yonetim-erisim');
+  if (erisim) erisim.style.visibility = deger;
+}
+
 // ---------------------------------------------------------------
 //  HUD
 // ---------------------------------------------------------------
@@ -172,8 +182,9 @@ export function hudKur() {
   erisim.className = 'yonetim-erisim';
   erisim.setAttribute('aria-label', 'Sığınak yönetimi');
   erisim.innerHTML = Object.entries(YONETIM_BOLUMLERI).map(([id, ad]) => `<button data-yonetim="${id}">${ad}</button>`).join('')
-    + `<button class="ayarlar-btn" data-ayarlar title="Ayarlar">⚙</button>`;
-  hud.append(erisim);
+    + `<button class="ayarlar-btn" data-ayarlar title="Ayarlar">⚙</button><span class="malzeme-stok" title="Geri kazanılmış yapı malzemesi; denge puanına dahil değildir">Malzeme <b data-malzeme></b></span>`;
+  document.querySelector('.yonetim-erisim')?.remove();
+  modal.before(erisim);
   erisim.querySelectorAll('button[data-yonetim]').forEach((b) => b.addEventListener('click', () => {
     if ((!acik || panoAcik) && !state.bitti) panoAc(b.dataset.yonetim);
   }));
@@ -186,6 +197,7 @@ export function hudKur() {
 
 function hudGuncelle(s) {
   if (!s.kaynak) return;
+  document.querySelector('[data-malzeme]').textContent = s.malzeme;
   hud.querySelector('[data-gun]').textContent = s.gun;
   hud.querySelector('[data-eylem]').innerHTML = eylemNoktalari();
   hud.querySelector('[data-nufus]').textContent = s.nufus;
@@ -261,7 +273,7 @@ function makinePanelHtml() {
   if (!m) return '';
   const op = makineOperatoru(id);
   const oyuncu = state.oyuncuMakineler.includes(id);
-  const uretim = etkiChipleri(m.uretim);
+  const uretim = etkiChipleri(makineUretimi(id));
   if (op || oyuncu) {
     const kim = op ? `${sakinTanimi(op.id).ikon} ${kacis(sakinTanimi(op.id).ad)}` : '🧍 Sen (bugün)';
     return `<div class="ziyaretci-satir makine"><span>Operatör:</span><span class="chip iyi">${kim}</span><span>Bu gece:</span>${uretim}</div>`;
@@ -289,7 +301,7 @@ function panelCiz() {
       <span class="no">${i + 1}</span>
       <span class="govde">
         <span class="ad">${kacis(e.ad)}${e.kirli ? ' <em>⚠ kirletir</em>' : ''}</span>
-        <span class="chipler">${etkiChipleri(e.etki)}</span>
+        <span class="chipler">${etkiChipleri(e.etki)}${e.geriKazanim ? `<span class="chip iyi">+${geriKazanimMiktari(e)} malzeme</span>` : ''}</span>
       </span>
       <span class="maliyet">${eylemYapabilirMi(e) ? `${e.maliyet ?? 1} eylem` : 'Eylem / kaynak yetersiz'}</span>
     </button>`).join('');
@@ -305,6 +317,7 @@ function panelCiz() {
     </div>
     <p class="aciklama">${kacis(def.aciklama)}</p>
     ${makinePanelHtml()}
+    ${aktifPanelAnahtar ? makineAyarHtml(aktifPanelAnahtar) : ''}
     <div class="mini-gostergeler">${goster}</div>
     <div class="eylemler">${eylemler}</div>
     ${sonMesaj ? `<p class="mesaj">&gt; ${kacis(sonMesaj)}</p>` : ''}
@@ -314,6 +327,7 @@ function panelCiz() {
       <button class="ikincil" data-kapat>Kapat (Esc)</button>
     </div>`, { sinif: 'panel', tema: def.tema });
 
+  makineAyarlariniBagla();
   kart.querySelector('[data-kendin]')?.addEventListener('click', () => {
     if (!kendinCalisabilirMi(aktifPanelAnahtar)) return;
     sonMesaj = 'Kolları sıvadın. Makine bu gece senin sayende üretecek.';
@@ -411,7 +425,7 @@ function bilgiHtml(b) {
 }
 
 // Gün geçişi iki adım: önce gece raporu + bilgi kartı, sonra sabah radyosu
-export function gunBaslangici({ insaatBitti = null, rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj, ayrilanlar = [], sefer = null, memnuniyet = null }) {
+export function gunBaslangici({ sozSonuclari = [], hedefSonuclari = [], insaatBitti = null, rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj, ayrilanlar = [], sefer = null, memnuniyet = null }) {
   muzikCal('muzik-gece-gecis');
   const gitti = gidenZiyaretci
     ? `<p class="uyari">🚪 ${kacis(gidenZiyaretci.ad)} kapıda beklemekten vazgeçip gitti.</p>`
@@ -425,6 +439,8 @@ export function gunBaslangici({ insaatBitti = null, rapor, bilgi, gidenZiyaretci
     ${arastirmaBitti ? `<p class="mesaj">&gt; ${ARASTIRMALAR[arastirmaBitti].ikon} ${kacis(ARASTIRMALAR[arastirmaBitti].ad)} tamamlandı! ${kacis(ARASTIRMALAR[arastirmaBitti].aciklama)}</p>` : ''}
     ${insaatBitti ? `<p class="mesaj">İnşaat tamamlandı: ${kacis(YAPILAR[insaatBitti].ad)}. Etkisi bugünden itibaren aktif.</p>` : ''}
     ${ayrilanlar.map((z) => `<p class="uyari">😮‍💨 ${kacis(z.ad)} tükenmişti ve gece sessizce sığınaktan ayrıldı.</p>`).join('')}
+    ${sozSonuclari.map(p => `<p class="${p.durum === 'tutuldu' ? 'mesaj' : 'uyari'}">${kacis(p.ad)}: dinlenme sözü ${p.durum === 'tutuldu' ? 'tutuldu (+6 memnuniyet, güven arttı)' : p.durum === 'ayrildi' ? 'sakin ayrıldığı için kapandı' : 'tutulmadı (−6 memnuniyet, güven azaldı)' }.</p>`).join('')}
+    ${hedefSonuclari.map(h => `<p class="mesaj">${SENARYO_HEDEFLERI.find(t => t.id === h.id).ad}: ${h.durum === 'tamamlandi' ? 'tamamlandı' : 'süre doldu'}.</p>`).join('')}
     ${memnuniyetHtml(memnuniyet)}
     ${gitti}
     ${seferHtml(sefer)}
@@ -448,6 +464,7 @@ function memnuniyetHtml(m) {
 // Sabah dönen keşif seferinin sonucu (gece raporunda)
 function seferHtml(sf) {
   if (!sf) return '';
+  if (sf.bekliyor) return `<p class="uyari">${kacis(sf.ad)}: ekip karar bekliyor. Keşif panelinden devam/erzak/dönüş seç. ${kacis(sf.metin)}</p>`;
   const odul = sf.odul
     ? [etkiChipleri(sf.odul.kaynak),
       sf.odul.arastirma ? `<span class="chip iyi">🧪 +${sf.odul.arastirma.puan} ${kacis(ARASTIRMALAR[sf.odul.arastirma.id].ad)}</span>` : '',
@@ -458,6 +475,7 @@ function seferHtml(sf) {
       <span class="etiket">🧭 KEŞİF · ${sf.ikon} ${kacis(sf.ad)}</span>
       <p><b>${sf.kisi ? kacis(sf.kisi) + ' döndü. ' : ''}${sf.basari ? 'Sefer başarılı!' : 'Sefer sonuçsuz kaldı.'}</b> ${kacis(sf.metin)}</p>
       ${odul ? `<div class="rapor">${odul}</div>` : ''}
+      ${sf.plan ? '<p class="mesaj">Pompa çizimleri bulundu: Araştırma panelinde yağmur suyu projesi açıldı.</p>' : ''}
       ${sf.arastirmaBitti ? `<p class="mesaj">&gt; ${kacis(ARASTIRMALAR[sf.arastirmaBitti].ad)} tamamlandı!</p>` : ''}
     </div>
     ${sf.basari && sf.bilgi ? bilgiHtml(BILGILER[sf.bilgi]) : ''}`;
@@ -578,7 +596,33 @@ export function onay(baslik, metin, evetYazi, evet) {
 // ---------------------------------------------------------------
 //  GÖREV VE ARAŞTIRMA PANOSU
 // ---------------------------------------------------------------
-const YONETIM_BOLUMLERI = { koloni: 'Koloni', odalar: 'Odalar', kesif: 'Keşif', arastirma: 'Araştırma', insaat: 'İnşaat' };
+const YONETIM_BOLUMLERI = { koloni: 'Koloni', odalar: 'Odalar', kesif: 'Keşif', arastirma: 'Araştırma', insaat: 'İnşaat', hedefler: 'Hedefler' };
+
+function makineAyarHtml(id) {
+  const secili = state.makineModlari[id];
+  const asinma = state.makineAsinma[id];
+  return `<div class="makine-ayar"><div class="mod-secimleri" aria-label="${MAKINELER[id].ad} çalışma modu">
+    ${Object.entries(CALISMA_MODLARI).map(([mod, bilgi]) => `<button data-mod="${mod}" data-makine="${id}" class="${secili === mod ? 'secili' : ''}" aria-pressed="${secili === mod}" title="${bilgi.aciklama}">${bilgi.ad}</button>`).join('')}
+    </div><p class="aciklama">${makineModu(id).aciklama} Aşınma: ${asinma}/10${asinma >= 6 ? ' · üretim düşüyor' : ''}.</p>
+    <div class="chipler">${etkiChipleri(makineUretimi(id))}</div>${Object.keys(havaUretimEtkisi(id)).length ? `<p class="aciklama">Hava etkisi (${kacis(state.olay.baslik)}): ${etkiChipleri(havaUretimEtkisi(id))}</p>` : ''}
+    <button data-bakim="${id}" ${bakimYapabilirMi(id) ? '' : 'disabled'}>Bakım · ${BAKIM.eylem} eylem + ${BAKIM.malzeme} malzeme · −${BAKIM.onarim} aşınma</button></div>`;
+}
+function makineAyarlariniBagla() {
+  kart.querySelectorAll('[data-mod]').forEach((b) => b.addEventListener('click', () => makineModuSec(b.dataset.makine, b.dataset.mod)));
+  kart.querySelectorAll('[data-bakim]').forEach((b) => b.addEventListener('click', () => bakimYap(b.dataset.bakim)));
+}
+function insaatYonetimiHtml() {
+  const i = state.insaat;
+  if (!i) return '<p class="aciklama">Yapı seçtikten sonra bir sakini inşaata ata veya kendin yardım et. Normal işçi gecede 1, mühendis/tamirci 2 iş puanı sağlar.</p>';
+  const kisi = insaatci(), t = insaatTahmini(), y = YAPILAR[i.id];
+  const adaylar = state.sakinler.filter((s) => sakinTanimi(s.id).calisir !== false && s.gorev !== 'kesif');
+  const iade = Math.floor(-(y.maliyet.malzeme || 0) * i.kalan / y.sure * 0.5);
+  return `<section class="insaat-durum"><h3>${kacis(y.ad)}</h3><p>${i.duraklat ? 'Duraklatıldı' : 'İnşa ediliyor'} · ${i.kalan}/${y.sure} iş puanı kaldı · Bu gece ${t.ilerleme} ilerleme${t.biter ? ' · Tamamlanacak' : ''}</p>
+    <label>İnşaatçı <select data-insaatci><option value="">İşçi yok</option>${adaylar.map((s) => `<option value="${s.uid}" ${s.uid === kisi?.uid ? 'selected' : ''}>${kacis(sakinTanimi(s.id).ad)}${['tamirci','muhendis'].includes(s.id) ? ' ★' : ''} · ${gorevBilgisi(s.gorev).ad}</option>`).join('')}</select></label>
+    <p class="aciklama">Atanan sakin önceki işinde üretim yapmaz. İnşaat bitince veya iptal edilince önceki görevine döner; makinesi doluysa dinlenir.</p>
+    <div class="insaat-islemler"><button data-insaat-yardim ${i.duraklat || i.yardim || state.eylem < 1 ? 'disabled' : ''}>${i.yardim ? 'Bugün yardım ettin' : 'Yardım et · 1 eylem, +1 iş'}</button>
+    <button data-insaat-duraklat>${i.duraklat ? 'Devam et' : 'Duraklat'}</button><button data-insaat-iptal>İptal · ${iade} malzeme iadesi</button></div></section>`;
+}
 
 function odalarHtml() {
   return `<div class="oda-kartlari">${ODALAR.map((oda) => {
@@ -587,7 +631,7 @@ function odalarHtml() {
     const tamamlanan = Object.entries(YAPILAR).filter(([id, y]) => y.oda === oda.tip && yapiAcik(id));
     return `<article class="oda-karti"><h3>${kacis(oda.ad)}</h3>
       <p>${panel ? `Operatör: ${op ? kacis(sakinTanimi(op.id).ad) : 'Yok'} · ${makineCalisiyorMu(panel) ? 'Çalışıyor' : 'Üretim yok'}` : `${state.nufus} kişi sığınakta`}</p>
-      ${panel ? `<div class="chipler">${etkiChipleri(MAKINELER[panel].uretim)}</div><button data-oda-panel="${panel}">Kontrol panelini aç</button>` : ''}
+      ${panel ? `${makineAyarHtml(panel)}<button data-oda-panel="${panel}">Kontrol panelini aç</button>` : ''}
       <p class="aciklama">${tamamlanan.length ? tamamlanan.map(([, y]) => kacis(y.ad)).join(', ') : 'Henüz iyileştirme yapılmadı'}</p>
       <button data-oda-insaat="${oda.tip}">İyileştirmeleri gör</button></article>`;
   }).join('')}</div>`;
@@ -645,14 +689,15 @@ function yapilarHtml(oda = null) {
     const m = y.maliyet || {};
     const maliyetMetin = [];
     if (m.eylem) maliyetMetin.push(`${m.eylem} eylem`);
-    for (const [k, v] of Object.entries(m)) if (k !== 'eylem') maliyetMetin.push(`${v > 0 ? '+' : '−'}${Math.abs(v)} ${KAYNAKLAR[k]?.ad || k}`);
+    for (const [k, v] of Object.entries(m)) if (k !== 'eylem') maliyetMetin.push(`${v > 0 ? '+' : '−'}${Math.abs(v)} ${k === 'malzeme' ? 'Malzeme' : KAYNAKLAR[k]?.ad || k}`);
     const suruyor = state.insaat?.id === id;
-    const durum = inşaEdildi ? '✓ İnşa edildi' : suruyor ? `İnşa ediliyor · ${state.insaat.kalan} gece` : state.gun >= AYAR.maxGun ? 'İnşaat için son gün' : state.insaat ? 'Önce mevcut inşaat tamamlanmalı' : kurabilir ? 'İnşaatı başlat' : 'Yeterli eylem/kaynak yok';
+    const kilitli = y.onKosul && !y.onKosul(state);
+    const durum = kilitli ? y.kilitAciklama || 'Araştırma gerekli' : inşaEdildi ? '✓ İnşa edildi' : suruyor ? `İnşa ediliyor · ${state.insaat.kalan} iş kaldı` : state.gun >= AYAR.maxGun ? 'İnşaat için son gün' : state.insaat ? 'Önce mevcut inşaat tamamlanmalı' : kurabilir ? 'İnşaatı başlat' : 'Yeterli eylem/kaynak yok';
     return `
       <button class="proje ${inşaEdildi ? 'acik' : ''}" data-yapi="${id}" ${inşaEdildi || !kurabilir ? 'disabled' : ''}>
-        <span class="ad">${arayuzIkonu(id === 'suDeposu' ? 'grisu' : id === 'onarimTezgahi' ? 'atik' : id, y.ikon)} ${kacis(y.ad)} ${inşaEdildi ? '✓' : ''}</span>
+        <span class="ad">${arayuzIkonu(['suDeposu','yagmurDeposu'].includes(id) ? 'grisu' : id === 'onarimTezgahi' ? 'atik' : id, y.ikon)} ${kacis(y.ad)} ${inşaEdildi ? '✓' : ''}</span>
         <span class="aciklama">${kacis(y.aciklama)}</span>
-        <span class="kalan">${inşaEdildi ? 'Kalıcı etki aktif' : `Maliyet: ${maliyetMetin.join(', ')} · ${y.sure ?? 1} gece · ${durum}`}</span>
+        <span class="kalan">${inşaEdildi ? 'Kalıcı etki aktif' : `Maliyet: ${maliyetMetin.join(', ')} · ${y.sure ?? 2} iş · ${durum}`}</span>
       </button>`;
   }).join('');
 }
@@ -687,7 +732,7 @@ function kesifHtml() {
     ? (() => {
         const kisi = state.sakinler.find((x) => x.uid === sf.uid);
         const n = KESIF_NOKTALARI[sf.yer];
-        return `<p class="mesaj">&gt; 🧭 ${kacis(kisi ? sakinTanimi(kisi.id).ad : '')} keşifte: ${arayuzIkonu(sf.yer, n.ikon)} ${kacis(n.ad)} · dönüş: ${sf.kalan === 1 ? 'yarın sabah' : `${sf.kalan} gün sonra`} · başarı %${Math.round(sf.sans * 100)}</p>`;
+        return `<p class="mesaj">&gt; 🧭 ${kacis(kisi ? sakinTanimi(kisi.id).ad : '')} keşifte: ${arayuzIkonu(sf.yer, n.ikon)} ${kacis(n.ad)} · dönüş: ${sf.kararBekliyor ? 'karar bekliyor' : sf.kalan === 1 ? 'yarın sabah' : `${sf.kalan} gün sonra`} · başarı %${Math.round(sf.sans * 100)}</p>`;
       })()
     : '';
   const noktalar = Object.entries(KESIF_NOKTALARI).map(([id, n]) => {
@@ -720,16 +765,24 @@ function kesifHtml() {
   }
   return `
     <h3>Keşif</h3>
+    ${sf?.kararBekliyor ? `<div class="insaat-durum"><h3>Ekip karar bekliyor</h3><p>${kacis(KESIF_NOKTALARI[sf.yer].araKarar.metin)}</p><p class="aciklama">Devam: +1 gece, başarı −15 yüzde puan. Erzak gönder: 2 gıda +2 su, +1 gece, başarı +10 yüzde puan. Erken dönüş: yarım kaynak; çizim/araştırma ödülü yok.</p><div class="insaat-islemler">${[['don','Eldekiyle dön'],['devam','Devam et'],['erzak','Ek erzak gönder']].map(([id,ad]) => `<button data-kesif-karar="${id}" ${kesifKarariYapabilirMi(id) ? '' : 'disabled'}>${ad}</button>`).join('')}</div></div>` : ''}
     ${aktif}
     <div class="projeler kesif">${noktalar}</div>
     ${kisiler}`;
+}
+
+function hedeflerHtml() {
+  return `<p class="aciklama">İsteğe bağlı topluluk hedefleri. Kendi hazırlığın ile komşuya yardım aynı malzemeyi kullanır; geri kazanım yaparak ikisini de yetiştirebilirsin.</p>${SENARYO_HEDEFLERI.map(h => {
+    const durum = state.hedefler.find(t => t.id === h.id)?.durum;
+    return `<article class="oda-karti"><h3>${h.ad}</h3><p>${h.metin}</p><span class="chip">Son gün ${h.sonGun} · ${durum === 'tamamlandi' ? 'Tamamlandı' : durum === 'kacirildi' ? 'Süre doldu' : 'Bekliyor'}</span>${h.id === 'komsuDestek' ? `<button data-hedef-yardim ${hedefYardimiGonderebilirMi() ? '' : 'disabled'}>8 su +5 malzeme gönder · +5 insanlık, +4 memnuniyet</button>` : '<p class="aciklama">İnşaat panelinden bariyer kur.</p>'}</article>`;
+  }).join('')}`;
 }
 
 function panoCiz() {
   const sakinler = state.sakinler.map((s) => {
     const z = sakinTanimi(s.id);
     const cikti = sakinCiktisi(s);
-    const gorevler = [...Object.keys(MAKINELER), ...Object.keys(GOREVLER)];
+    const gorevler = [...Object.keys(MAKINELER), ...Object.keys(GOREVLER).filter((id) => id !== 'insaat' || state.insaat)];
     const butonlar = s.gorev === 'kesif'
       ? `<span class="chip iyi">🧭 Keşifte: ${kacis(KESIF_NOKTALARI[state.sefer?.yer]?.ad || '')}</span>`
       : z.calisir === false
@@ -747,8 +800,8 @@ function panoCiz() {
         }).join('');
     return `
       <div class="sakin-satir">
-        <div class="sakin-ad">${portreRozet(s.id, z.ikon)}<b>${kacis(z.ad)}</b>
-          ${yorgunlukChip(s)}
+        <div class="sakin-ad">${portreRozet(s.id, z.ikon)}<b>${kacis(z.ad)}</b>${s.gorev !== 'kesif' ? `<button class="konus-btn" data-konus="${s.uid}">Konuş</button>` : ''}
+          ${yorgunlukChip(s)}${state.sozler.some(p => p.uid === s.uid) ? `<span class="chip">İzin sözü · gün ${state.sozler.find(p => p.uid === s.uid).gun}</span>` : ''}
           ${z.kosullu ? `<span class="chip ${cikti.kosul ? 'kotu' : ''}">${cikti.kosul ? '⚠ ' : ''}${kacis(z.kosullu)}</span>` : ''}</div>
         <div class="gorevler">${butonlar}</div>
       </div>`;
@@ -760,13 +813,13 @@ function panoCiz() {
     const acik = arastirmaAcik(id);
     const kilitli = !acik && p.onKosul && !p.onKosul(state);
     const disabled = acik || kilitli;
-    const durumEtiket = acik ? '✓' : a.aktif === id ? '◂ aktif' : kilitli ? '🔒 Seviye I bitince açılır' : '';
+    const durumEtiket = acik ? '✓' : a.aktif === id ? '◂ aktif' : kilitli ? `🔒 ${p.kilitAciklama || 'Seviye I bitince açılır'}` : '';
     return `
       <button class="proje ${a.aktif === id ? 'secili' : ''} ${acik ? 'acik' : ''} ${kilitli ? 'kilitli' : ''}" data-proje="${id}" ${disabled ? 'disabled' : ''}>
         <span class="ad">${arayuzIkonu(id, p.ikon)} ${kacis(p.ad)} ${durumEtiket}</span>
         <span class="aciklama">${kacis(p.aciklama)}</span>
         <span class="bar"><i class="iyi" style="width:${(puan / p.maliyet) * 100}%"></i></span>
-        <span class="kalan">${acik ? 'Tamamlandı' : kilitli ? 'Önce Seviye I' : `${puan} / ${p.maliyet} puan`}</span>
+        <span class="kalan">${acik ? 'Tamamlandı' : kilitli ? p.kilitAciklama || 'Önce Seviye I' : `${puan} / ${p.maliyet} puan`}</span>
       </button>`;
   }).join('');
 
@@ -775,6 +828,7 @@ function panoCiz() {
     : '';
 
   const bolumler = {
+    hedefler: hedeflerHtml(),
     koloni: `
       <details class="yonetim-yardim"><summary>Görevler ve yorgunluk nasıl çalışır?</summary>
     <p class="aciklama">Her makinede bir operatör çalışır; <b>operatörü olmayan makine üretim yapmaz</b>. Boş makinenin paneline gidip kendin çalışabilirsin (${OYUNCU_CALISMA_MALIYETI} eylem). ★ uzmanlık yeridir: orada ek katkı ve <b>%100 verim</b>; başka makinede ${Math.round(AYAR.uzmanOlmayanVerim * 100)}%. Laboratuvar sınırsız: istediğin kadar sakini araştırmaya atayabilirsin, her biri +2 puan/gün verir. <b>Yorgunluk:</b> çalışan her gece +1, dinlenen −2; ${AYAR.yorgunlukAyrilmaEsigi} ve üstünde sakin sığınaktan ayrılabilir. <b>Enerji düştüğünde</b> makineler kademeli kapanır (25 altı: Geri Dönüşüm; 10 altı: Sera da). Görev değişikliği bu geceden geçerlidir; +1 eylem hakkı yarın başlar.</p>
@@ -793,8 +847,8 @@ function panoCiz() {
       <span class="maliyet">${MASA_ARASTIRMA.maliyet} eylem</span>
     </button>
     `,
-    insaat: `<p class="aciklama">Aynı anda bir inşaat yapılır. Malzeme ve eylem başlarken harcanır; yapı gece tamamlanır ve ertesi gün kullanıma girer. Atık, geri kazanılan yapı malzemesidir.</p>
-      ${state.insaat ? `<p class="mesaj">${kacis(YAPILAR[state.insaat.id].ad)} inşa ediliyor · ${state.insaat.kalan} gece kaldı</p>` : ''}
+    insaat: `<p class="aciklama">Malzeme: <b>${state.malzeme}/${AYAR.malzemeKapasite}</b>. Atıkları ayrıştırarak stok kazanırsın. Aynı anda bir yapı kurulur; işçi veya oyuncu yardımıyla ilerler. Tamamlanan yapı ertesi gün kullanılır.</p>
+      ${insaatYonetimiHtml()}
       <label class="oda-filtre">Oda <select data-insaat-oda><option value="">Tüm odalar</option>${ODALAR.map((o) => `<option value="${o.tip}" ${insaatOda === o.tip ? 'selected' : ''}>${kacis(o.ad)}</option>`).join('')}</select></label>
       <div class="projeler">${yapilarHtml(insaatOda)}</div>`,
   };
@@ -808,6 +862,22 @@ function panoCiz() {
       <button class="ikincil" data-kapat>Kapat (Esc)</button>
     </div>`, { sinif: 'panel pano', tema: '#7fd1b9' });
   panoAcik = true;
+  makineAyarlariniBagla();
+  kart.querySelector('[data-hedef-yardim]')?.addEventListener('click', hedefYardimiGonder);
+  kart.querySelectorAll('[data-kesif-karar]').forEach(b => b.addEventListener('click', () => {
+    const r = kesifKarariSec(b.dataset.kesifKarar);
+    if (r) { sonMesaj = r.metin || 'Kararın ekibe iletildi.'; panoCiz(); }
+  }));
+  kart.querySelectorAll('[data-konus]').forEach((b) => b.addEventListener('click', () => sakinleKonus(Number(b.dataset.konus))));
+  kart.querySelector('[data-insaatci]')?.addEventListener('change', (e) => {
+    if (e.target.value) gorevAta(Number(e.target.value), 'insaat');
+    else if (insaatci()) gorevAta(insaatci().uid, 'bosta');
+  });
+  kart.querySelector('[data-insaat-yardim]')?.addEventListener('click', insaataYardimEt);
+  kart.querySelector('[data-insaat-duraklat]')?.addEventListener('click', insaatDuraklat);
+  kart.querySelector('[data-insaat-iptal]')?.addEventListener('click', () => {
+    onay('İnşaatı iptal et', 'Harcanan eylem ve enerji iade edilmez. Kalan iş oranına göre malzemenin yarısı geri alınır.', 'İptal et', () => { insaatIptal(); panoAc('insaat'); });
+  });
   kart.querySelectorAll('[data-bolum]').forEach((b) => b.addEventListener('click', () => {
     panoBolumu = b.dataset.bolum;
     kart.querySelector('.kart-icerik').scrollTop = 0;
@@ -837,7 +907,7 @@ function panoCiz() {
   kart.querySelectorAll('[data-yapi]').forEach((b) => b.addEventListener('click', () => {
     const id = b.dataset.yapi;
     if (yapiKur(id)) {
-      sonMesaj = `${YAPILAR[id].ikon} ${YAPILAR[id].ad} inşaatı başladı. Yarın kullanıma hazır.`;
+      sonMesaj = `${YAPILAR[id].ikon} ${YAPILAR[id].ad} inşaatı başladı. İlerlemesi için işçi ata veya yardım et.`;
       panoCiz();
     }
   }));
@@ -863,10 +933,54 @@ function panoCiz() {
   });
 }
 
+// Diyalogta oyuncu seçimi önce kendi portresiyle gösterilir; Devam ile sakin yanıtlar.
+export function sakinleKonus(uid) {
+  const s = state.sakinler.find((s) => s.uid === uid);
+  if (!s || s.gorev === 'kesif' || state.bitti) return;
+  aktifPanel = null; aktifPanelAnahtar = null;
+  const z = sakinTanimi(s.id);
+  const cerceve = (oyuncu) => `<div class="diyalog-cerceve ${oyuncu ? 'oyuncu' : 'sakin'}">${oyuncu ? varsaImg(`${ARAYUZ_ASSET_KLASORU}oyuncu.png`, 'diyalog-portre') : sakinPortresi(z.id, 'diyalog-portre')}<span>${oyuncu ? 'Sen' : kacis(z.ad)}</span></div>`;
+  function ciz(konusan, metin, devam = null) {
+    const oyuncu = konusan === 'oyuncu';
+    const secenekler = DIYALOG.secenekler.filter((sec) => sec.id !== 'dinlen' || (z.calisir !== false && s.gorev !== 'bosta'));
+    modalAc(`<div class="diyalog-sahne">
+      <div class="diyalog-sol">${oyuncu ? cerceve(true) : ''}</div>
+      <div class="diyalog-konusma"><span class="etiket">${oyuncu ? 'Sen' : kacis(z.ad)}</span><p>${kacis(metin)}</p>
+      ${devam ? '<button data-diyalog-devam data-varsayilan>Devam</button>' : `<div class="diyalog-secenekler">${secenekler.map((sec) => `<button data-diyalog="${sec.id}" ${(sec.id === 'moral' && !moralVerebilirMi(uid)) || (sec.id === 'soz' && !dinlenmeSozuVerebilirMi(uid)) ? 'disabled' : ''}>${kacis(sec.metin)}${sec.maliyet ? `<small>${kacis(sec.maliyet)}</small>` : ''}</button>`).join('')}</div>`}</div>
+      <div class="diyalog-sag">${oyuncu ? '' : cerceve(false)}</div>
+    </div>`, { sinif: 'diyalog-kart' });
+    kart.querySelector('[data-diyalog-devam]')?.addEventListener('click', devam);
+    kart.querySelectorAll('[data-diyalog]').forEach((b) => b.addEventListener('click', () => {
+      const sec = DIYALOG.secenekler.find((sec) => sec.id === b.dataset.diyalog);
+      ciz('oyuncu', sec.metin, () => {
+        if (!state.sakinler.some((s) => s.uid === uid)) return modalKapat();
+        let yanit;
+        if (sec.id === 'bitir') yanit = 'Görüşürüz. Bir şeye ihtiyacın olursa buradayım.';
+        else if (sec.id === 'gorev') yanit = z.calisir === false ? DIYALOG.cocuk : DIYALOG.gorev(gorevBilgisi(s.gorev).ad);
+        else if (sec.id === 'ihtiyac') {
+          yanit = (s.yorgunluk || 0) >= 3 ? DIYALOG.yorgun
+            : state.kaynak.su < 20 ? 'Su azalıyor. Tankları doldurabilirsek içim rahat eder.'
+            : state.kaynak.gida < 20 ? 'Yemek stokları beni endişelendiriyor. Seraya bakabilir misin?'
+            : s.gorev === 'insaat' && state.insaat?.duraklat ? DIYALOG.durak : DIYALOG.iyi;
+        } else if (sec.id === 'soz') yanit = dinlenmeSozuVer(uid) ? 'Yarın dinleneceğime söz verdin. Buna güveniyorum; o gün beni Dinlen görevine almayı unutma.' : 'Şu an yeni bir izin sözü veremiyoruz.';
+        else if (sec.id === 'moral') yanit = moralVer(uid) ? DIYALOG.moral : DIYALOG.yetersiz;
+        else if (sec.id === 'dinlen') { gorevAta(uid, 'bosta'); yanit = DIYALOG.dinlen; }
+        ciz('sakin', yanit || 'Seni duydum. Bunu birlikte çözebiliriz.', sec.id === 'bitir' ? modalKapat : secimleriGoster);
+      });
+    }));
+  }
+  function secimleriGoster() { ciz('sakin', 'Ne konuşmak istersin?'); }
+  const soz = state.sozler.find(p => p.uid === uid);
+  const gecmis = [...state.sozGecmisi].reverse().find(p => p.uid === uid);
+  const hatira = soz ? `Bana ${soz.gun}. gün için dinlenme sözü verdin.` : gecmis?.durum === 'tutuldu' ? 'Dinlenme sözünü tuttun, teşekkür ederim.' : gecmis?.durum === 'bozuldu' ? 'Dinleneceğime söz vermiştin ama çalışmaya devam ettim. Sana güvenmek istiyorum.' : DIYALOG.giris;
+  ciz('sakin', `${z.ad}. ${z.calisir === false ? DIYALOG.cocuk : hatira}`, secimleriGoster);
+}
+
 // Günü bitirmeden önce gece tahmini + onay
 export function gunuBitirOnay(evet) {
   const t = geceTahmini();
   const uyarilar = [];
+  if (t.insaat) uyarilar.push(t.insaat.biter ? 'İnşaat bu gece tamamlanacak.' : `İnşaat: bu gece ${t.insaat.ilerleme} iş ilerler, ${t.insaat.kalan} iş kalır.`);
   if (state.eylem > 0) uyarilar.push(`Hâlâ ${state.eylem} eylem hakkın var.`);
   const bos = bosMakineler();
   if (bos.length) uyarilar.push(`⚙ Boş makine: ${bos.map((m) => MAKINELER[m].ad).join(', ')}. Bu gece üretim yapmayacak.`);
@@ -903,7 +1017,7 @@ export function bilgi(baslik, metin) {
 // Başla ekranından önceki hikaye ekranları (data/story.js)
 export function girisHikayesi(bitti, i = 0) {
   if (i >= HIKAYE.length) return girisBitti(bitti);
-  hud.style.visibility = 'hidden';
+  hudGorunurlugu(false);
   const h = HIKAYE[i];
   const noktalar = HIKAYE.map((_, j) => `<i class="${j <= i ? 'dolu' : ''}"></i>`).join('');
   modalAc(`
@@ -925,12 +1039,13 @@ export function girisHikayesi(bitti, i = 0) {
 }
 
 function girisBitti(bitti) {
-  hud.style.visibility = '';
+  hudGorunurlugu(true);
   bitti();
 }
 
 export function baslangicEkrani(basla) {
-  hud.style.visibility = 'hidden';
+  const kayit = kayitOku();
+  hudGorunurlugu(false);
   modalAc(`
     <div class="baslik-ekrani">
       <span class="etiket">YEŞİLVADİ · 2071<i class="led"></i></span>
@@ -938,16 +1053,22 @@ export function baslangicEkrani(basla) {
       <p><b>Yeşilvadi</b>, Büyük Sessizlik'ten sonra kurulan son ütopya. Ne kadar dayanacağı senin kararlarına bağlı.</p>
       <p>${AYAR.maxGun} gün boyunca enerjiyi, suyu, gıdayı ve atığı yönet. Kolay çözümlerin bir bedeli var.</p>
       <div class="menu-butonlar">
-        <button data-basla data-varsayilan>Oyuna Başla</button>
+        ${kayit ? `<button data-kayit-devam>Devam et · Gün ${kayit.durum.gun}</button>` : ''}
+        <button data-basla data-varsayilan>${kayit ? 'Yeni oyun' : 'Oyuna Başla'}</button>
         <button class="ikincil" data-ayarlar>Ayarlar</button>
       </div>
       <p class="aciklama kontrol-ozet"><kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> yürü · <kbd>Shift</kbd> koş · <kbd>E</kbd> etkileşim · <kbd>F</kbd> tam ekran</p>
     </div>`, { kapatma: false, sinif: 'baslangic' });
   kart.querySelector('[data-basla]').addEventListener('click', () => {
-    hud.style.visibility = '';
+    hudGorunurlugu(true);
     modalKapat();
+    gunBasiniKaydet(state);
     muzikCal('muzik-umut');
     basla();
+  });
+  kart.querySelector('[data-kayit-devam]')?.addEventListener('click', () => {
+    if (!kayittanDevamEt(kayit)) return bilgi('Kayıt açılamadı', 'Bu kayıt güncel sürümle uyumlu değil. Yeni oyun başlatabilirsin.');
+    hudGorunurlugu(true); modalKapat(); muzikCal('muzik-umut'); yayinla('kayitYuklendi', { onBitti: basla });
   });
   kart.querySelector('[data-ayarlar]').addEventListener('click', () => ayarlarAc(() => baslangicEkrani(basla)));
 }

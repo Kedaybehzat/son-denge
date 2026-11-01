@@ -13,21 +13,39 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 
 | İhtiyaç | Gidilecek yer |
 |---|---|
+| Sahne modülleri / yöntem sahipleri | `src/scenes/GameScene.js`: create/update/oyuncu/etkileşim/gün akışı; aşağıdaki modüller prototype üzerinde birleştirilir, birbirini veya sahneyi import etmez |
+| `game/dokular.js` | `preload`, `dokuKucult`, `dokuKucultOran`, `assetleriKucult`, `gercekAsset`, `dokuAnahtari`, `icerikKutusu`, `animKutusu`, `olcekle`, `gorunurY`, `yuksekKaliteKucult` |
+| `game/yerTutucular.js` | `dokulariUret`, `dokuUret` |
+| `game/animasyonlar.js` | `animasyonlariYukle`, `animOynat`, `animDurdur`, `makineAnimGuncelle` |
+| `game/dunya.js` | `ekranaSabitle`, `odaGorseliYerlestir`, `odaGecisleriCiz`, `disariCiz`, `sehirBoya`, `evCiz`, `dekorCiz`, `_cizCatiPanelleri`, `_cizYapilar` |
+| `game/sakinler.js` | `sakinGuncelle`, `sakinIdleBaslat`, `sakinTasi`, `sakinAnimGuncelle`, `sakinNoktayaGit`, `sakinIsBaslat`, `sakinRutinDurdur`, `npcNoktalariGoster` |
+| `game/efektler.js` | `gorselGuncelle`, `gorselUygula`, `renkGecis`, `etiketZeminiCiz`, `efektZiyaretci` |
+| Sahne sabitleri / doku ömrü | `game/ayarlar.js`: hız/ölçek/koordinat; `game/dokuOnbellegi.js`: restart boyunca yaşayan doku kümeleri ve içerik ölçümü |
 | Denge sayıları, başlangıç değerleri, eşikler | `src/state.js` → `AYAR`, `BASLANGIC`, `AGIRLIK` |
 | Gece tüketimi, gün sonu, sonların belirlenmesi | `src/state.js` → `nufusTuketimi()`, `gunuBitir()`, `sonucBelirle()` |
 | Gece tahmini, ziyaretçinin net gece etkisi | `src/state.js` → `geceHesapla()` (tek gece hesabı), `geceTahmini()`, `ziyaretciNetEtki()` |
-| Sakin görseli seçimi (özel `sakin-<id>` / genel `sakin-N`) | `assets.js` → `SAKIN_OZEL_YUKSEKLIK` ve otomatik `sakin-<id>` girdileri; `GameScene.js` → `sakinGuncelle()` (`ozelDoku`), `sakinAnimGuncelle()` |
+| Sakin görseli seçimi (özel `sakin-<id>` / genel `sakin-N`) | `assets.js` → `SAKIN_OZEL_YUKSEKLIK` ve otomatik `sakin-<id>` girdileri; `GameScene.js` + `game/` modülleri → `sakinGuncelle()` (`ozelDoku`), `sakinAnimGuncelle()` |
 | Sakinler, görev atama, trait koşulları | `src/state.js` → `sakinCiktisi()`, `kosulAktif()`, `gorevAta()`, `varsayilanGorev()`, `katkiGuncelle()`; veri: `visitors.js` (`uzman`, `kosul`, `ekTuketim`, `guclu`, `kosullu`, `KURUCULAR`) |
 | Makineler, operatör, boş makine, kendin çalış | `src/state.js` → `MAKINELER`, `makineOperatoru()`, `bosMakineler()`, `kendinCalis()`; üretim: `panels.js` → `makine.uretim`; arayüz: `ui.js` → `makinePanelHtml()`, `makineDurumHtml()` |
 | Uzman olmayan verim ve enerji azlığında makine kapanışı | `src/state.js` → `AYAR.uzmanOlmayanVerim`, `AYAR.makineKapatmaEsikleri`, `kapaliMakineler()`, `makineKapali()`; uygulama: `sakinCiktisi()`, `sakinlerToplami()`, `calisiyor()` |
 | Üs İnşası (yapılar, GDD bölüm 7) | Veri: `src/data/structures.js` → `YAPILAR`; kurallar: `src/state.js` → `yapiKur()`, `yapiKurabilirMi()`, `yapiAcik()`, `insaatGecesi()`, `state.insaat`, `olayCarpani()`; arayüz: `ui.js` → `yapilarHtml()` (panoda "İnşa" bölümü) |
-| Yorgunluk ve ayrılma (Faz 2 / M2) | `src/state.js` → `yarinkiYorgunluk()`, `ayrilmaSansi()`, `yorgunlukGecesi()` (gunuBitir içinde), `AYAR.yorgunluk*`; arayüz: `ui.js` → `yorgunlukChip()`; sahne: `GameScene.js` → `sakinGuncelle()` (ayrılan figür solar) |
+| Yorgunluk ve ayrılma (Faz 2 / M2) | `src/state.js` → `yarinkiYorgunluk()`, `ayrilmaSansi()`, `yorgunlukGecesi()` (gunuBitir içinde), `AYAR.yorgunluk*`; arayüz: `ui.js` → `yorgunlukChip()`; sahne: `GameScene.js` + `game/` modülleri → `sakinGuncelle()` (ayrılan figür solar) |
 | Hazırlıklı olaylar (tahmin, hazırlık) | Veri: `events.js` (`uyari`, `hazirlik`, `HAZIRLIK_MALIYETI`); kurallar: `state.js` → `state.tahmin`, `olayEtkisi()`, `hazirlan()`, `gunuBitir()` (tahmin → olay); arayüz: `ui.js` → `tahminHtml()`, `olayHtml()`, `hazirlikBagla()` |
 | Eğitici karar kartları | Veri: `src/data/cards.js` → `KARTLAR`; kurallar: `state.js` → `kartKontrol()` (gunuBitir sonunda), `kartSec()`, `kartSecenekleri()`, `state.kartGeceEtki` (geceHesapla); arayüz: `ui.js` → `kararKartiGoster()`, `sabahGoster()` |
 | Keşif (sefer, dönüş) | Veri: `src/data/exploration.js` → `KESIF_NOKTALARI`; kurallar: `state.js` → `kesfeGonder()`, `kesifSansi()`, `seferSabahi()` (gunuBitir sabahı), `state.sefer`; arayüz: `ui.js` → `kesifHtml()` (pano), `seferHtml()` (gece raporu); sahne: `sakinGuncelle()` keşiftekini gizler |
 | Memnuniyet, itiraz kartı, güven oylaması | `state.js` → `AYAR.memnuniyet*`, `memnuniyetGecesi()`, `state.guvenDusukGece`, `gunuBitir()` (`guvenKaybi` sonu); kart: `cards.js` → `itiraz`; arayüz: `ui.js` → HUD `[data-memnuniyet]`, `memnuniyetHtml()`, `SONLAR.guvenKaybi` |
 | Araştırma ve batarya | `src/state.js` → `arastirmaSec()`, `masadaArastir()`, `puanEkle()`, `geceHesapla()`; veri: `src/data/research.js` |
-| Koloni / Odalar / Keşif / Araştırma / İnşaat panelleri | `ui.js` → `panoAc(bolum)`, `panoCiz()`, `YONETIM_BOLUMLERI`, `odalarHtml()`; alt erişim: `hudKur()`; nesne: `rooms.js` (`tip: 'pano'`), doku: `GameScene.js` → `dokulariUret()` |
+| Koloni / Odalar / Keşif / Araştırma / İnşaat / Hedefler panelleri | `ui.js` → `panoAc(bolum)`, `panoCiz()`, `YONETIM_BOLUMLERI`, `odalarHtml()`; alt erişim: `hudKur()`; nesne: `rooms.js` (`tip: 'pano'`), doku: `GameScene.js` + `game/` modülleri → `dokulariUret()` |
+| Malzeme / oda modları / bakım | `state.js` → `state.malzeme`, `geriKazanimMiktari`, `makineModuSec`, `makineUretimi`, `bakimYap`; veri: `src/data/production.js` |
+| İnşaat iş gücü / iptal / yardım | `state.js` → `insaatci`, `insaatTahmini`, `insaataYardimEt`, `insaatDuraklat`, `insaatIptal`; UI: `insaatYonetimiHtml()` |
+| Sakinlerle konuşma | `src/data/dialogues.js`; `ui.js` → `sakinleKonus`; `state.js` → `moralVer`, `moralVerebilirMi`; sahne: E/T |
+| Keşif ara kararı / plan zinciri | `state.js` → `kesifKarariSec`, `kesifKarariYapabilirMi`; `exploration.js` → `araKarar`; `research.js` → `yagmurSuyu`; `structures.js` → `yagmurDeposu` |
+| Dinlenme sözü ve hafıza | `state.js` → `dinlenmeSozuVer`, `sozleriDegerlendir`; `dialogues.js`; `ui.js` → `sakinleKonus` |
+| Hava üretimi / opsiyonel hedefler | `production.js` → `HAVA_URETIMI`; `state.js` → `havaUretimEtkisi`, `hedefYardimiGonder`, `hedefleriDegerlendir`; `scenario.js`; `ui.js` → `hedeflerHtml` |
+| Gün başı kayıt ve devam | `src/kayit.js`; `state.js` → `kayittanDevamEt`, `gunuBitir`; `ui.js` → `baslangicEkrani`; `main.js` → sahne restart sonrası create |
+| İlerleme testleri / hackathon eşlemesi | `tools/ilerleme-test.mjs`; `docs/hackathon-uyum-analizi.md` |
+| NPC oda rutinleri / çalışma noktaları | `src/data/activities.js`, `docs/npc-noktalari.md`; `GameScene.js` + `game/` modülleri → `sakinNoktayaGit`, `sakinIsBaslat`, `sakinRutinDurdur`, `npcNoktalariGoster` |
+| Sakin kimliği / portre eşleşmesi | `assets.js` → `SAKIN_GORSEL_TIPLERI`, `sakinGorselTanimi`; `ui.js` → `sakinPortresi`; sahne aynı seçimi kullanır |
 | Kaynak maliyeti ve mekanik regresyonlar | `state.js` → `kaynakYeterliMi()`; `tools/mekanik-test.mjs` (`npm test`): kaynak/inşaat/kapı/hazırlık |
 | Panel eylemi yapma kuralları | `src/state.js` → `eylemYapabilirMi()`, `eylemYap()` |
 | Ziyaretçi kabul/ret kuralları | `src/state.js` → `ziyaretciKabul()`, `ziyaretciReddet()` |
@@ -38,28 +56,32 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Açılış hikayesi metinleri | `src/data/story.js` → `HIKAYE` |
 | Oda düzeni, pencereler, nesne konumları | `src/data/rooms.js` → `ODALAR`, `ODA_GENISLIK`, `TAVAN_Y`, `ZEMIN_Y` |
 | Yapılacak görsellerin listesi ve durumu | Bu dosya → **Asset Listesi** bölümü (tek tablo); durum kontrolü: `node tools/asset-durum.mjs` |
-| Animasyonlar (kare yükleme, oynatma) | Tanım: `src/data/animations.js` → `ANIMASYONLAR`; yükleme: `GameScene.js` → `preload()` (1. kare), `animasyonlariYukle()`; oynatma: `animOynat()`, `animDurdur()`, `makineAnimGuncelle()`, `sakinAnimGuncelle()`, `update()` (oyuncu), `efektZiyaretci()` (kapı); dosyalar: `public/assets/anim/` |
-| Arka planlar (oda, manzara) | Yerleşim ayarları: `rooms.js` → `ODA_GENISLIK` (739, birleşik oda şeridine göre), `GORSEL_ZEMIN_ORANI`, `GORSEL_DUVAR_ORANI`, `ARKA_OLCEK`, `ODALAR[].gorsel` (`nesneOran`, `bitkiOran`, `copOran`, `suGostergeleri`, `duman`); rework şablonları: `docs/oda-sablonlari/`; brif ve promptlar: `CLAUDE.md` 6.12; `GameScene.js` → `odaGorseliYerlestir()` (oran korur, kırpar, `odaYerlesimi`, `dumanNoktasi`), `odaGecisleriCiz()` (kolon + gölge), `evCiz()` (oda-*, oda adı etiketi, arka nesne perspektifi), `dekorCiz()` (oda görseli varken süs çizimleri atlanır, tank/saksı stili), `disariCiz()` + `gorselUygula()` (manzara-*, iyi↔kötü geçiş) |
+| Animasyonlar (kare yükleme, oynatma) | Tanım: `src/data/animations.js` → `ANIMASYONLAR`; yükleme: `GameScene.js` + `game/` modülleri → `preload()` (1. kare), `animasyonlariYukle()`; oynatma: `animOynat()`, `animDurdur()`, `makineAnimGuncelle()`, `sakinAnimGuncelle()`, `update()` (oyuncu), `efektZiyaretci()` (kapı); dosyalar: `public/assets/anim/` |
+| Arka planlar (oda, manzara) | Yerleşim ayarları: `rooms.js` → `ODA_GENISLIK` (739, birleşik oda şeridine göre), `GORSEL_ZEMIN_ORANI`, `GORSEL_DUVAR_ORANI`, `ARKA_OLCEK`, `ODALAR[].gorsel` (`nesneOran`, `bitkiOran`, `copOran`, `suGostergeleri`, `duman`); rework şablonları: `docs/oda-sablonlari/`; brif ve promptlar: `CLAUDE.md` 6.12; `GameScene.js` + `game/` modülleri → `odaGorseliYerlestir()` (oran korur, kırpar, `odaYerlesimi`, `dumanNoktasi`), `odaGecisleriCiz()` (kolon + gölge), `evCiz()` (oda-*, oda adı etiketi, arka nesne perspektifi), `dekorCiz()` (oda görseli varken süs çizimleri atlanır, tank/saksı stili), `disariCiz()` + `gorselUygula()` (manzara-*, iyi↔kötü geçiş) |
 | Portre ve hikaye görselleri (HTML) | `ui.js` → `portreRozet()`, `portreBuyuk()`, `girisHikayesi()`; yollar: `assets.js` → `portreDosyasi()`, `hikayeDosyasi()` |
-| Çizim netliği (2× tuval + zoom, asset küçültme) | `GameScene.js` → `CIZIM_OLCEGI`, `SABIT_X/Y`, `ekranaSabitle()`, `yuksekKaliteKucult()`, `dokuKucult()`, `dokuKucultOran()`, `assetleriKucult()`; tuval boyu: `src/main.js` |
-| Görsel içerik kutusu (şeffaf boşluk hariç ölçek) | `GameScene.js` → `icerikKutusu()`, `animKutusu()`, `olcekle()`, `gorunurY()` |
-| Var olan asset listesi (404'süz yükleme, canlı yenileme) | `vite.config.js` → `assetListesi()` eklentisi; `src/assetListesi.js` → `assetVar()`; kullanım: `GameScene.js` → `preload()`, `animasyonlariYukle()`; `ui.js` → `varsaImg()` |
+| Çizim netliği (2× tuval + zoom, asset küçültme) | `GameScene.js` + `game/` modülleri → `CIZIM_OLCEGI`, `SABIT_X/Y`, `ekranaSabitle()`, `yuksekKaliteKucult()`, `dokuKucult()`, `dokuKucultOran()`, `assetleriKucult()`; tuval boyu: `src/main.js` |
+| Görsel içerik kutusu (şeffaf boşluk hariç ölçek) | `GameScene.js` + `game/` modülleri → `icerikKutusu()`, `animKutusu()`, `olcekle()`, `gorunurY()` |
+| Var olan asset listesi (404'süz yükleme, canlı yenileme) | `vite.config.js` → `assetListesi()` eklentisi; `src/assetListesi.js` → `assetVar()`; kullanım: `GameScene.js` + `game/` modülleri → `preload()`, `animasyonlariYukle()`; `ui.js` → `varsaImg()` |
 | Nesne boyları (gerçek ölçü) | `assets.js` → `PX_METRE` (74, oda görsellerinden kalibre), `m()`; üretim standardı: `docs/olcek-standardi.md` |
-| Görsel yükleme (public/assets) ve yer tutucular | Liste + hedef yükseklik: `src/data/assets.js` → `ASSETLER`; yükleme: `GameScene.js` → `preload()`; yer tutucu: `dokulariUret()` / `dokuUret()`; ölçek: `olcekle()`, `dokuAnahtari()`, `gercekAsset()`; dosyalar: `public/assets/` |
-| Dışarısı, şehir silueti | `GameScene.js` → `disariCiz()`, `sehirBoya()` |
-| Ev/oda çizimi, oda dekorları | `GameScene.js` → `evCiz()`, `dekorCiz()` |
-| Oyuncu, hareket, etkileşim (E tuşu) | `GameScene.js` → `oyuncuOlustur()`, `update()`, `oyuncuDurdur()` (pencere açıkken duruş), sabitler `HIZ`, `KOSU_CARPANI` (Shift, ×1,65), `ETKILESIM_MESAFE` |
-| Sakinlerin sayısı/hareketi | `GameScene.js` → `sakinGuncelle()`, `sakinIdleBaslat()`, `sakinTasi()`, `sakinAnimGuncelle(dt)`; `SAKIN_HIZI` (85 px/sn), mesafeye bağlı süre ve hıza bağlı animasyon |
-| Ütopya ↔ distopya görsel dönüşümü | `GameScene.js` → `gorselGuncelle()`, `gorselUygula()`, `renkGecis()` |
+| Görsel yükleme (public/assets) ve yer tutucular | Liste + hedef yükseklik: `src/data/assets.js` → `ASSETLER`; yükleme: `GameScene.js` + `game/` modülleri → `preload()`; yer tutucu: `dokulariUret()` / `dokuUret()`; ölçek: `olcekle()`, `dokuAnahtari()`, `gercekAsset()`; dosyalar: `public/assets/` |
+| Dışarısı, şehir silueti | `GameScene.js` + `game/` modülleri → `disariCiz()`, `sehirBoya()` |
+| Ev/oda çizimi, oda dekorları | `GameScene.js` + `game/` modülleri → `evCiz()`, `dekorCiz()` |
+| GameScene performansı / restart | `GameScene.js` + `game/` modülleri → `gorselGuncelle` (state eşleme), `gorselUygula` (geçiş), `sehirBoya` / `etiketZeminiCiz` (çizim önbelleği), `update` (tek geçiş yakın sakin), `create` / shutdown (dinleyici/text temizliği) |
+| Oyuncu, hareket, etkileşim (E tuşu) | `GameScene.js` + `game/` modülleri → `oyuncuOlustur()`, `update()`, `oyuncuDurdur()` (pencere açıkken duruş), sabitler `HIZ`, `KOSU_CARPANI` (Shift, ×1,65), `ETKILESIM_MESAFE` |
+| Sakinlerin sayısı/hareketi | `GameScene.js` + `game/` modülleri → `sakinGuncelle()`, `sakinIdleBaslat()`, `sakinTasi()`, `sakinAnimGuncelle(dt)`; `SAKIN_HIZI` (85 px/sn), mesafeye bağlı süre ve hıza bağlı animasyon |
+| Ütopya ↔ distopya görsel dönüşümü | `GameScene.js` + `game/` modülleri → `gorselGuncelle()`, `gorselUygula()`, `renkGecis()` |
 | Arayüz asset eşlemeleri ve kontrolü | `src/data/assets.js` → `ARAYUZ_IKONLARI`, `KARAR_GORSELLERI`, `SON_GORSELLERI`, `ARAYUZ_DOSYALARI`; `ui.js` → `arayuzIkonu()`, `arayuzGorseli()`; `style.css` → 9-dilim çerçeve/buton/HUD, menü ortamı |
 | HUD (kaynak barları) | `src/ui/ui.js` → `hudKur()`, `hudGuncelle()` |
 | Panel penceresi | `ui.js` → `panelAc()`, `panelCiz()` |
 | Radyo, sabah raporu, kapı kartı | `ui.js` → `olayGoster()`, `gunBaslangici()`, `sabahGoster()`, `ziyaretciGoster()` |
 | Hikaye, başlangıç ve son ekranları | `ui.js` → `girisHikayesi()`, `baslangicEkrani()`, `SONLAR`, `sonGoster()` |
 | Genel modal / onay pencereleri | `style.css` → `.kart-icerik` (iç kaydırma), `.kart > .alt` (sabit alt şerit); `ui.js` → `modalAc()`, `modalKapat()`, `onay()`, `bilgi()` |
+| Ses/müzik ve ses regresyonları | `src/sesler.js`: `muzikCal`, `muzikDurdur`, `sesToggle`, `muzikBaslat`, `fadeIptal`; `tools/ses-test.mjs` (`npm test`); dosyalar ve kurallar `SOUNDS.md` |
+| Oda adı ve etkileşim etiket stili | `GameScene.js` + `game/` modülleri: `etiketZeminiCiz()`, `ipucuZemini`, `evCiz()`, `update()`; sade levha, ekran kenarı kontrolü |
+| Yönetim şeridi konumu / görünürlük | `.yonetim-erisim`: `#sahne` altında, sol/alt 10 px; `ui.js` → `hudGorunurlugu()` |
 | Ayarlar menüsü (tam ekran + kontroller) | `ui.js` → `ayarlarAc(donus)`; `baslangicEkrani` ve HUD'daki ⚙ düğmesi çağırır |
 | Tam ekran (F tuşu) | `src/main.js` → `tamEkranToggle()`, `window.tamEkranToggle`; CSS `#sahne:fullscreen` |
-| Günü bitirme onayı (gece tahmini penceresi) | `ui.js` → `gunuBitirOnay()`; çağrı: `GameScene.js` → `case 'yatak'` |
+| Günü bitirme onayı (gece tahmini penceresi) | `ui.js` → `gunuBitirOnay()`; çağrı: `GameScene.js` + `game/` modülleri → `case 'yatak'` |
 | Arayüz stili | `src/style.css`; fontlar: `@font-face`, `--font-metin` (Nunito Sans), `--font-baslik` (Barlow Condensed); yerel dosyalar ve OFL lisansları: `public/fonts/` |
 | Giriş noktası (Phaser config) | `src/main.js` |
 | Denge simülasyonu | `tools/simulasyon.mjs` (`node tools/simulasyon.mjs`) |
@@ -78,7 +100,15 @@ index.html                 HTML iskeleti (#hud, #modal)
 src/main.js                Phaser oyununu başlatır
 src/assetListesi.js        public/assets'te var olan dosyalar (Vite sanal modülü; yalnız tarayıcı)
 src/state.js               Oyun durumu ve tüm kurallar (abone/bildir ile UI'ya yayın)
-src/scenes/GameScene.js    Phaser sahnesi: çizim, hareket, etkileşim, görsel dönüşüm
+src/scenes/GameScene.js    Sahne kurulumu, oyuncu, etkileşim ve gün akışı (362 satır)
+src/scenes/game/ayarlar.js Ortak hız/ölçek/koordinat sabitleri
+src/scenes/game/dokuOnbellegi.js Restart boyunca yaşayan doku kayıtları
+src/scenes/game/dokular.js Yükleme, küçültme, ölçme ve ölçekleme
+src/scenes/game/yerTutucular.js Kodla üretilen yedek görseller
+src/scenes/game/animasyonlar.js Kare yükleme, animasyon kurma/oynatma
+src/scenes/game/dunya.js   Odalar, dış dünya, dekor, çatı/yapı çizimleri
+src/scenes/game/sakinler.js NPC eşleme, rutin, hareket ve çalışma
+src/scenes/game/efektler.js Eylem/ziyaretçi, gün başlığı, atmosfer ve etiket çizimi
 src/ui/ui.js               HTML/CSS arayüz katmanı
 src/style.css              Arayüz stili (cqw ile ölçekleme)
 src/data/*.js              İçerik verisi (panels, events, visitors, facts, story, rooms, research, assets, animations, cards, exploration)
@@ -87,6 +117,18 @@ public/assets/anim/        Animasyon kareleri (<animasyon>-<kare>.png)
 public/fonts/             Nunito Sans (400/600/700), Barlow Condensed (600/700) ve OFL lisansları
 tools/simulasyon.mjs       Strateji başına 4000 oyunluk denge simülasyonu
 tools/mekanik-test.mjs     Kaynak, inşaat, kapı ve hazırlık regresyon testleri
+tools/uretim-test.mjs      Malzeme, mod, bakım, iş gücü, moral ve görsel eşleşme testleri
+src/data/production.js    Çalışma modları, ek tüketim ve bakım ayarları
+src/data/dialogues.js     Sakin konuşma metinleri ve seçenekleri
+src/data/scenario.js      İsteğe bağlı topluluk hedefleri
+src/kayit.js              Sürümlü gün başı localStorage kaydı
+tools/ilerleme-test.mjs   Keşif/plan/söz/hava/hedef/kayıt regresyonları
+docs/hackathon-uyum-analizi.md  İki slayta göre tema ve kriter kanıtları
+src/data/activities.js    Oda görsellerinden işaretlenen 25 NPC çalışma hedefi
+docs/npc-noktalari.md      Hedef koordinatları ve debug kullanım rehberi
+tools/ses-test.mjs         Asenkron müzik geçişi, susturma ve autoplay regresyonları
+src/sesler.js             Tek müzik yöneticisi, ses efektleri ve kalıcı açık/kapalı ayarı
+SOUNDS.md                 Ses dosyaları, kullanım kuralları ve testler
 tools/asset-durum.mjs      public/assets'te hangi görsellerin ve animasyon karelerinin hazır olduğunu listeler
 .github/workflows/deploy.yml  main → GitHub Pages
 .github/workflows/checks.yml  PR → mekanik testleri ve iki derleme
@@ -96,7 +138,7 @@ docs/oda-sablonlari/       Oda görselleri rework şablonları (sablon-<oda>.png
 assets-orijinal/           Küçültülmeden önceki asset yedekleri (git'e girmez, .gitignore)
 docs/olcek-standardi.md    Asset üretiminde tek ölçü standardı (ölçek dizisi) + prompt
 docs/olcek-sablonu.png     Ölçek dizisi şablonu (tek taban, 1 m = 300 px, 10 yuva)
-docs/asset-rehberi.pdf     Güncel 17 sayfalık asset rehberi: 92 satır, örnekler, odalar, sanat stili
+docs/asset-rehberi.pdf     Güncel 17 sayfalık asset rehberi: 93 satır, örnekler, odalar, sanat stili
 docs/devralma.md           Asset/mekanik/arayüz geliştirmesine devam rehberi
 tools/rehber-uret.py       PDF üreticisi (Python 3 + Pillow)
 docs/orijinal/             Ekibin beğendiği ilk oda görselleri + hikaye/manzara orijinalleri (rehberin temeli)
@@ -126,7 +168,7 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 
 > Kopyası `docs/asset-listesi.md` · rehber `docs/asset-rehberi.pdf`.
 
-**Durum:** ✅ oyunda hazır (71) · 🔁 var ama yenilenmeli (9) · ⏳ eksik (12). Toplam 92 satır.
+**Durum:** ✅ oyunda hazır (72) · 🔁 var ama yenilenmeli (9) · ⏳ eksik (12). Toplam 93 satır.
 
 **Kurallar:** Karakter/nesne: şeffaf arka plan, yandan, sağa bakar, taban altta; boy "Gerçek boy" sütununa göre (oyun ölçekler). Animasyon: tek görselde ızgara, her hücrede aynı boy/konum/taban. Menü: sanat stili rehberindeki palet ve yıpranmış metal/ahşap dili; 9-dilim görsellerin ortası düz ve boş, köşeleri belirtilen ölçüde süslü (ortası esner). İkonlar sade, kalın kontur, küçük boyda okunur. Yazı/harf yok (yazıları oyun yazar). Görselleri adlarına dokunmadan asistana verin.
 
@@ -224,12 +266,219 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | 90 | `ikon-sehir.png` | Pano ikonu: Keşif: eski şehir | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
 | 91 | `ikon-komsu.png` | Pano ikonu: Keşif: komşu yerleşim | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
 | 92 | `ikon-rezervuar.png` | Pano ikonu: Keşif: rezervuar | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 93 | `kod:sakin-is` | Sakin sulama/onarım/inceleme/düzenleme hareketleri ve işaretleri | Phaser tween + Graphics | Mevcut karakter boyu | ✅ | Yeni PNG yok; prompt: yok, kodla çiziliyor; `activities.js` hedefleri; 2026-11-01 |
 
 ---
 
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Güncel paketin PR ile birleştirilmesi
+
+- **Prompt:** Gamejam değerlendirmesine devam etmeden önce mevcut hali push, PR ve merge yap.
+- **Yapılan değişiklik:** Ses/UI düzeltmeleri, koloni mekanikleri, NPC rutinleri, ilerleme/kayıt ve GameScene modülleri tek yayın paketi olarak hazırlandı. Uzak main ile başlangıç commit'i aynı (`0984d81`); ayrı dal ve PR akışı kullanılıyor.
+- **Dosya / Açıklama:** Bu paketin dosyaları ve testleri önceki ayrı istek kayıtlarında açıklanmıştır; `PROJECT_LOG.md` — yayın talimatı ve doğrulama kaydı.
+- **Doğrulama:** Yerel npm test, normal/tek build ve tarayıcı sahne/NPC kontrolleri geçti. Merge öncesi GitHub PR kontrolleri de beklenecek.
+- **Debt:** Commit anında PR/merge/yayın süreci henüz bitmemiştir; kesin PR bağlantısı ve yayın sonucu ilgili GitHub kaydında ve kullanıcıya son yanıtta verilir. Gamejam analizi sonraki adım; bu yayın talimatı kapsamında yeni mekanik eklenmedi.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Gamejam analizine dönüş
+
+- **Prompt:** Önceki gamejam uygunluğu konusundan devam et.
+- **Yapılan değişiklik:** Önceki analiz, giriş hikâyesi ve bilgi kartları yeniden gözden geçirildi; kullanıcı önce mevcut sürümün yayınlanmasını istediği için analiz bu işlem sonrasına kaldı. Oyun kodunda değişiklik yok.
+- **Dosya / Açıklama:** `PROJECT_LOG.md` — ayrı istek ve devam noktası kaydı.
+- **Debt:** Sonraki odak eğitim kazanımı, hikâye/iklim bağı ve sunum kanıtlarının önceliklendirilmesi; ana değerlendirme `docs/hackathon-uyum-analizi.md`.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · GameScene sorumluluklarının ayrılması
+
+- **Prompt:** GameScene'i önerilen sorumluluklara göre modüllere ayır.
+- **Yapılan değişiklik:** Ana sahne 1649 → 362 satıra indi; yöntem gövdeleri davranış değiştirilmeden alt modüllere taşındı. Önceki performans iyileştirmeleri korundu.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/scenes/GameScene.js` | Kurulum, oyuncu, etkileşim ve gün akışı; modüllerin açıkça birleştirildiği tek nokta |
+| `src/scenes/game/dokular.js`, `yerTutucular.js`, `dokuOnbellegi.js` | Yükleme/ölçekleme/ölçüm, yedek çizimler ve restart boyunca yaşayan doku önbelleği |
+| `src/scenes/game/animasyonlar.js`, `sakinler.js` | Animasyon yükleme/oynatma ile NPC hareket/rutin/eşleme ayrıldı |
+| `src/scenes/game/dunya.js`, `efektler.js`, `ayarlar.js` | Dünya/dekor/yapı çizimi, görsel geri bildirim/atmosfer ve ortak sabitler |
+| `docs/devralma.md`, `AGENTS.md`, `CLAUDE.md`, `PROJECT_LOG.md` | Modül sahipliği, yaşam döngüsü sözleşmesi ve güncel dosya haritası |
+
+- **Doğrulama:** `npm test`, normal ve tek build geçti. Chromium'da ilk kurulum, denge geçişi, tek E dinleyicisiyle restart ve konuşma ipucu doğrulandı. NPC domatese gidip sulama efekti oynattı; oda içi yaklaşık 355 px dolaşma ve görevi değişince iş temizliği geçti. Çatı ek panelleri/yalıtım/bariyer çizimi, kaynak yazıları/duman, ziyaretçi efekti ve gün başlığı callback kontrolü de geçti; JS exception yok. Taşınan yöntem gövdeleri önceki sürümle birebir karşılaştırıldı.
+- **Debt:** Modül yöntemleri ortak Phaser sahne bağlamında çalışır; bağımsız sistem nesnelerine dönüştürülmedi. Doku önbelleği eskisi gibi tek Phaser oyunu/restart ömründedir. Büyük bundle uyarısı devam eder; bu düzenleme indirme boyutu veya FPS artışı iddiası değildir. Yeni asset yok; mekanik sayıları değişmedi.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · GameScene dosya büyüklüğü değerlendirmesi
+
+- **Prompt:** 1650 satır tek dosya için çok mu, normal mi?
+- **Yapılan değişiklik:** Satır sayısının tek başına performans sorunu olmadığı; GameScene'deki asset/doku, dekor, NPC, etkileşim ve efekt sorumluluklarının bakım açısından ayrılması gerektiği açıklandı. Önceki optimizasyonun yapısal bölme olmadığı belirtildi. Oyun kodunda değişiklik yok.
+- **Dosya / Açıklama:** `PROJECT_LOG.md` — soru ve değerlendirme kaydı.
+- **Debt:** GameScene modüllere ayrılmayı bekliyor; bu soruda refaktör uygulanmadı.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · GameScene çalışma maliyeti
+
+- **Prompt:** GameScene dosyasını optimize edelim.
+- **Yapılan değişiklik:** Sakin eşlemesi görsel geçişin her karesinden state bildirimine taşındı; yakın sakin araması tek geçişe indirildi; değişmeyen çizimler ve gereksiz tween tekrarları kaldırıldı; restart temizliği düzeltildi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/scenes/GameScene.js` | UID Map/Set eşlemesi, dizisiz/sıralamasız yakın sakin seçimi; yalnız hedef değişince tint, yalnız kutu değişince ipucu zemini, yalnız renk değişince şehir çizimi; aynı denge hedefine tween yeniden kurulmaz; E/T dinleyicileri ve text üreticisi shutdown'da temizlenir; zaman/girdi alanları restart'ta sıfırlanır; kayıttan keşifte yüklenen kişi ilk anda da gizli |
+| `docs/devralma.md` | Optimizasyon sınırları ve ölçüm yöntemi |
+| `PROJECT_LOG.md` | Güncel harita ve bu istek için ayrı kayıt |
+
+- **Doğrulama:** `npm test`, `npm run build`, sözdizimi ve diff kontrolleri geçti. Gerçek Phaser/Chromium kontrolünde 1,7 saniyelik denge geçişinde sakin eşleme 1, sabit ipucu zemini çizimi 1 kez; restart öncesi/sonrası E dinleyicisi 1; konuşma ipucu çalışıyor; JS exception yok. Bu sayımlar FPS veya yüzde performans artışı iddiası değildir.
+- **Debt:** Büyük Phaser bundle uyarısı sürüyor. Dosyanın dekor/asset/NPC bölümleri henüz ayrı modüllere taşınmadı; bu çalışma çalışma zamanı tekrarlarına odaklandı. Mekanik sayıları değişmedi, denge simülasyonu yeniden çalıştırılmadı. Yeni asset yok.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Değerlendirme ve odak slaytları
+
+- **Prompt:** Etkinliğin değerlendirme kriterleri ve proje odak alanları görsellerini paylaşma.
+- **Yapılan değişiklik:** İki slayt analizde birincil dayanak alındı; yedi alanın tamamının zorunluluğu veya kriter ağırlıkları varsayılmadı.
+- **Dosya / Açıklama:** `docs/hackathon-uyum-analizi.md` — görsellerdeki 7 odak ve 10 kriterin mevcut mekaniklerle eşlemesi; `PROJECT_LOG.md` — kaynak kaydı.
+- **Debt:** WhatsApp formu, ekip/katılım ve sunum teslimi bu görsellerden veya koddan doğrulanamaz.
+
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Keşif/araştırma/ilişki/senaryo/kayıt paketi
+
+- **Prompt:** Önerilen altı geliştirmeyi uygula; ardından oyunu COP31 destekli iklim gamejam/hackathonunun isterleri ve kriterleri çerçevesinde analiz et (oyun kalitesi değerlendirmesi değil).
+- **Durum:** Uygulama ve kriter analizi tamamlandı; yayın/teslim yapılmadı.
+- **Yapılan değişiklik:** Altı geliştirme uygulandı, keşif planları araştırma ve inşaata bağlandı; iki kullanıcı slaytı ve resmî GameUP bağlamıyla odak/kriter/öğrenme/teslim eşlemesi yazıldı.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/exploration.js`, `research.js`, `structures.js` | Keşif kararları, pompa planı/teknoloji/depo zinciri; mevcut su ikonu tekrar kullanılıyor |
+| `src/data/production.js`, `scenario.js`, `dialogues.js` | Hava üretimi, iki isteğe bağlı hedef, dinlenme sözü seçeneği |
+| `src/state.js` | Keşif kararları/dönüş, söz değerlendirme/hafıza, hedefler, hava, kayıt yükleme/sabah kaydetme/sonda silme |
+| `src/kayit.js` | Sürümlü ve doğrulanan localStorage kayıt okuma/yazma |
+| `src/ui/ui.js`, `src/main.js` | Hedefler paneli, karar düğmeleri/raporlar, hava/söz bilgisi, Devam et ve sahne hazır olduğunda akış |
+| `tools/ilerleme-test.mjs`, `package.json` | Yeni anlamlı regresyonlar npm test zincirinde |
+| `docs/hackathon-uyum-analizi.md` | Yedi odak alanı, on kriter; kanıtlar ve doğrulanmamış idari/sunum şartları |
+| `docs/devralma.md`, `CLAUDE.md`, `AGENTS.md`, `PROJECT_LOG.md` | Yeni kurallar, dosya haritası ve test/devir sınırları |
+
+- **Doğrulama:** `npm test`, `npm run build`, `npm run build:tek` geçti. 36.000 oyun simülasyonu tamamlandı (akıllı/hepsini al gerçek ütopya %74). Tarayıcı: üç keşif kararı, araştırma/hedef paneli ve gün 3 kayıt/devam; sahne yeniden kuruldu, callback çalıştı, JS exception yok. Ekran görüntüleri `/tmp/gameup-ilerleme-*.png`.
+- **Debt:** Simülasyon yeni tüm seçim kombinasyonlarını kapsamıyor; ilk oyuncuyla eğitim/erişilebilirlik testi yapılmadı. Kişisel güven yalnız diyalog hafızasıdır. Yağmur deposuna ayrı sahne görseli eklenmedi, mevcut su ikonu kullanılıyor. Kayıt yalnız aynı tarayıcıda ve gün başındadır; depolama engelinde kayıt yok. Büyük Phaser bundle uyarısı sürüyor. Sunum, form ve güncel yayın ayrıca ekip işi; resmî uygunluk/öğrenme kazanımı iddia edilmedi.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Sonraki geliştirme önerileri
+
+- **Prompt:** Şimdi başka ne yapabiliriz?
+- **Yapılan değişiklik:** Mevcut malzeme/üretim/inşaat/diyalog sistemlerinin devamı olarak aşamalı keşif, araştırmayla plan açma, sakinlerin hatırladığı sözler, senaryo hedefleri ve kayıt sistemi önerildi; öncelik keşif → plan → inşaat bağlantısı olarak belirtildi. Oyun kodunda değişiklik yok.
+- **Dosya / Açıklama:** `PROJECT_LOG.md` — öneri ve kapsam kaydı.
+- **Debt:** Yok; öneriler henüz uygulama talimatı değildir.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Log disiplini
+
+- **Prompt:** İstekler neden Project Log'a gerektiği şekilde işlenmiyor?
+- **Yapılan değişiklik:** Son kullanıcı istekleri ayrı kayıtlara bölündü; tamamlanma/test durumu ve kalan sınırlamalar açıkça kaydedildi, Project Map/dosya ağacı/devir rehberi güncellendi. NPC rutini önce devam ediyor olarak kaydedildi, doğrulama sonrası ilgili kayıt tamamlandı olarak güncellendi.
+- **Dosya / Açıklama:** `PROJECT_LOG.md` — bu kayıt ve aşağıdaki beş istek kaydı, harita/dosya ağacı.
+- **Debt:** Kayıt gecikmesi giderildi; devam eden işlerin sonuçları ilgili kayıtların durum alanına işlenecek.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · NPC oda rutinleri
+
+- **Prompt:** Sakinler atandıkları odanın tamamında dolaşsın; oda assetlerindeki bitki, tezgâh vb. noktalar incelenip işaretlensin ve buralarda çalışma animasyonları oynasın.
+- **Yapılan değişiklik:** Beş mevcut `oda-*-tam.png` görselinden 25 hedef çıkarıldı; odanın tamamında yürüyüş, hedefe gitme, kısa sulama/onarım/düzenleme hareketi ve tekrar dolaşma döngüsü uygulandı.
+- **Durum:** Tamamlandı. Beş odada 25 hedef işaretlendi; oda içi serbest yürüyüş ve noktada çalışma döngüsü uygulandı. Chromium'da domatese gidip sulama, sera sınırları içinde 354,72 px dolaşma, su odasına görev değişiminde temizlik doğrulandı.
+
+| Dosya | Açıklama |
+|---|---|
+| `public/assets/oda-*-tam.png` | Görsel inceleme yapıldı; dosyalar değiştirilmedi |
+| `src/scenes/GameScene.js` | `sakinIdleBaslat`, `sakinNoktayaGit`, `sakinIsBaslat`, `sakinRutinDurdur`, `npcNoktalariGoster`: oda rotası, görsel iş hareketleri ve temizlik |
+| `src/data/activities.js`, `docs/npc-noktalari.md` | Görselden çıkarılmış x/y ve nesne bölgeleri, debug `?npcNoktalar=1` |
+| `tools/uretim-test.mjs` | Noktaların kendi bölgesi ve 0–1 koordinat sınırları doğrulanır |
+| `docs/devralma.md`, `CLAUDE.md`, `AGENTS.md` | Yeni malzeme/mod/inşaat/diyalog ve oda rutini anlatımı |
+| `docs/asset-listesi.md`, `docs/asset-rehberi.pdf`, `tools/rehber-uret.py` | Prosedürel çalışma hareketi 93. satıra eklendi; toplam 72 hazır/9 yenileme/12 eksik; PDF tablodan dinamik sayar |
+
+- **Debt:** Çalışma hareketleri mevcut sprite üzerinde Phaser tween/Graphics ile yapılır; özel sulama/onarım kareleri henüz yok. Görsel rutinler fazladan kaynak üretmez. Yeni oda assetlerinde koordinatlar tekrar kontrol edilmeli.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Diyalog sırası
+
+- **Prompt:** Oyuncunun soru paneli gibi sakin cevabı da yalnız Devam içersin; cümleler bittikten sonra seçenekler geri gelsin.
+- **Yapılan değişiklik:** Akış seçenek → oyuncu cümlesi/Devam → sakin cevabı/Devam → seçenekler olarak değiştirildi; açılış ve vedalaşma da yanıt alır.
+- **Durum:** Uygulandı; Chromium'da yanıt sırasında seçeneklerin bulunmadığı ve sonraki Devam ile döndüğü doğrulandı.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/ui/ui.js` | `sakinleKonus()` içinde ayrı konuşma ve seçim aşamaları, vedalaşma yanıtı |
+
+- **Debt:** Yok; kalıcı otomatik tarayıcı testi henüz repoda yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Karakter görsel eşleşmesi
+
+- **Prompt:** Selin/Burak gibi karakterlerin sahne assetleri ve diyalog portreleri uyuşmuyor; konuşmalarda karşılık verilsin.
+- **Yapılan değişiklik:** Sıra numarasına bağlı seçim yerine kimliğe sabit görsel eşlemesi eklendi. Koloni ve konuşma portreleri sahnede kullanılan aynı tam-boy görselden alınır; Selin sakin-2, Burak sakin-3 kullanır. Özel sakin-<id> görseli varsa her iki yerde de önceliklidir.
+- **Durum:** Uygulandı; görsel seçim fonksiyonu test edildi, Selin/Burak sahne-portre eşleşmesi tarayıcıda doğrulandı.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/assets.js` | `SAKIN_GORSEL_TIPLERI`, `sakinGorselTanimi()` |
+| `src/scenes/GameScene.js` | Sakin doku ve animasyon tipi kimlikten seçilir |
+| `src/ui/ui.js`, `src/style.css` | `sakinPortresi()` ile aynı görselin üst bölümü portre olarak gösterilir |
+| `tools/uretim-test.mjs` | Genel/özel görsel önceliği ve Selin/Burak eşlemesi |
+
+- **Debt:** Genel sprite'lar yer tutucu olarak birden fazla kişi tarafından paylaşılabilir (ör. Selin/Nur). Benzersiz tam-boy assetler mevcut Asset Listesi'nde isteğe bağlı olarak bekliyor; yeni görsel üretilmedi.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Sakinlerle diyalog
+
+- **Prompt:** Sakinlerle iletişim; konuşma sırasına göre oyuncu sol altta, sakin sağ altta portre çerçevesiyle görünsün ve yanıt seçenekleri seçilebilsin.
+- **Yapılan değişiklik:** Yakındaki sakinle E/T veya Koloni panelindeki Konuş üzerinden diyalog açılır. Görev/ihtiyaç sorma, moral verme, dinlendirme ve vedalaşma seçenekleri; konuşmacıya göre tek portre ve dallanan cevaplar eklendi.
+- **Durum:** Uygulandı; oyuncu/sakin portre sırası, görev değişimi, moral etkisi ve iki ekran boyutunda sığma kontrol edildi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/dialogues.js` | Konuşma metinleri ve seçenekler |
+| `src/ui/ui.js` | `sakinleKonus()`, koloni konuşma düğmeleri, portreli sahne |
+| `src/scenes/GameScene.js` | Yakın sakin tespiti, E/T ve etkileşim ipucu |
+| `src/state.js` | `moralVer()`, `moralVerebilirMi()`, günlük `sohbetEdilenler` |
+| `src/style.css` | Alt sol/sağ portre çerçeveleri ve konuşma kutusu |
+
+- **Debt:** Moral kişi başına günde bir, 1 eylem; +4 memnuniyet ve −1 yorgunluk. Bilgi konuşmaları ücretsiz. Bu sürümde uzun hikâye dalları/söz sistemi yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Derinleştirme ilk paketi
+
+- **Prompt:** Önceliklendirilen malzeme döngüsü + oda çalışma modları + inşaatçı görevi paketini uygula ("tamamdır go").
+- **Yapılan değişiklik:** Atıktan ayrı malzeme stoğu, gerçek atık miktarına oranlı geri kazanım, üç üretim modu, aşınma/bakım ve iş gücüne bağlı inşaat eklendi.
+- **Durum:** Kod ve temel testler tamamlandı; yeni parametrelerin insan playtesti/strateji dengesi değerlendirmesi gerekiyor.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/production.js` | Tasarruf/normal/yoğun çarpanları, ek tüketimler, yorgunluk/aşınma ve bakım maliyeti |
+| `src/data/panels.js` | Ayrıştırma ve onarımdan gerçek işlenen atığa oranlı malzeme |
+| `src/data/structures.js`, `src/data/research.js` | Malzeme maliyetleri, 2 iş puanlık yapılar, İnşaat görevi |
+| `src/state.js` | Malzeme stoğu, mod üretimi, aşınma/bakım; işçi/yardım, duraklat/iptal/iade; gece öncesi yorgunluk ve iş ilerleme planı |
+| `src/ui/ui.js`, `src/style.css` | Malzeme sayacı, oda modları/bakım, işçi seçimi ve inşaat işlemleri |
+| `tools/mekanik-test.mjs`, `tools/uretim-test.mjs`, `package.json` | Kaynak, malzeme, mod, bakım, iş gücü, duraklatma, iade ve moral regresyonları |
+
+- **Doğrulama:** npm test, normal/tek HTML derlemeleri başarılı. Chromium'da mod seçimi, işçi atama, oyuncu yardımı ve gece tamamlanma doğrulandı. 36.000 oyun simülasyonu tekrar tamamlandı; akıllı+herkesi al %76. Simülasyon yeni modları seçmez, inşaat/keşif stratejisi kullanmaz.
+- **Debt:** Tasarruf/yoğun mod ve inşaat ekonomisi için insan playtesti gerekiyor; simülasyon sadece varsayılan normal modu kapsıyor. Ayrı görsel asset gerektiren bir yapı eklenmedi.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Oyunu derinleştirmek için yeni mekanikler ve mevcut sistem geliştirmeleri öner.
+- **Yapılan değişiklik:** Güncel inşaat/araştırma/keşif/sakin sistemleri üzerinden öneriler önceliklendirildi: atık–malzeme ayrımı, oda çalışma modları, inşaatçı görevi, araştırma ile plan açma, aşamalı keşif, kişisel ihtiyaç/sözler ve senaryo akışı. Oyun kodunda değişiklik yok; öneriler henüz uygulanmadı.
+- **Dosya / Açıklama:** `PROJECT_LOG.md` — değerlendirme kaydı.
+- **Debt:** Yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Ses kapatılınca çalan ve çakışan müzikleri düzelt; yönetim şeridini tam ekranda da sol alttan 10 px boşlukla yerleştir; oda/etkileşim etiketlerine hafif stil ekle.
+- **Yapılan değişiklik:** İptal edilebilir fade-in ve güvenli asenkron play akışıyla tek müzik kuralı sağlandı; tüm efektler susturmaya dahil edildi. Yönetim şeridi HUD yerine doğrudan sahneye sabitlendi; oda ve etkileşim etiketlerine düşük kontrastlı zemin/ince kenarlık eklendi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/sesler.js` | Eski parçayı anında durdurma, bekleyen play/fade koruması, efekt susturma, HMR temizliği, Vite taban yoluna uygun ses URL'leri |
+| `tools/ses-test.mjs`, `package.json` | `npm test` içinde 5 ses yarış durumu/ayar senaryosu |
+| `src/ui/ui.js`, `src/style.css` | Yönetim erişimi sahne altında sol/alt 10 px; hikâye/menü görünürlüğü HUD ile birlikte yönetilir |
+| `src/scenes/GameScene.js` | Barlow oda levhaları, küçük Nunito etkileşim metni, yuvarlak yarı saydam zemin ve ince kenarlık; ipucu ekran kenarına sığdırılır |
+| `SOUNDS.md`, `PROJECT_LOG.md` | Güncel ses davranışı, testler, Project Map ve değişiklik kaydı |
+
+- **Doğrulama:** `npm test` ve üretim derlemesi başarılı. Gerçek Audio nesneleriyle Chromium: kapalıyken 0 ses; hızlı geçişten sonra yalnız `muzik-umut.mp3` çalıyor. Normal 1440/900 ve gerçek fullscreen modunda şerit sol/alt boşluğu 10 px. Oda/etkileşim etiketleri görsel olarak kontrol edildi; ayarlar açılınca ipucu ve zemini birlikte gizleniyor.
+- **Debt:** Yok. Parça geçişi eski parçayı kesip fade-in yapar; aynı anda iki parçayı çalan crossfade kaldırıldı.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Main dalına gelen yeni commitleri çek.
+- **Yapılan değişiklik:** Uzak dallar güncellendi; temiz `menu-cerceve` dalından `main`e geçildi ve yerel main `7ee21ab` → `0984d81` fast-forward edildi (12 commit). Ses/müzik, ayarlar/tam ekran, yapı görselleri ve çatı düzeltmeleri alındı.
+- **Dosya / Açıklama:** `PROJECT_LOG.md` — yalnızca bu yerel senkronizasyon kaydı; oyun kodunda ek değişiklik yapılmadı.
+- **Debt:** Yok.
 
 ### 2026-11-01 · Ayberk Alkan (ayberk2002alkangizli@gmail.com) · `oynanabilirlik` → `main`
 

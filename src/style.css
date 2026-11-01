@@ -1408,8 +1408,8 @@ body { font-weight: 400; }
 /* Yönetim panelleri: bağımsız içerik, sabit geçiş şeridi. */
 .yonetim-erisim {
   position: absolute;
-  top: 51.7cqw;
-  left: 1.2cqw;
+  bottom: 10px;
+  left: 10px;
   display: flex;
   gap: 0.45cqw;
   pointer-events: auto;
@@ -1425,3 +1425,24 @@ body { font-weight: 400; }
 .oda-karti button { margin: 0.5cqw 0.3cqw 0 0; }
 .oda-filtre { display: flex; gap: 0.7cqw; align-items: center; margin-bottom: 1cqw; }
 .oda-filtre select { padding: 0.4cqw; color: #fff2d3; background: #283724; font: inherit; border: 1px solid #b9d78b77; }
+
+.malzeme-stok { display: flex; align-items: center; gap: 0.5cqw; padding: 0.4cqw 0.7cqw; background: #3b4b37ed; border: 1px solid #b9d78b66; border-radius: 0.3cqw; font-size: 1cqw; color: #fff2d3; }
+.mod-secimleri, .insaat-islemler { display: flex; gap: 0.4cqw; flex-wrap: wrap; margin: 0.6cqw 0; }
+.mod-secimleri button { flex: 1; }
+.makine-ayar { padding: 0.6cqw 0; border-block: 1px solid #ffffff14; margin-bottom: 0.5cqw; }
+.makine-ayar .aciklama { margin: 0.4cqw 0; }
+.insaat-durum { padding: 1cqw; border: 1px solid #b9d78b66; border-radius: 0.4cqw; margin-bottom: 1cqw; }
+.insaat-durum select { font: inherit; background: #263724; color: #fff2d3; padding: 0.4cqw; max-width: 100%; }
+.kart .konus-btn { margin-left: auto; font-size: 1cqw; padding: 0.25cqw 0.6cqw; }
+.kart.diyalog-kart { width: 96cqw; max-height: 92%; align-self: end; margin-bottom: 1cqw; border: none; border-image: none; background: none; box-shadow: none; }
+.diyalog-kart .kart-icerik { padding: 0.5cqw; scrollbar-gutter: auto; }
+.diyalog-sahne { display: grid; grid-template-columns: 13cqw minmax(0,1fr) 13cqw; gap: 1cqw; align-items: end; }
+.diyalog-cerceve { border: 0.6cqw solid transparent; border-image: url('/assets/kart-cerceve.png') 96 / 0.6cqw / 0 stretch; background: #344430; position: relative; padding-top: 0.3cqw; }
+.diyalog-cerceve .diyalog-portre { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; object-position: center top; }
+.diyalog-cerceve span { display: block; text-align: center; font: 700 1.2cqw var(--font-baslik); padding: 0.5cqw; }
+.diyalog-konusma { padding: 1.3cqw; background: #33442ff5; border: 1px solid #b9d78b77; border-radius: 0.5cqw; }
+.diyalog-konusma p { font-size: 1.4cqw; margin: 0.7cqw 0 1cqw; }
+.diyalog-secenekler { display: grid; gap: 0.4cqw; }
+.diyalog-secenekler button { text-align: left; text-transform: none; font-size: 1.3cqw; }
+.diyalog-secenekler small { display: block; font: 400 0.9cqw var(--font-metin); opacity: 0.8; }
+.ikon-rozet.portre img.sakin-portre { object-position: center top; }

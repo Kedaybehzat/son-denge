@@ -57,12 +57,12 @@ rows = []
 for line in section.splitlines():
     if re.match(r'^\| \d+ \|', line):
         rows.append([v.strip().strip('`') for v in line.split('|')[1:-1]])
-assert len(rows) == 92, 'Asset tablosu değişti; sayfa üretim beklentisini güncelleyin.'
+assert rows, 'Asset tablosu boş olamaz.'
 
 im,d = sayfa('Son Denge — Asset ve geliştirme devri')
-y = yazi(d, '71 hazır · 9 yenilenecek · 12 eksik / isteğe bağlı. Toplam 92 satır.',65,135,1110,30,True)
+y = yazi(d, f"{sum(r[5] == '✅' for r in rows)} hazır · {sum(r[5] == '🔁' for r in rows)} yenilenecek · {sum(r[5] == '⏳' for r in rows)} eksik / isteğe bağlı. Toplam {len(rows)} satır.",65,135,1110,30,True)
 y = yazi(d, 'Menü, HUD, ikon, karar ve son görselleri oyuna bağlı. Hazır dosyaları yeniden üretmeyin. Öncelik: sakin-1 ve sakin-3 animasyonları; ardından eski stildeki dokuz portre. On özel sakin sprite’ı isteğe bağlıdır.',65,y+20,1110)
-y = yazi(d, 'Oyunda: beş ayrı yönetim paneli (Koloni / Odalar / Keşif / Araştırma / İnşaat), bir gecelik inşaatlar, Shift ile koşma, hıza uyumlu NPC animasyonları ve yerel Türkçe fontlar.',65,y+15,1110)
+y = yazi(d, 'Oyunda: beş ayrı yönetim paneli (Koloni / Odalar / Keşif / Araştırma / İnşaat), iş gücüne bağlı inşaatlar, Shift ile koşma, hıza uyumlu NPC animasyonları ve yerel Türkçe fontlar.',65,y+15,1110)
 y = yazi(d, 'Ana devir belgesi: docs/devralma.md. Mekanikler: CLAUDE.md / AGENTS.md. Güncel asset tablosu: PROJECT_LOG.md ve docs/asset-listesi.md. Yeni üretim: docs/asset-promptu.md. Önceki final/sıfırdan promptları arşivdir.',65,y+15,1110)
 gorsel(im, 'public/assets/menu-arka.png', (65,y+30,1175,y+620))
 y = yazi(d, 'Teknik teslim: şeffaf karakter/nesne ve animasyon kareleri en fazla 600 px yüksek; portre 512×512. Ham sprite sheet, public/assets/anim/ altında ayrı karelere kesilir. Orijinaller assets-orijinal/ altında git dışında kalır.',65,y+650,1110)
