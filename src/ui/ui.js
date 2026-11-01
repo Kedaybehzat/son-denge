@@ -18,7 +18,7 @@ import { KESIF_NOKTALARI } from '../data/exploration.js';
 import { KURUCULAR } from '../data/visitors.js';
 import { portreDosyasi, hikayeDosyasi, ARAYUZ_ASSET_KLASORU, ARAYUZ_IKONLARI, KARAR_GORSELLERI, SON_GORSELLERI, sakinGorselTanimi } from '../data/assets.js';
 import { assetVar } from '../assetListesi.js';
-import { muzikCal, sesAcikMi, sesToggle } from '../sesler.js';
+import { muzikCal, sesCal, sesAcikMi, sesToggle } from '../sesler.js';
 
 const hud = document.getElementById('hud');
 const modal = document.getElementById('modal');
@@ -40,6 +40,7 @@ function yayinla(ad, ayrinti = {}) {
 }
 
 export function gunBasligi(gun, olayAd, bitince) {
+  sesCal('ses-gun-basi');
   yayinla('gunBasligi', { gun, olayAd, onBitti: bitince });
 }
 
@@ -108,6 +109,9 @@ function modalAc(html, { kapatma = true, sinif = '', tema = null } = {}) {
   icerik.scrollTop = oncekiKaydirma;
   acik = true;
   kart.querySelectorAll('[data-kapat]').forEach((b) => b.addEventListener('click', modalKapat));
+  // Modal içindeki tüm buton tıklamalarına ince bir UI klik sesi (eylem/
+  // panel-onay vb. zaten kendi özel seslerini çalar, bu üstüne biner).
+  kart.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => sesCal('ses-tiklama', { ses: 0.35 })));
 }
 
 export function modalKapat() {
@@ -341,6 +345,7 @@ function panelCiz() {
         sonMesaj = e.mesaj || 'Tamamlandı.';
         const basarili = eylemYap(e); // abonelik panelCiz'i tekrar çağırır
         if (basarili && aktifPanelAnahtar) {
+          sesCal('ses-panel-onay');
           yayinla('eylemYapildi', { panel: aktifPanelAnahtar, etki: e.etki, kirli: !!e.kirli });
         }
       }
@@ -427,6 +432,8 @@ function bilgiHtml(b) {
 // Gün geçişi iki adım: önce gece raporu + bilgi kartı, sonra sabah radyosu
 export function gunBaslangici({ sozSonuclari = [], hedefSonuclari = [], insaatBitti = null, rapor, bilgi, gidenZiyaretci, arastirmaPuani, arastirmaBitti, bataryaKullanim, bataryaSarj, ayrilanlar = [], sefer = null, memnuniyet = null }) {
   muzikCal('muzik-gece-gecis');
+  if (arastirmaBitti) sesCal('ses-arastirma-bitti');
+  if (insaatBitti) sesCal('ses-insa-bitti');
   const gitti = gidenZiyaretci
     ? `<p class="uyari">🚪 ${kacis(gidenZiyaretci.ad)} kapıda beklemekten vazgeçip gitti.</p>`
     : '';
@@ -482,6 +489,8 @@ function seferHtml(sf) {
 }
 
 function sabahGoster() {
+  if (state.ziyaretci) sesCal('ses-kapi-cal');
+  if (state.kart) sesCal('ses-uyari');
   const kapi = state.ziyaretci
     ? `<p class="kapi-uyari">🚪 Kapı çalınıyor! Biri sığınağa girmek istiyor.</p>`
     : '';
@@ -503,6 +512,7 @@ function sabahGoster() {
 // ---------------------------------------------------------------
 export function kararKartiGoster() {
   const k = state.kart;
+  if (k) sesCal('ses-kart-ac');
   if (!k) return modalKapat();
   const secenekler = kartSecenekleri(k);
   const satirlar = secenekler.map((sec, i) => {
@@ -907,6 +917,7 @@ function panoCiz() {
   kart.querySelectorAll('[data-yapi]').forEach((b) => b.addEventListener('click', () => {
     const id = b.dataset.yapi;
     if (yapiKur(id)) {
+      sesCal('ses-panel-onay');
       sonMesaj = `${YAPILAR[id].ikon} ${YAPILAR[id].ad} inşaatı başladı. İlerlemesi için işçi ata veya yardım et.`;
       panoCiz();
     }

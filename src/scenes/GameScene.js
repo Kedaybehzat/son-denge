@@ -7,6 +7,7 @@ import { ASSETLER } from '../data/assets.js';
 import { ANIMASYONLAR } from '../data/animations.js';
 import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet, MAKINELER, makineOperatoru, sakinTanimi } from '../state.js';
 import * as ui from '../ui/ui.js';
+import { sesCal } from '../sesler.js';
 import { HIZ, KOSU_CARPANI, ETKILESIM_MESAFE, EKRAN_G, EKRAN_Y, CIZIM_OLCEGI } from './game/ayarlar.js';
 import { YER_TUTUCULAR } from './game/dokuOnbellegi.js';
 import { yerTutucular } from './game/yerTutucular.js';
@@ -214,11 +215,12 @@ export default class GameScene extends Phaser.Scene {
         this.animDurdur(p, 'oyuncu');
         p.y = ZEMIN_Y - Math.abs(Math.sin(this.yurume * 0.014)) * 5;
       }
-      // Her ~220ms'de bir ayak altında küçük bir toz pufu
+      // Her ~220ms'de bir ayak altında küçük bir toz pufu + adım sesi
       this.yurumeTozSayac += dt;
       if (this.yurumeTozSayac > (T.kos.isDown ? 140 : 220)) {
         this.yurumeTozSayac = 0;
         this.ayakTozu.emitParticleAt(p.x - yon * 8, ZEMIN_Y - 2, 2);
+        sesCal('ses-adim', { ses: 0.3 });
       }
     } else {
       p.anims.timeScale = 1;
@@ -301,6 +303,7 @@ export default class GameScene extends Phaser.Scene {
         ui.panelAc(PANELLER[def.panel], def.panel);
         break;
       case 'radyo':
+        sesCal('ses-radyo-ac');
         ui.olayGoster(state.olay);
         break;
       case 'pano':
