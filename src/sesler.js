@@ -38,7 +38,11 @@ function sustur(audio) {
   fadeIptal(audio);
   audio.muted = true;
   audio.volume = 0;
-  audio.pause();
+  // play() Promise'i async: pause tek başına yetmez, async play tamamlanınca
+  // ses tekrar başlayabilir. src'yi boşaltıp load() ile tüm playback'i iptal et.
+  try { audio.pause(); } catch {}
+  try { audio.currentTime = 0; } catch {}
+  try { audio.removeAttribute('src'); audio.load(); } catch {}
 }
 
 function fade(parca) {

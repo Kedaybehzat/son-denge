@@ -222,11 +222,15 @@ export const efektler = {
     const t = Phaser.Math.Clamp((this.gorsel.d - 30) / 50, 0, 1);
     const k = state.kaynak;
 
-    // Oyun içi müzik: memnuniyet düşük veya denge düşükse gerilim, aksi halde umut.
+    // Oyun içi müzik: histerezis ile eşiğin üstünde salınım yok.
+    // Gerilime düşmek için eşikler daha sert, umut'a dönmek için daha yüksek.
     // Modal açıkken (gece raporu vs.) oradaki müziği bozmayalım.
     if (!state.bitti && !ui.acikMi()) {
-      const gerilim = (state.memnuniyet != null && state.memnuniyet < 35) || state.denge < 30;
-      muzikCal(gerilim ? 'muzik-gerilim' : 'muzik-umut');
+      const dusuk = (state.memnuniyet != null && state.memnuniyet < 30) || state.denge < 25;
+      const yuksek = (state.memnuniyet == null || state.memnuniyet > 40) && state.denge > 35;
+      if (dusuk) muzikCal('muzik-gerilim');
+      else if (yuksek) muzikCal('muzik-umut');
+      // Arada (ne dusuk ne yuksek) kalınca mevcut müzik aynen devam eder.
     }
 
     this.gokyuzu.fillColor = renkGecis(0xb5774a, 0x8fd3ff, t);
