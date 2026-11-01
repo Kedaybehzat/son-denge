@@ -1175,31 +1175,80 @@ export default class GameScene extends Phaser.Scene {
   //  - ekPanel : _cizCatiPanelleri() tarafından ele alınıyor
   _cizYapilar() {
     const yapilar = state.yapilar || [];
+
+    // ---- Yalıtım Tesisi: iki yan duvara dik panel ----
     if (yapilar.includes('yalitim') && !this.yalitimKat) {
       const g = this.add.graphics().setDepth(0.5);
-      // Dış duvar yalıtım kaplaması (sol ve sağ)
-      g.fillStyle(0xc8d4ba).fillRect(-10, TAVAN_Y - 6, 10, ZEMIN_Y - TAVAN_Y + 16);
-      g.fillRect(this.dunyaG, TAVAN_Y - 6, 10, ZEMIN_Y - TAVAN_Y + 16);
-      // Çizgili desen
-      g.lineStyle(1, 0x8ea385, 0.6);
-      for (let y = TAVAN_Y; y < ZEMIN_Y; y += 10) {
-        g.lineBetween(-10, y, 0, y);
-        g.lineBetween(this.dunyaG, y, this.dunyaG + 10, y);
+      const w = 22;                // panel genişliği
+      const yUst = TAVAN_Y - 10;
+      const yAlt = ZEMIN_Y + 10;
+      const h = yAlt - yUst;
+      const yan = [-w, this.dunyaG]; // sol ve sağ panelin iç kenar x'i
+      for (const xi of yan) {
+        // Ana panel (açık yeşil köpük)
+        g.fillStyle(0xc8d4ba).fillRect(xi, yUst, w, h);
+        // Üstte alümünyum başlık şeridi (parlak)
+        g.fillStyle(0xe8ecd8).fillRect(xi, yUst, w, 6);
+        g.fillStyle(0x9fb28e).fillRect(xi, yUst + 6, w, 1);
+        // Altta beton temel
+        g.fillStyle(0x8e9e82).fillRect(xi, yAlt - 7, w, 7);
+        // Dikey panel bağlantıları (her ~55 px)
+        g.lineStyle(1, 0x7f9478, 0.9);
+        for (let y = yUst + 10; y < yAlt - 10; y += 55) g.lineBetween(xi, y, xi + w, y);
+        // Çapraz lattice deseni (hafif)
+        g.lineStyle(1, 0x8ea385, 0.35);
+        for (let y = yUst + 14; y < yAlt - 10; y += 14) {
+          g.lineBetween(xi, y, xi + w, y + 8);
+          g.lineBetween(xi, y + 8, xi + w, y);
+        }
+        // Vidalar (dört köşe + ortada iki)
+        g.fillStyle(0x4a5546, 1);
+        const vida = (x, y) => g.fillCircle(x, y, 1.5);
+        vida(xi + 3, yUst + 3); vida(xi + w - 3, yUst + 3);
+        vida(xi + 3, yAlt - 10); vida(xi + w - 3, yAlt - 10);
+        vida(xi + 3, (yUst + yAlt) / 2); vida(xi + w - 3, (yUst + yAlt) / 2);
       }
+      // Sağ tarafta hafif gölge (sığınağın sol duvarının iç kenarına doğru)
+      g.fillStyle(0x000000, 0.15);
+      g.fillRect(0, TAVAN_Y - 4, 3, ZEMIN_Y - TAVAN_Y + 8); // sol panelin iç gölgesi
+      g.fillRect(this.dunyaG - 3, TAVAN_Y - 4, 3, ZEMIN_Y - TAVAN_Y + 8); // sağ panelin iç gölgesi
       this.yalitimKat = g;
     }
+
+    // ---- Sel Bariyeri: sera odasının önünde beton bariyer ----
     if (yapilar.includes('bariyer') && !this.bariyerDekor) {
       const seraOda = ODALAR.findIndex((o) => o.tip === 'sera');
       if (seraOda >= 0) {
         const x0 = seraOda * ODA_GENISLIK;
         const g = this.add.graphics().setDepth(2.5);
-        g.fillStyle(0x6e7267).fillRect(x0 + 24, ZEMIN_Y - 24, ODA_GENISLIK - 48, 22);
-        g.fillStyle(0x4a4e45).fillRect(x0 + 24, ZEMIN_Y - 24, ODA_GENISLIK - 48, 4);
-        // Küçük sarı-siyah şerit uyarı deseni
+        const bx = x0 + 20;
+        const bw = ODA_GENISLIK - 40;
+        const yAlt = ZEMIN_Y - 2;    // zeminin hemen üstü
+        const bH = 34;               // toplam yükseklik
+        const by = yAlt - bH;
+        // Alt beton ana gövde (koyu)
+        g.fillStyle(0x5b5f55).fillRect(bx, by + 8, bw, bH - 8);
+        // Üst beton başlığı (hafif daha açık, T profili için 4 px taşmış)
+        g.fillStyle(0x7a7f72).fillRect(bx - 4, by, bw + 8, 14);
+        // Üst parlaklık şeridi
+        g.fillStyle(0x95a08c).fillRect(bx - 4, by, bw + 8, 2);
+        // Sarı-siyah uyarı şeridi (başlığın altında)
+        const sY = by + 15;
+        g.fillStyle(0x1a1a16).fillRect(bx, sY, bw, 5);
         g.fillStyle(0xd6a84a);
-        for (let i = 30; i < ODA_GENISLIK - 48; i += 24) {
-          g.fillRect(x0 + 24 + i, ZEMIN_Y - 20, 10, 3);
-        }
+        for (let i = 0; i < bw - 10; i += 18) g.fillRect(bx + i + 2, sY, 10, 5);
+        // Dikey bağlantı çizgileri (segment hissi) ~110 px
+        g.lineStyle(1, 0x3f433b, 0.8);
+        for (let x = bx + 55; x < bx + bw - 10; x += 110) g.lineBetween(x, by + 23, x, yAlt);
+        // Alt kısımda drenaj delikleri (küçük daireler)
+        g.fillStyle(0x2d2f2a);
+        for (let x = bx + 30; x < bx + bw - 10; x += 60) g.fillCircle(x, yAlt - 4, 2);
+        // Köşe çentikleri
+        g.fillStyle(0x4a4e45, 0.6);
+        g.fillRect(bx - 4, by, 2, 2); g.fillRect(bx + bw + 2, by, 2, 2);
+        // Önünde zemine düşen gölge
+        g.fillStyle(0x000000, 0.18);
+        g.fillEllipse(bx + bw / 2, yAlt + 1, bw - 10, 6);
         this.bariyerDekor = g;
       }
     }
