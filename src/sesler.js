@@ -38,6 +38,7 @@ function sustur(audio) {
   fadeIptal(audio);
   audio.muted = true;
   audio.volume = 0;
+  audio.loop = false; // loop açık kalırsa src temizlense bile hazır olduğunda tekrar başlar
   // play() Promise'i async: pause tek başına yetmez, async play tamamlanınca
   // ses tekrar başlayabilir. src'yi boşaltıp load() ile tüm playback'i iptal et.
   try { audio.pause(); } catch {}
@@ -64,14 +65,18 @@ function muzikBaslat(parca) {
   if (!sesAcik || aktifLoop !== parca) return;
   const deneme = ++parca.deneme;
   bekleyen = null;
-  parca.audio.muted = false;
+  // Önce muted + volume 0 ile başla. Play Promise resolve olurken parça hâlâ
+  // aktif ise unmute+fade. Böylece play() async aralığında eski parça durdurulsa
+  // bile sessiz başlar; iki ses asla üst üste duyulmaz.
+  parca.audio.muted = true;
+  parca.audio.volume = 0;
   parca.audio.play().then(() => {
     if (!sesAcik || aktifLoop !== parca) { sustur(parca.audio); return; }
     if (parca.deneme !== deneme) return;
+    parca.audio.muted = false;
     fade(parca);
   }).catch((hata) => {
     if (!sesAcik || aktifLoop !== parca || parca.deneme !== deneme) return;
-    // Yalnız autoplay engeli kullanıcı etkileşimiyle yeniden denenir.
     if (hata?.name === 'NotAllowedError') bekleyen = parca;
   });
 }
