@@ -1115,6 +1115,12 @@ button.proje .bar { width: 100%; height: 0.5cqw; background: var(--terminal-cizg
 button.proje .bar i { display: block; height: 100%; background: var(--tema); }
 button.proje .kalan { font-size: 0.85cqw; color: var(--terminal-dim); }
 button.proje.acik { opacity: 0.75; }
+button.proje.kilitli { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.6); }
+button.proje.kilitli .kalan { color: var(--amber); }
+/* İnşa yapıları ayrı tema çizgisi */
+button.proje[data-yapi] { border-left-color: var(--amber); }
+button.proje[data-yapi].acik { border-left-color: var(--yesil); }
+button.proje[data-yapi]:disabled:not(.acik) { opacity: 0.55; }
 button.gorev.dolu { opacity: 0.6; }
 .gorevler { grid-template-columns: repeat(auto-fill, minmax(9cqw, 1fr)); }
 .ziyaretci-satir.makine.bos .chip { animation: none; }

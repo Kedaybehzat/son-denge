@@ -347,6 +347,11 @@ Veri: `src/data/cards.js` (`KARTLAR`). Kurallar: `src/state.js` → `kartKontrol
 | Geri dönüşüm protestosu | Atık > 65 | Ayrıştır (−20 atık, 1 eylem) · Yak (−35 atık, +8 enerji, +15 karbon, kirli) · Onar (−10 atık, +5 enerji) |
 | Kompost tartışması | Atık > 50 ve gıda < 40 | Kompost (+12 gıda, −12 atık) · Açık yığın (−8 atık, bu gece +6 karbon, kirli) |
 | Yenilenebilir enerji sözü | Karbon > 55 | Fidan dikimi (−15 karbon, −6 su, 1 eylem) · Batarya araştırması (+3 puan) · Süre iste (−5 insanlık) |
+| Yaklaşan toz fırtınası | Yarın toz | Panelleri ört (1 eylem, bu gece +12 enerji) · Batarya araştırması (+3 puan) · Tüketimi kıs (bu gece +6 enerji) |
+| Alçak katı su basabilir | Yarın sel | Bariyer kur (1 eylem, bu gece +10 gıda) · Üretimi taşı (−6 gıda, bu gece +14) · Riski göze al |
+| Araştırma mı tamirat mı? | Boş makine + 2. gün | Kendim onarırım (1 eylem, bu gece +5 enerji) · Araştırmaya devam (+2 puan) · Herkese tasarruf |
+| Keşif ekibinin bulduğu bataryalar | Santral keşfedildi | Yeniden kullan (+12 enerji) · Araştırmada incele (+4 puan batarya) · Komşuyla takas |
+| Yeni aileye yer var mı? | Gıda < 35 + 2. gün | Kabul et + tasarruf · Önce üretim artır (1 eylem) · Geri çevir |
 
 Kartların bilgi kartları mevcut `facts.js` anahtarlarını kullanır (yeni kaynaksız iddia yok). Sayılar [DENGE TASLAĞI].
 
@@ -365,6 +370,22 @@ Veri: `src/data/exploration.js` (`KESIF_NOKTALARI`). Kurallar: `src/state.js` �
 | Kurumuş rezervuar | 1 gece | −4 gıda, −2 su | %70 | Su (Burak) | +8 su, Gri Su'ya +4 puan |
 
 Simülasyon keşfi kullanmıyor (isteğe bağlı mekanik). Sayılar [DENGE TASLAĞI].
+
+### 4.19 Üs İnşası ve Araştırma Seviye II (GDD bölüm 6 ileri + bölüm 7)
+
+Veri: `src/data/structures.js` (`YAPILAR`), `src/data/research.js` (Seviye II araştırmalar). Kurallar: `src/state.js` → `yapiKur()`, `yapiKurabilirMi()`, `olayCarpani()`, `arastirmaSec()` (onKosul). Arayüz: Pano → "İnşa" bölümü ve kilitli araştırma göstergeleri.
+
+**Araştırma Seviye II** (Seviye I'den en az biri bitince açılır, `onKosul`):
+- 🌬️ **Verimli Türbin** (12 puan): her gece +4 enerji
+- 🥬 **Hidroponik Tarım** (12 puan): her gece +3 gıda, −1 su
+- 🫁 **Hava Filtresi** (12 puan): her gece −3 karbon
+
+**Yapılar** (panodan tek seferlik, kalıcı):
+- 🧱 **Yalıtım Tesisi** (1 eylem, −8 atık): sıcak hava ve toz zararı yarıya iner
+- 🏗️ **Sel Bariyeri** (1 eylem, −6 atık): sel zararı yarıya iner
+- 🌞 **Ek Güneş Paneli** (2 eylem, +3 karbon kurulumu): her gece +3 enerji
+
+Yapı etkisi hazırlık çarpanıyla birleşir (ikisi birden varsa çarpanlar çarpılır). Sim yapı inşasını kullanmıyor (5 günlük demoda eylem maliyeti dengeyi bozar; gerçek oyuncu için stratejik yatırım).
 
 ### 4.18 Memnuniyet ve hafif siyaset (GDD bölüm 11)
 

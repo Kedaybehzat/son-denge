@@ -2,3 +2,7 @@ node_modules
 dist
 dist-tek
 assets-orijinal/
+
+# macOS
+.DS_Store
+**/.DS_Store
