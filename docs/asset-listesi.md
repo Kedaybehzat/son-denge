@@ -1,6 +1,6 @@
 # Asset listesi (güncel durum, 1 Kasım 2026)
 
-**Durum:** ✅ oyunda hazır (27) · 🔁 var ama yenilenmeli (9) · ⏳ eksik (12) · ⏳ menü: yeni menü asset'i (44). Toplam 92 satır.
+**Durum:** ✅ oyunda hazır (71) · 🔁 var ama yenilenmeli (9) · ⏳ eksik (12). Toplam 92 satır.
 
 **Kurallar:** Karakter/nesne: şeffaf arka plan, yandan, sağa bakar, taban altta; boy "Gerçek boy" sütununa göre (oyun ölçekler). Animasyon: tek görselde ızgara, her hücrede aynı boy/konum/taban. Menü: sanat stili rehberindeki palet ve yıpranmış metal/ahşap dili; 9-dilim görsellerin ortası düz ve boş, köşeleri belirtilen ölçüde süslü (ortası esner). İkonlar sade, kalın kontur, küçük boyda okunur. Yazı/harf yok (yazıları oyun yazar). Görselleri adlarına dokunmadan asistana verin.
 
@@ -54,47 +54,47 @@
 | 46 | `kurucu-burak.png` | Portre: Burak | 1:1 | baş + omuz | 🔁 | Eski stil; yenilenmeli |
 | 47 | `kurucu-nur.png` | Portre: Nur | 1:1 | baş + omuz | 🔁 | Eski stil; yenilenmeli |
 | 48 | `kurucu-can.png` | Portre: Can | 1:1 | baş + omuz | 🔁 | Eski stil; yenilenmeli |
-| 49 | `logo.png` | Oyun logosu "Son Denge" (başlık ekranı, yükleme) | 3:1 yatay, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 50 | `menu-arka.png` | Başlık ekranı ve hikaye kartı arka planı (sığınak dış cephesi, akşam) | 16:9 | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 51 | `kart-cerceve.png` | Pencere çerçevesi (paneller, radyo, kapı kartı, pano, gece raporu): yıpranmış metal + ahşap kenar, ortası düz koyu | 512×512, 9-dilim (köşe 96 px), şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; ortası boş bırakılmalı |
-| 52 | `buton.png` | Buton: küçük metal plaka, perçinli | 384×128, 9-dilim (köşe 32 px) | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 53 | `buton-basili.png` | Aynı buton, basılı/vurgulu | 384×128 | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 54 | `hud-kutu.png` | Üst çubuk kutusu (kaynak göstergeleri) | 256×128, 9-dilim (köşe 24 px) | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 55 | `ikon-enerji.png` | HUD ikonu: Enerji (şimşek) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 56 | `ikon-su.png` | HUD ikonu: Su (damla) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 57 | `ikon-gida.png` | HUD ikonu: Gıda (başak) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 58 | `ikon-atik.png` | HUD ikonu: Atık (çuval) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 59 | `ikon-karbon.png` | HUD ikonu: Karbon (bulut) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 60 | `ikon-nufus.png` | HUD ikonu: Nüfus (iki kişi) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 61 | `ikon-eylem.png` | HUD ikonu: Eylem hakkı (el / dişli) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 62 | `ikon-arastirma.png` | HUD ikonu: Araştırma (cam tüp) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 63 | `ikon-batarya.png` | HUD ikonu: Batarya | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 64 | `ikon-memnuniyet.png` | HUD ikonu: Memnuniyet (yüz) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 65 | `son-gercek-utopya.png` | Son ekranı görseli: Yeşilvadi nefes alıyor | 3:2 yatay | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 66 | `son-yalniz-utopya.png` | Son ekranı görseli: Yalnız bir ütopya | 3:2 yatay | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 67 | `son-kapimiz-acikti.png` | Son ekranı görseli: Kapımız açıktı | 3:2 yatay | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 68 | `son-guven-kaybi.png` | Son ekranı görseli: Güven oylaması | 3:2 yatay | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 69 | `son-cokus.png` | Son ekranı görseli: Işıklar söndü | 3:2 yatay | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 70 | `kart-itiraz.png` | Karar kartı görseli: Sakinlerin itirazı | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 71 | `kart-karanlik.png` | Karar kartı görseli: Karanlıkta kalan koloni | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 72 | `kart-susuz.png` | Karar kartı görseli: Su paylaşımı | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 73 | `kart-protesto.png` | Karar kartı görseli: Geri dönüşüm protestosu | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 74 | `kart-kompost.png` | Karar kartı görseli: Kompost tartışması | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 75 | `kart-soz.png` | Karar kartı görseli: Yenilenebilir enerji sözü | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 76 | `kart-toz-uyari.png` | Karar kartı görseli: Yaklaşan toz fırtınası | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 77 | `kart-sel-uyari.png` | Karar kartı görseli: Alçak katı su basabilir | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 78 | `kart-bos-makine.png` | Karar kartı görseli: Araştırma mı, tamirat mı? | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 79 | `kart-kesif-batarya.png` | Karar kartı görseli: Keşif ekibinin bulduğu bataryalar | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 80 | `kart-yeni-aile.png` | Karar kartı görseli: Yeni aileye yer var mı? | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 81 | `ikon-batarya.png` | Pano ikonu: Batarya Deposu | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 82 | `ikon-grisu.png` | Pano ikonu: Gri Su | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 83 | `ikon-turbin.png` | Pano ikonu: Verimli Türbin | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 84 | `ikon-hidroponik.png` | Pano ikonu: Hidroponik | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 85 | `ikon-hava-filtresi.png` | Pano ikonu: Hava Filtresi | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 86 | `ikon-yalitim.png` | Pano ikonu: Yalıtım Tesisi | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 87 | `ikon-bariyer.png` | Pano ikonu: Sel Bariyeri | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 88 | `ikon-ek-panel.png` | Pano ikonu: Ek Güneş Paneli | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 89 | `ikon-santral.png` | Pano ikonu: Keşif: santral | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 90 | `ikon-sehir.png` | Pano ikonu: Keşif: eski şehir | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 91 | `ikon-komsu.png` | Pano ikonu: Keşif: komşu yerleşim | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 92 | `ikon-rezervuar.png` | Pano ikonu: Keşif: rezervuar | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
+| 49 | `logo.png` | Oyun logosu "Son Denge" (başlık ekranı, yükleme) | 768×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 50 | `menu-arka.png` | Başlık ekranı ve hikaye kartı arka planı (sığınak dış cephesi, akşam) | 1280×720 | — | ✅ | Oyuna bağlı |
+| 51 | `kart-cerceve.png` | Pencere çerçevesi (paneller, radyo, kapı kartı, pano, gece raporu): yıpranmış metal + ahşap kenar, iç rengi CSS | 512×512, 9-dilim (köşe 96 px) | — | ✅ | 9-dilim ile oyuna bağlı |
+| 52 | `buton.png` | Buton: küçük metal plaka, perçinli | 384×128, 9-dilim (köşe 32 px) | — | ✅ | Oyuna bağlı |
+| 53 | `buton-basili.png` | Aynı buton, basılı/vurgulu | 384×128 | — | ✅ | Oyuna bağlı |
+| 54 | `hud-kutu.png` | Üst çubuk kutusu (kaynak göstergeleri) | 256×128, 9-dilim (köşe 24 px) | — | ✅ | Oyuna bağlı |
+| 55 | `ikon-enerji.png` | HUD ikonu: Enerji (şimşek) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 56 | `ikon-su.png` | HUD ikonu: Su (damla) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 57 | `ikon-gida.png` | HUD ikonu: Gıda (başak) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 58 | `ikon-atik.png` | HUD ikonu: Atık (çuval) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 59 | `ikon-karbon.png` | HUD ikonu: Karbon (bulut) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 60 | `ikon-nufus.png` | HUD ikonu: Nüfus (iki kişi) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 61 | `ikon-eylem.png` | HUD ikonu: Eylem hakkı (el / dişli) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 62 | `ikon-arastirma.png` | HUD ikonu: Araştırma (cam tüp) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 63 | `ikon-batarya.png` | HUD ikonu: Batarya | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 64 | `ikon-memnuniyet.png` | HUD ikonu: Memnuniyet (yüz) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 65 | `son-gercek-utopya.png` | Son ekranı görseli: Yeşilvadi nefes alıyor | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 66 | `son-yalniz-utopya.png` | Son ekranı görseli: Yalnız bir ütopya | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 67 | `son-kapimiz-acikti.png` | Son ekranı görseli: Kapımız açıktı | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 68 | `son-guven-kaybi.png` | Son ekranı görseli: Güven oylaması | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 69 | `son-cokus.png` | Son ekranı görseli: Işıklar söndü | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 70 | `kart-itiraz.png` | Karar kartı görseli: Sakinlerin itirazı | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 71 | `kart-karanlik.png` | Karar kartı görseli: Karanlıkta kalan koloni | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 72 | `kart-susuz.png` | Karar kartı görseli: Su paylaşımı | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 73 | `kart-protesto.png` | Karar kartı görseli: Geri dönüşüm protestosu | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 74 | `kart-kompost.png` | Karar kartı görseli: Kompost tartışması | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 75 | `kart-soz.png` | Karar kartı görseli: Yenilenebilir enerji sözü | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 76 | `kart-toz-uyari.png` | Karar kartı görseli: Yaklaşan toz fırtınası | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 77 | `kart-sel-uyari.png` | Karar kartı görseli: Alçak katı su basabilir | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 78 | `kart-bos-makine.png` | Karar kartı görseli: Araştırma mı, tamirat mı? | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 79 | `kart-kesif-batarya.png` | Karar kartı görseli: Keşif ekibinin bulduğu bataryalar | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 80 | `kart-yeni-aile.png` | Karar kartı görseli: Yeni aileye yer var mı? | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 81 | `ikon-batarya-depo.png` | Pano ikonu: Batarya Deposu | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 82 | `ikon-grisu.png` | Pano ikonu: Gri Su | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 83 | `ikon-turbin.png` | Pano ikonu: Verimli Türbin | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 84 | `ikon-hidroponik.png` | Pano ikonu: Hidroponik | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 85 | `ikon-hava-filtresi.png` | Pano ikonu: Hava Filtresi | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 86 | `ikon-yalitim.png` | Pano ikonu: Yalıtım Tesisi | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 87 | `ikon-bariyer.png` | Pano ikonu: Sel Bariyeri | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 88 | `ikon-ek-panel.png` | Pano ikonu: Ek Güneş Paneli | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 89 | `ikon-santral.png` | Pano ikonu: Keşif: santral | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 90 | `ikon-sehir.png` | Pano ikonu: Keşif: eski şehir | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 91 | `ikon-komsu.png` | Pano ikonu: Keşif: komşu yerleşim | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 92 | `ikon-rezervuar.png` | Pano ikonu: Keşif: rezervuar | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |

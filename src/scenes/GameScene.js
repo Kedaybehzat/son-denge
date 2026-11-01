@@ -16,6 +16,8 @@ import { state, abone, gunuBitir, sifirla, ziyaretciKabul, ziyaretciReddet,
 import * as ui from '../ui/ui.js';
 
 const HIZ = 240;
+const KOSU_CARPANI = 1.65;
+const SAKIN_HIZI = 85;
 const ETKILESIM_MESAFE = 30; // oyuncu ile nesnenin KENARI arasındaki yatay mesafe (px)
 
 // Kodla çizilen yer tutucu dokular (gerçek asset değil). Sahne yeniden
@@ -155,7 +157,7 @@ export default class GameScene extends Phaser.Scene {
     }).setDepth(9);
 
     this.tuslar = this.input.keyboard.addKeys({
-      sol: 'A', sag: 'D', solOk: 'LEFT', sagOk: 'RIGHT',
+      sol: 'A', sag: 'D', solOk: 'LEFT', sagOk: 'RIGHT', kos: 'SHIFT',
     });
     // E tuşu olay olarak dinlenir: düşük FPS'te kısa basışlar da kaçmaz
     this.etkilesimIstegi = false;
@@ -163,7 +165,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.ipucu = this.add
       .text(0, 0, '', {
-        fontFamily: 'system-ui, sans-serif', fontSize: '15px', color: '#ffffff',
+        fontFamily: '"Nunito Sans", sans-serif', fontSize: '15px', color: '#ffffff',
         backgroundColor: '#1b2430cc', padding: { x: 8, y: 4 },
       })
       .setOrigin(0.5, 1).setDepth(50).setVisible(false);
@@ -677,7 +679,7 @@ export default class GameScene extends Phaser.Scene {
       // Oda görseli varsa üstünde okunsun diye açık renk + koyu kontur
       const odaGorselli = this.gercekAsset('oda-' + oda.tip);
       this.add.text(x0 + 26, ust + 12, oda.ad.toUpperCase(), {
-        fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontStyle: 'bold',
+        fontFamily: '"Nunito Sans", sans-serif', fontSize: '13px', fontStyle: 'bold',
         color: odaGorselli ? '#f3ead2' : '#3a3328',
         ...(odaGorselli ? { stroke: '#1d1712', strokeThickness: 3 } : {}),
       }).setAlpha(odaGorselli ? 0.9 : 0.55).setDepth(1);
@@ -817,7 +819,7 @@ export default class GameScene extends Phaser.Scene {
     const kapi = this.nesneler.find((n) => n.def.tip === 'kapi');
     this.kapiIsaret = this.add
       .text(kapi.sprite.x, kapi.sprite.y - this.gorunurY(kapi.sprite) - 30, '!', {
-        fontFamily: 'system-ui, sans-serif', fontSize: '34px', fontStyle: 'bold', color: '#ffd23f',
+        fontFamily: '"Nunito Sans", sans-serif', fontSize: '34px', fontStyle: 'bold', color: '#ffd23f',
         stroke: '#3a2a10', strokeThickness: 6,
       })
       .setOrigin(0.5, 1).setDepth(20).setVisible(false);
@@ -849,15 +851,15 @@ export default class GameScene extends Phaser.Scene {
 
   sakinIdleBaslat(s) {
     if (s.wander) s.wander.remove();
-    const adim = Phaser.Math.Between(14, 24) * (Math.random() < 0.5 ? -1 : 1);
+    const adim = Phaser.Math.Between(45, 85) * (Math.random() < 0.5 ? -1 : 1);
     s.sprite.setFlipX(adim < 0);
     s.wander = this.tweens.add({
       targets: s.sprite,
       x: s.hedefX + adim,
-      duration: Phaser.Math.Between(1900, 3200),
+      duration: Math.abs(adim) / SAKIN_HIZI * 1000,
       yoyo: true, repeat: -1,
-      hold: 600, repeatDelay: 600,
-      ease: 'Sine.easeInOut',
+      hold: 1800, repeatDelay: 1800, delay: Phaser.Math.Between(600, 1800),
+      ease: 'Linear',
       onYoyo: () => s.sprite.setFlipX(!s.sprite.flipX),
       onRepeat: () => s.sprite.setFlipX(!s.sprite.flipX),
     });
@@ -870,7 +872,7 @@ export default class GameScene extends Phaser.Scene {
     s.sprite.setFlipX(yeniX < s.sprite.x);
     this.tweens.add({
       targets: s.sprite, x: yeniX,
-      duration: 1100, ease: 'Sine.easeInOut',
+      duration: Math.max(180, Math.abs(yeniX - s.sprite.x) / SAKIN_HIZI * 1000), ease: 'Linear',
       onComplete: () => this.sakinIdleBaslat(s),
     });
   }
@@ -881,20 +883,23 @@ export default class GameScene extends Phaser.Scene {
     const p = this.oyuncu;
     if (!p) return;
     p.y = ZEMIN_Y;
+    p.anims.timeScale = 1;
     this.yurumeTozSayac = 0;
     if (simdi < this.oyuncuMesgulBitis) return;
     if (!this.animOynat(p, 'oyuncu-bekle')) this.animDurdur(p, 'oyuncu');
   }
 
   // Sakin hareket ediyorsa yürü, duruyorsa bekle animasyonu (varsa)
-  sakinAnimGuncelle() {
+  sakinAnimGuncelle(dt = 16.67) {
     for (const s of this.sakinler || []) {
       if (!s.sprite.active) continue;
-      const hareket = Math.abs(s.sprite.x - (s.oncekiX ?? s.sprite.x)) > 0.05;
+      const hiz = Math.abs(s.sprite.x - (s.oncekiX ?? s.sprite.x)) * 1000 / Math.max(dt, 1);
+      const hareket = hiz > 8;
       s.oncekiX = s.sprite.x;
       if (s.ozelDoku) continue; // karaktere özel görselde genel animasyon yok
       const ad = `sakin-${(s.tip ?? 0) + 1}-${hareket ? 'yuru' : 'bekle'}`;
       if (!this.animOynat(s.sprite, ad)) this.animDurdur(s.sprite, 'sakin' + (s.tip ?? 0));
+      s.sprite.anims.timeScale = hareket ? Phaser.Math.Clamp(hiz / SAKIN_HIZI, 0.6, 1.4) : 1;
     }
   }
 
@@ -959,7 +964,7 @@ export default class GameScene extends Phaser.Scene {
       const renk = iyi ? '#9fd36b' : '#ff8a74';
       const metin = `${deger > 0 ? '+' : '−'}${Math.abs(deger)} ${k.ikon}`;
       const yazi = this.add.text(sprite.x, ustY, metin, {
-        fontFamily: '"IBM Plex Mono", monospace',
+        fontFamily: '"Nunito Sans", sans-serif',
         fontSize: '22px', fontStyle: 'bold',
         color: renk,
         stroke: '#0a0e07', strokeThickness: 4,
@@ -1020,7 +1025,7 @@ export default class GameScene extends Phaser.Scene {
       kapi.x, kapi.y - this.gorunurY(kapi) - 8,
       `+${kisi} 👥`,
       {
-        fontFamily: '"IBM Plex Mono", monospace',
+        fontFamily: '"Nunito Sans", sans-serif',
         fontSize: '26px', fontStyle: 'bold',
         color: '#9fd36b',
         stroke: '#0a0e07', strokeThickness: 4,
@@ -1039,14 +1044,14 @@ export default class GameScene extends Phaser.Scene {
     const cx = EKRAN_G / 2;
     const cy = EKRAN_Y / 2;
     const buyuk = this.add.text(cx, cy - 20, `GÜN ${gun}`, {
-      fontFamily: '"VT323", monospace',
+      fontFamily: '"Barlow Condensed", sans-serif',
       fontSize: '110px',
       color: '#eaffd4',
       stroke: '#0a140f', strokeThickness: 6,
     }).setOrigin(0.5).setDepth(60).setAlpha(0);
     this.ekranaSabitle(buyuk, 0);
     const kucuk = this.add.text(cx, cy + 58, olayAd || '', {
-      fontFamily: '"IBM Plex Mono", monospace',
+      fontFamily: '"Nunito Sans", sans-serif',
       fontSize: '22px', fontStyle: 'bold',
       color: '#9fd36b',
       stroke: '#0a140f', strokeThickness: 4,
@@ -1203,7 +1208,7 @@ export default class GameScene extends Phaser.Scene {
 
     const eBasildi = this.etkilesimIstegi;
     this.etkilesimIstegi = false; // her karede tüketilir (panel açıkken basılan E birikmez)
-    this.sakinAnimGuncelle(); // pencere açıkken de sakinler yürümeye devam eder
+    this.sakinAnimGuncelle(dt); // pencere açıkken de sakinler yürümeye devam eder
     if (ui.acikMi() || this.gecisVar || state.bitti) {
       this.ipucu.setVisible(false);
       this.oyuncuDurdur(simdi); // pencere açıkken yürüme animasyonu/zıplama sürmesin
@@ -1216,9 +1221,10 @@ export default class GameScene extends Phaser.Scene {
     if (T.sag.isDown || T.sagOk.isDown) yon += 1;
 
     const p = this.oyuncu;
-    p.x = Phaser.Math.Clamp(p.x + (yon * HIZ * dt) / 1000, 40, this.dunyaG - 40);
+    p.x = Phaser.Math.Clamp(p.x + (yon * HIZ * (T.kos.isDown ? KOSU_CARPANI : 1) * dt) / 1000, 40, this.dunyaG - 40);
     const mesgul = simdi < this.oyuncuMesgulBitis && yon === 0;
     if (yon !== 0) {
+      p.anims.timeScale = T.kos.isDown ? KOSU_CARPANI : 1;
       p.setFlipX(yon < 0);
       this.yurume += dt;
       // Yürüme animasyonu varsa onu oynat; yoksa sabit görsel + kodla zıplama
@@ -1230,11 +1236,12 @@ export default class GameScene extends Phaser.Scene {
       }
       // Her ~220ms'de bir ayak altında küçük bir toz pufu
       this.yurumeTozSayac += dt;
-      if (this.yurumeTozSayac > 220) {
+      if (this.yurumeTozSayac > (T.kos.isDown ? 140 : 220)) {
         this.yurumeTozSayac = 0;
         this.ayakTozu.emitParticleAt(p.x - yon * 8, ZEMIN_Y - 2, 2);
       }
     } else {
+      p.anims.timeScale = 1;
       p.y = ZEMIN_Y;
       this.yurumeTozSayac = 0;
       if (!mesgul && !this.animOynat(p, 'oyuncu-bekle')) this.animDurdur(p, 'oyuncu');

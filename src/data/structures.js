@@ -1,7 +1,8 @@
 // =============================================================
 //  YAPILAR (GDD bölüm 7: Üs İnşası — minimal versiyon)
 //  Panodan inşa edilen tek seferlik, kalıcı sığınak genişletmeleri.
-//  Her yapı bir kez inşa edilir ve oyun sonuna kadar etkisini sürdürür.
+//  Bir seferde tek inşaat: maliyet başta ödenir; yapı gece bitince
+//  ertesi gün aktif olur. Her yapı en fazla bir kez inşa edilir.
 //
 //  maliyet   : { eylem, kaynak:değer } hemen uygulanır (eylem düşülür,
 //              kaynaklar etki olarak uygulanır; +X atık= kurulum atığı,
@@ -15,6 +16,7 @@
 
 export const YAPILAR = {
   yalitim: {
+    oda: 'yasam', sure: 1,
     ad: 'Yalıtım Tesisi',
     ikon: '🧱',
     maliyet: { eylem: 1, atik: -8 },
@@ -23,6 +25,7 @@ export const YAPILAR = {
     bilgi: 'ruzgar',
   },
   bariyer: {
+    oda: 'sera', sure: 1,
     ad: 'Sel Bariyeri',
     ikon: '🏗️',
     maliyet: { eylem: 1, atik: -6 },
@@ -31,11 +34,24 @@ export const YAPILAR = {
     bilgi: 'tatlisu',
   },
   ekPanel: {
+    oda: 'enerji', sure: 1,
     ad: 'Ek Güneş Paneli',
     ikon: '🌞',
-    maliyet: { eylem: 2, karbon: +3 },
+    maliyet: { eylem: 2, atik: -12, enerji: -6, karbon: +3 },
     aciklama: 'Çatıya ek güneş paneli dizisi: her gece +3 enerji. Kurulumda biraz karbon salımı var.',
     geceEtki: { enerji: +3 },
     bilgi: 'gunes',
+  },
+  suDeposu: {
+    oda: 'su', sure: 1, ad: 'Su Geri Kazanım Hattı', ikon: '💧',
+    maliyet: { eylem: 1, atik: -10, enerji: -6 },
+    aciklama: 'Yeniden kullanılan borular ve filtreler: her gece +3 su, −1 enerji.',
+    geceEtki: { su: 3, enerji: -1 }, bilgi: 'grisu',
+  },
+  onarimTezgahi: {
+    oda: 'geri', sure: 1, ad: 'Onarım Tezgâhı', ikon: '🔧',
+    maliyet: { eylem: 1, atik: -10, enerji: -6 },
+    aciklama: 'Ayrıştırılan parçalar yeniden kullanılır: her gece −3 atık.',
+    geceEtki: { atik: -3 }, bilgi: 'hiyerarsi',
   },
 };

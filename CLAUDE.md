@@ -1,8 +1,8 @@
 # Son Denge: Proje Dokümanı
 
-> **Takım için tek kaynak.** Bu dosyada oyunun hikayesi, tüm mekanikleri ve sayıları, teknik yapısı, görsel üretim promptları ve sunum notları var. Kendi yapay zeka asistanınıza (ChatGPT, Gemini, Claude vb.) bu dosyayı verip "bu projede bana yardım et" diyebilirsiniz.
+> **Takım için tek kaynak.** Bu dosyada oyunun hikayesi, tüm mekanikleri ve sayıları, teknik yapısı, görsel üretim promptları ve sunum notları var. Kendi yapay zeka asistanınıza (ChatGPT, Gemini, Claude vb.) bu dosyayı verip "bu projede bana yardım et" diyebilirsiniz. Güncel devir ve devam rehberi: `docs/devralma.md`.
 >
-> Son güncelleme: 31 Ekim 2026, 21:00 · Oyunun kodundaki sayılarla birebir aynıdır.
+> Son güncelleme: 1 Kasım 2026 · Güncel devir özeti: `docs/devralma.md`. Sayılarda esas kaynak `src/state.js` ve `src/data/` dosyalarıdır.
 
 - **Repo:** https://github.com/Kedaybehzat/son-denge
 - **Oynanabilir sürüm:** https://kedaybehzat.github.io/son-denge/
@@ -101,6 +101,7 @@ Oyun açılışta 4 ekranla anlatılıyor (`src/data/story.js`). "Geç" butonuyl
 
 ### 4.1 Kontroller
 - **A / D** ya da **← / →**: yürü
+- **Shift + yön**: koş (yürüme hızının 1,65 katı)
 - **E**: yakındaki nesneyle etkileşim (panel, radyo, yatak, kapı)
 - **1 / 2 / 3**: açık paneldeki eylemi seç
 - **Esc**: pencereyi kapat · **Enter**: varsayılan buton
@@ -136,7 +137,7 @@ Oyun açılışta 4 ekranla anlatılıyor (`src/data/story.js`). "Geç" butonuyl
 5. Geri Dönüşüm: Geri Dönüşüm Paneli
 
 ### 4.5 Paneller ve eylemler
-Her eylem 1 eylem hakkı harcar. "Kirli" eylemler arayüzde kırmızı kenarlık ve "⚠ kirletir" etiketiyle gösterilir.
+Her eylem 1 eylem hakkı harcar. Su, enerji ve gıda harcayan eylemler için kaynak yeterli olmalıdır; atık ve karbon azaltma, kalan miktar az olsa da yapılabilir. "Kirli" eylemler arayüzde kırmızı kenarlık ve "⚠ kirletir" etiketiyle gösterilir.
 
 **Enerji Kontrol Paneli** (`enerji`): Güneş panelleri, rüzgar türbini ve yedek dizel jeneratör. Jeneratör hızlıdır ama havayı kirletir.
 
@@ -247,19 +248,20 @@ Denge düştükçe dünya kodla değişiyor:
 
 | Oyun tarzı | Kapı | Gerçek ütopya | Yalnız ütopya | Kapımız açıktı | Çöküş | Güven kaybı | Ort.arş |
 |---|---|---|---|---|---|---|---|
-| Akıllı | Herkesi al | %72 | %0 | %28 | %0 | %0 | 1.53 |
+| Akıllı | Herkesi al | %76 | %0 | %24 | %0 | %0 | 1.66 |
 | Akıllı | Kimseyi alma | %0 | %100 | %0 | %0 | %0 | 0.00 |
-| Akıllı | Yarısını al | %14 | %72 | %5 | %9 | %0 | 0.75 |
-| Rastgele | Herkesi al | %2 | %0 | %93 | %0 | %6 | 1.61 |
-| Rastgele | Kimseyi alma | %0 | %13 | %0 | %84 | %3 | 0.00 |
-| Rastgele | Yarısını al | %0 | %6 | %20 | %69 | %4 | 0.78 |
-| Kirli | Herkesi al | %0 | %0 | %51 | %0 | %49 | 1.70 |
-| Kirli | Kimseyi alma | %0 | %0 | %0 | %69 | %31 | 0.00 |
-| Kirli | Yarısını al | %0 | %0 | %14 | %46 | %40 | 0.86 |
+| Akıllı | Yarısını al | %26 | %63 | %6 | %4 | %0 | 0.79 |
+| Rastgele | Herkesi al | %1 | %0 | %95 | %0 | %4 | 1.73 |
+| Rastgele | Kimseyi alma | %0 | %14 | %0 | %85 | %1 | 0.00 |
+| Rastgele | Yarısını al | %1 | %5 | %31 | %60 | %3 | 0.86 |
+| Kirli | Herkesi al | %0 | %0 | %58 | %0 | %42 | 1.78 |
+| Kirli | Kimseyi alma | %0 | %0 | %0 | %75 | %25 | 0.00 |
+| Kirli | Yarısını al | %0 | %0 | %20 | %46 | %34 | 0.88 |
 
-(1 Kasım, yorgunluk + hazırlıklı olaylar + karar kartları + memnuniyet sonrası. Güven kaybı: akıllı oyuncuda hiç, rastgelede nadir (%3–6), kirli oyunda sık. Akıllı stil her zararlı olaya hazırlanır ve kartta dengeyi en çok artıranı seçer; `SIM_HAZIRLIK=0 node tools/simulasyon.mjs` hazırlıksız karşılaştırma verir. Akıllı + herkesi al iyi son oranı yorgunluk ve sert olaylarla %91'den %61'e düştü, karar kartlarıyla %72'ye çıktı; dengeleme PROJECT_LOG D10/D12.)
+(1 Kasım: kaynak maliyeti doğrulaması, gerçek kapı/hazırlık kartları sonrası; her satır 4000 oyun, toplam 36.000. Yuvarlama nedeniyle satır toplamı %100 olmayabilir. İnşaat ve keşif seçimleri bu simülasyonun stratejilerine dahil değildir.)
 
 **Yorum:** En iyi son yalnızca hem iyi kaynak yönetimi hem de açık kapıyla mümkün. Kirli oynayan hiçbir koşulda ayakta kalamıyor. Bu, oyunun mesajını mekanikle kanıtlıyor; sunumda kullanılabilir. Araştırma yalnızca kapı açıkken açılıyor: Dr. Leyla gelirse laboratuvara giriyor, kuruculardan laba giden yok. Yani kapıyı kapatan oyuncu Faz 1 teknolojilerine erişemiyor; bu, "paylaşım = ilerleme" mesajını mekanik olarak güçlendiriyor.
+
 
 ### 4.12 Ayar değerleri (`src/state.js` → `AYAR`)
 ```js
@@ -291,7 +293,7 @@ Denge düştükçe dünya kodla değişiyor:
 
 ### 4.13 Makineler, görevler, traitler, araştırma ve batarya (GDD Faz 1)
 
-Yaşam Alanı'ndaki **Görev ve Araştırma Panosu**'ndan yönetilir. Sayılar `src/data/panels.js` (`makine`), `src/data/research.js` ve `src/data/visitors.js` içinde.
+Yaşam Alanı'ndaki **Sığınak Yönetimi** panosundan veya ekranın altındaki erişim butonlarından yönetilir. **Koloni**, **Odalar**, **Keşif**, **Araştırma** ve **İnşaat** ayrı panellerdir; üst şeritten aralarında geçilir. Sayılar `src/data/panels.js` (`makine`), `src/data/research.js` ve `src/data/visitors.js` içinde.
 
 - **Makineler:** Enerji, Su Arıtma, Sera, Geri Dönüşüm. Her makinede **en fazla 1 operatör** çalışır. **Operatörü olmayan makine o gece üretim yapmaz.**
 - **Kendin çalış:** Boş bir makinenin paneline gidip "Makinede kendin çalış" (1 eylem) dersen o makine bu gece üretir. Aynı makinede günde bir kez.
@@ -319,8 +321,8 @@ Yaşam Alanı'ndaki **Görev ve Araştırma Panosu**'ndan yönetilir. Sayılar `
 Sayılar `src/state.js` → `AYAR` (`yorgunlukUyari`, `yorgunlukAyrilmaEsigi`, `yorgunlukAyrilmaPay`, `ayrilmaInsanlikCezasi`).
 
 - Makinede ya da Laboratuvar'da çalışan sakin her gece **+1**, Dinlen'deki sakin **−2** yorgunluk alır (en az 0). Çocuklar etkilenmez.
-- **3 ve üstü:** panoda sarı uyarı ("dinlenmeli").
-- **4 ve üstü:** her gece ayrılma zarı. Şans = (yorgunluk − 4 + 1) × %25 (4'te %25, 5'te %50…).
+- **4 ve üstü:** panoda sarı uyarı ("dinlenmeli").
+- **5 ve üstü:** her gece ayrılma zarı. Şans = min(%100, (yorgunluk − 5 + 1) × %20); 5'te %20, 6'da %40.
 - Ayrılan sakin (grup ise tüm grup) nüfustan düşer, görevi boşalır ve **−8 insanlık** verir.
 - Panoda her sakinin yorgunluğu "şimdi ↑ bu gece" ve risk yüzdesiyle görünür. Gece tahmini riskli sakinleri uyarır, gece raporu ayrılanları yazar, son ekranı "Tükenip giden" sayısını gösterir.
 
@@ -338,6 +340,7 @@ Veri: `src/data/events.js` (`uyari`, `hazirlik: { ad, carpan }`, `HAZIRLIK_MALIY
 Veri: `src/data/cards.js` (`KARTLAR`). Kurallar: `src/state.js` → `kartKontrol()`, `kartSec()`. Arayüz: sabah ekranı → "Kararı gör" → kart (seçim yapılmadan kapanmaz) → sonuç + "Biliyor muydun?".
 
 - Koşulu sağlanan kart sabah çıkar; her kart bir oyunda bir kez, günde en fazla bir kart (listedeki sıra önceliktir).
+- Aile kartının kabul/ret seçenekleri gerçek kapı kararını uygular; ziyaretçi yoksa bu kart tetiklenmez. Sel/toz kartlarındaki hazırlık seçenekleri yarının olayına gerçek hazırlık yapar.
 - Seçenekler: hemen etki, "bu gece" etkisi, eylem bedeli, araştırma puanı, insanlık. Kirli seçenek kırmızı ve sahnede duman çıkarır. Açılmış araştırmaya dair seçenek gizlenir.
 
 | Kart | Koşul | Seçenekler |
@@ -380,12 +383,17 @@ Veri: `src/data/structures.js` (`YAPILAR`), `src/data/research.js` (Seviye II ar
 - 🥬 **Hidroponik Tarım** (12 puan): her gece +3 gıda, −1 su
 - 🫁 **Hava Filtresi** (12 puan): her gece −3 karbon
 
-**Yapılar** (panodan tek seferlik, kalıcı):
-- 🧱 **Yalıtım Tesisi** (1 eylem, −8 atık): sıcak hava ve toz zararı yarıya iner
-- 🏗️ **Sel Bariyeri** (1 eylem, −6 atık): sel zararı yarıya iner
-- 🌞 **Ek Güneş Paneli** (2 eylem, +3 karbon kurulumu): her gece +3 enerji
+**İnşaat:** Aynı anda tek yapı kurulur. Eylem ve malzeme başlangıçta ödenir; yeterli kaynak yoksa başlayamaz. İnşaat 1 gece sürer; tamamlanana kadar bonus vermez, ertesi gün aktif olur. Son gün yeni inşaat başlatılamaz. Odalar panelinden ilgili odanın iyileştirmelerine geçilebilir. Atık, geri kazanılabilir yapı malzemesi olarak harcanır.
 
-Yapı etkisi hazırlık çarpanıyla birleşir (ikisi birden varsa çarpanlar çarpılır). Sim yapı inşasını kullanmıyor (5 günlük demoda eylem maliyeti dengeyi bozar; gerçek oyuncu için stratejik yatırım).
+| Yapı | Oda | Başlangıç maliyeti | Kalıcı etki |
+|---|---|---|---|
+| Yalıtım Tesisi | Yaşam | 1 eylem, 8 atık | Sıcak hava ve toz zararı yarıya |
+| Sel Bariyeri | Sera | 1 eylem, 6 atık | Sel zararı yarıya |
+| Ek Güneş Paneli | Enerji | 2 eylem, 12 atık, 6 enerji; +3 karbon | Her gece +3 enerji |
+| Su Geri Kazanım Hattı | Su | 1 eylem, 10 atık, 6 enerji | Her gece +3 su, −1 enerji |
+| Onarım Tezgâhı | Geri dönüşüm | 1 eylem, 10 atık, 6 enerji | Her gece −3 atık |
+
+Yapı etkisi hazırlık çarpanıyla birleşir. Gece raporunda tamamlanan inşaat bildirilir. Simülasyon yapı kurmayı seçmez; bu karar ayrı mekanik testlerinde doğrulanır.
 
 ### 4.18 Memnuniyet ve hafif siyaset (GDD bölüm 11)
 
@@ -494,7 +502,7 @@ node tools/asset-durum.mjs   # hangi görseller hazır
 
 **Animasyonlar:** Kareler `public/assets/anim/<animasyon>-<kare>.png` adıyla konur (ör. `oyuncu-yuru-1.png` … `oyuncu-yuru-6.png`). Bir animasyonun **tüm kareleri** gelmeden animasyon oynamaz, nesne sabit görselle kalır. Kareler aynı boyutta olmalı ve karakter her karede aynı yerde/ölçekte durmalı. Animasyon, tüm karelerin ortak dolu alanına göre ölçeklenir; bu yüzden sabit görselle aynı boyda görünür. Hangi animasyonun kaç kare istediği: `PROJECT_LOG.md` → Asset Listesi. Üretim ipuçları: 6.11.
 
-Oyun nesneleri için `public/assets/`'e koyup commit'lemek yeterli; diğerlerini bu isimlerle kod sorumlusuna iletin. **Güncel ve tam liste (durumlarıyla): `PROJECT_LOG.md` → Asset Listesi.**
+Kayıtlı dosya adlarıyla `public/assets/` içine konan görseller otomatik bulunur. Arayüz eşlemeleri `ARAYUZ_IKONLARI`, `KARAR_GORSELLERI`, `SON_GORSELLERI`; yeni isimler eklenirse bu kayıtları da güncelleyin. **Güncel ve tam liste (durumlarıyla): `PROJECT_LOG.md` → Asset Listesi.**
 
 ### 6.4 Stil blokları
 
@@ -762,13 +770,13 @@ ROOM: recycling and repair workshop. Against the back wall draw sorted scrap cra
 
 **İsteğe bağlı, tek seferde 5 oda:** Araç çok geniş görsel destekliyorsa (≈11,4:1) tek panorama isteyin ("five rooms side by side in this order: living area, energy workshop, water treatment, greenhouse, recycling workshop, separated by identical steel support columns at exactly 20%, 40%, 60% and 80% of the width"), sonra 5 eşit parçaya kesin. Geçişler en pürüzsüz bu yolla olur. Kesilen parçalar 2,28:1 olur, ölçekleme gerekmez.
 
-**Tek mesajlık final sürüm:** Oyunun son durumuna göre eksik/düzeltilecek tüm görseller (5 oda, 2 manzara, çatı, çöp yığını, oda paneli animasyonları, sakin animasyonları, isteğe bağlı karakter sprite'ları) asset sohbetine tek seferde: `docs/final-asset-promptu.md`. Sprite sheet'ler 2×2 ızgara gelir, kod tarafında karelere kesilir.
+**Arşivdeki önceki üretim brifi (güncel eksik listesi değildir):** Oyunun son durumuna göre eksik/düzeltilecek tüm görseller (5 oda, 2 manzara, çatı, çöp yığını, oda paneli animasyonları, sakin animasyonları, isteğe bağlı karakter sprite'ları) asset sohbetine tek seferde: `docs/final-asset-promptu.md`. Sprite sheet'ler 2×2 ızgara gelir, kod tarafında karelere kesilir.
 
-**Teslim sonrası:** ölçekleme/kırpma yapmayın; sadece magenta camları silip şeffaf yapın (remove.bg'de değil, bir görsel düzenleyicide "renk seç → sil"), dosyayı `oda-<tip>.png` adıyla `public/assets/`'e koyun. Konumlar değiştiyse `src/data/rooms.js` → `ODALAR[].gorsel` oranlarını güncelleyin.
+**Eski ayrı oda brifi için teslim sonrası:** ölçekleme/kırpma yapmayın; sadece magenta camları silip şeffaf yapın (remove.bg'de değil, bir görsel düzenleyicide "renk seç → sil"), dosyayı `oda-<tip>.png` adıyla `public/assets/`'e koyun. Konumlar değiştiyse `src/data/rooms.js` → `ODALAR[].gorsel` oranlarını güncelleyin.
 
 ### 6.13 Ölçek standardı (asset üretiminde tek ölçü)
 
-Tüm nesne/karakterler **ölçek dizisi** yöntemiyle üretilir: aynı kategorideki nesneler tek görselde, tek taban çizgisinde, 1. yuvada referans oyuncu (1,75 m) ile yan yana çizilir; kesimde referansa göre gerçek boy otomatik çıkar ve `src/data/assets.js`'e metre olarak yazılır. Oyun tek ölçek kullanır: `PX_METRE` (oda görsellerinden kalibre, şu an 75 px/m ön zeminde; duvar dibinde ×0,9). Ayrıntı, kurallar, prompt: `docs/olcek-standardi.md`; şablon: `docs/olcek-sablonu.png`.
+Tüm nesne/karakterler **ölçek dizisi** yöntemiyle üretilir: aynı kategorideki nesneler tek görselde, tek taban çizgisinde, 1. yuvada referans oyuncu (1,75 m) ile yan yana çizilir; kesimde referansa göre gerçek boy otomatik çıkar ve `src/data/assets.js`'e metre olarak yazılır. Oyun tek ölçek kullanır: `PX_METRE` (oda görsellerinden kalibre, şu an 74 px/m ön zeminde; duvar dibinde ×0,9). Ayrıntı, kurallar, prompt: `docs/olcek-standardi.md`; şablon: `docs/olcek-sablonu.png`.
 
 ---
 
@@ -799,8 +807,8 @@ Tüm nesne/karakterler **ölçek dizisi** yöntemiyle üretilir: aynı kategorid
 
 ## 8. Yapılacaklar
 
-- [ ] AI görsellerini üret (bölüm 6) ve kod sorumlusuna ilet
-- [ ] Görselleri oyuna bağla (karakter, nesneler, odalar, portreler, hikaye ekranları)
+- [ ] Kalan 2 sakin animasyon seti ve 9 portre yenilemesini üret; 10 özel sakin sprite'ı isteğe bağlı (`docs/asset-promptu.md`)
+- [x] Mevcut oyun ve arayüz assetlerini bağla; eksik/yenilenecek dosyalar `docs/asset-listesi.md`'de
 - [ ] "Biliyor muydun?" rakamlarını kaynaklarından kontrol et
 - [ ] Oyunun ve şehrin adını kesinleştir
 - [ ] Oyunu farklı tarzlarla oynayıp test et (temiz, kirli, herkesi al, kimseyi alma)

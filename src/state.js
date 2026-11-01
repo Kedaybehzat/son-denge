@@ -122,6 +122,7 @@ export function sifirla() {
   state.guvenDusukGece = 0;     // memnuniyetin üst üste kaç gece eşiğin altında kaldığı
   state.sefer = null;           // { yer, uid, kalan } aktif keşif seferi
   state.kesfedilenler = [];     // bu oyunda gidilmiş keşif noktaları
+  state.insaat = null;           // { id, kalan }: aynı anda tek inşaat
   state.yapilar = [];           // inşa edilen yapılar (data/structures.js)
   for (const k of KURUCULAR) state.sakinler.push({ uid: state.sakinler.length + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
   katkiGuncelle();
@@ -189,12 +190,19 @@ export function olayEtkisi(etki, olay = state.olay, hazirlikli = state.olayHazir
   return sonuc;
 }
 
+// Kaynak harcayan işlemler sıfırın altında kaynak tüketemez.
+export function kaynakYeterliMi(etki = {}, malzeme = false) {
+  return Object.entries(etki || {}).every(([ad, d]) => d >= 0 || (!malzeme && !KAYNAKLAR[ad]?.yuksekIyi) || (state.kaynak[ad] ?? 0) >= -d);
+}
+
 // Yapı inşa (GDD Faz 7)
 export const yapiAcik = (id) => (state.yapilar || []).includes(id);
 export function yapiKurabilirMi(id) {
-  if (state.bitti || !YAPILAR[id] || yapiAcik(id)) return false;
+  if (state.bitti || !YAPILAR[id] || yapiAcik(id) || state.insaat || state.gun >= AYAR.maxGun) return false;
   const m = YAPILAR[id].maliyet || {};
   if (state.eylem < (m.eylem || 0)) return false;
+  const { eylem, ...kaynak } = m;
+  if (!kaynakYeterliMi(kaynak, true)) return false;
   if (YAPILAR[id].onKosul && !YAPILAR[id].onKosul(state)) return false;
   return true;
 }
@@ -205,11 +213,21 @@ export function yapiKur(id) {
   const kaynakMaliyet = {};
   for (const [k, v] of Object.entries(m)) if (k !== 'eylem') kaynakMaliyet[k] = v;
   etkiUygula(kaynakMaliyet);
-  state.yapilar.push(id);
+  state.insaat = { id, kalan: YAPILAR[id].sure ?? 1 };
   if (YAPILAR[id].bilgi) state.bugunBilgi.push({ anahtar: YAPILAR[id].bilgi, kirli: false });
   state.denge = dengeHesapla();
   bildir();
   return true;
+}
+
+function insaatGecesi() {
+  if (!state.insaat) return null;
+  state.insaat.kalan -= 1;
+  if (state.insaat.kalan > 0) return null;
+  const id = state.insaat.id;
+  state.yapilar.push(id);
+  state.insaat = null;
+  return id;
 }
 
 export function hazirlanabilirMi() {
@@ -230,6 +248,7 @@ export function hazirlan() {
 // ---------------------------------------------------------------
 function kartKosuluVar(k) {
   return k.kosul.every((c) => {
+    if (c.ziyaretci) return !!state.ziyaretci;
     if (c.gunMin != null) return state.gun >= c.gunMin;
     if (c.memnuniyetAlti != null) return state.memnuniyet < c.memnuniyetAlti;
     if (c.tahmin) return state.tahmin?.id === c.tahmin;
@@ -246,7 +265,7 @@ function kartKosuluVar(k) {
 // Seçenek bu durumda gösterilebilir mi (açılmış araştırma seçeneği gizlenir)
 export const kartSecenegiGecerli = (sec) => !(sec.arastirma && arastirmaAcik(sec.arastirma.id));
 export const kartSecenekleri = (k = state.kart) => (k ? k.secenekler.filter(kartSecenegiGecerli) : []);
-export const kartSecebilirMi = (sec) => !state.bitti && !!state.kart && state.eylem >= (sec.maliyet || 0);
+export const kartSecebilirMi = (sec) => !state.bitti && !!state.kart && state.eylem >= (sec.maliyet || 0) && kaynakYeterliMi(sec.etki) && (!sec.kapi || !!state.ziyaretci) && (!sec.hazirlik || (!!state.tahmin?.hazirlik && !state.hazirlik));
 
 // Sabah: koşulu sağlanan, daha önce çıkmamış ilk kartı bekleyen yapar
 function kartKontrol() {
@@ -274,6 +293,9 @@ export function kartSec(sec) {
   }
   if (sec.bilgi) state.gosterilenBilgiler.push(sec.bilgi); // sonuç ekranında gösterildi, gece tekrar çıkmasın
   state.kart = null;
+  if (sec.hazirlik) state.hazirlik = true;
+  if (sec.kapi === 'kabul') ziyaretciKabul();
+  else if (sec.kapi === 'ret') ziyaretciReddet();
   state.denge = dengeHesapla();
   bildir();
   return sec;
@@ -586,7 +608,7 @@ export function geceTahmini() {
 // ---------------------------------------------------------------
 export function eylemYapabilirMi(eylem) {
   if (state.bitti) return false;
-  return state.eylem >= (eylem.maliyet ?? 1);
+  return state.eylem >= (eylem.maliyet ?? 1) && kaynakYeterliMi(eylem.etki);
 }
 
 export function eylemYap(eylem) {
@@ -609,7 +631,7 @@ export function ziyaretciKabul() {
   state.kabulEdilen += z.kisi;
   state.insanlik = sinirla(state.insanlik + (z.insanlik ?? 10));
   etkiUygula(z.anlik);
-  state.sakinler.push({ uid: state.sakinler.length + 1, id: z.id, gorev: varsayilanGorev(z), yorgunluk: 0 });
+  state.sakinler.push({ uid: Math.max(0, ...state.sakinler.map((s) => s.uid)) + 1, id: z.id, gorev: varsayilanGorev(z), yorgunluk: 0 });
   katkiGuncelle();
   state.bugunBilgi.push({ anahtar: 'goc', kirli: false });
   state.ziyaretci = null;
@@ -752,7 +774,8 @@ export function gunuBitir() {
   const ayrilanlar = yorgunlukGecesi();
   if (ayrilanlar.length) state.denge = dengeHesapla();
   const memnuniyet = memnuniyetGecesi();
-  const ek = { arastirmaPuani: gece.puan, arastirmaBitti, bataryaKullanim: gece.bataryaKullanim, bataryaSarj: gece.bataryaSarj, ayrilanlar, memnuniyet };
+  const insaatBitti = insaatGecesi();
+  const ek = { insaatBitti, arastirmaPuani: gece.puan, arastirmaBitti, bataryaKullanim: gece.bataryaKullanim, bataryaSarj: gece.bataryaSarj, ayrilanlar, memnuniyet };
   const bilgi = bilgiSec();
   state.bugunBilgi = [];
 

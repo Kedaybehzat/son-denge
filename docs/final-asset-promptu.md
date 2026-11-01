@@ -1,3 +1,5 @@
+> **ARŞİV — güncel eksik listesi değildir.** Mevcut oda, animasyon ve menü assetlerinin çoğu hazırdır. Yeni üretim için [güncel promptu](asset-promptu.md), [asset listesini](asset-listesi.md) ve [devir rehberini](devralma.md) kullanın.
+
 # Final asset promptu (tek mesaj)
 
 Asset'lerin üretildiği sohbete olduğu gibi yapıştırın. Oyunun 1 Kasım itibarıyla son durumuna göre **eksik ya da düzeltilmesi gereken** görselleri öncelik sırasıyla ürettirir. Dosyaları adı ne olursa olsun `public/assets/`'e koyun ya da asistana verin; isimlendirme ve kare kesme işini o yapar.

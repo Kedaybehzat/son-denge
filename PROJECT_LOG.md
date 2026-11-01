@@ -20,14 +20,15 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | Sakinler, görev atama, trait koşulları | `src/state.js` → `sakinCiktisi()`, `kosulAktif()`, `gorevAta()`, `varsayilanGorev()`, `katkiGuncelle()`; veri: `visitors.js` (`uzman`, `kosul`, `ekTuketim`, `guclu`, `kosullu`, `KURUCULAR`) |
 | Makineler, operatör, boş makine, kendin çalış | `src/state.js` → `MAKINELER`, `makineOperatoru()`, `bosMakineler()`, `kendinCalis()`; üretim: `panels.js` → `makine.uretim`; arayüz: `ui.js` → `makinePanelHtml()`, `makineDurumHtml()` |
 | Uzman olmayan verim ve enerji azlığında makine kapanışı | `src/state.js` → `AYAR.uzmanOlmayanVerim`, `AYAR.makineKapatmaEsikleri`, `kapaliMakineler()`, `makineKapali()`; uygulama: `sakinCiktisi()`, `sakinlerToplami()`, `calisiyor()` |
-| Üs İnşası (yapılar, GDD bölüm 7) | Veri: `src/data/structures.js` → `YAPILAR`; kurallar: `src/state.js` → `yapiKur()`, `yapiKurabilirMi()`, `yapiAcik()`, `olayCarpani()`; arayüz: `ui.js` → `yapilarHtml()` (panoda "İnşa" bölümü) |
+| Üs İnşası (yapılar, GDD bölüm 7) | Veri: `src/data/structures.js` → `YAPILAR`; kurallar: `src/state.js` → `yapiKur()`, `yapiKurabilirMi()`, `yapiAcik()`, `insaatGecesi()`, `state.insaat`, `olayCarpani()`; arayüz: `ui.js` → `yapilarHtml()` (panoda "İnşa" bölümü) |
 | Yorgunluk ve ayrılma (Faz 2 / M2) | `src/state.js` → `yarinkiYorgunluk()`, `ayrilmaSansi()`, `yorgunlukGecesi()` (gunuBitir içinde), `AYAR.yorgunluk*`; arayüz: `ui.js` → `yorgunlukChip()`; sahne: `GameScene.js` → `sakinGuncelle()` (ayrılan figür solar) |
 | Hazırlıklı olaylar (tahmin, hazırlık) | Veri: `events.js` (`uyari`, `hazirlik`, `HAZIRLIK_MALIYETI`); kurallar: `state.js` → `state.tahmin`, `olayEtkisi()`, `hazirlan()`, `gunuBitir()` (tahmin → olay); arayüz: `ui.js` → `tahminHtml()`, `olayHtml()`, `hazirlikBagla()` |
 | Eğitici karar kartları | Veri: `src/data/cards.js` → `KARTLAR`; kurallar: `state.js` → `kartKontrol()` (gunuBitir sonunda), `kartSec()`, `kartSecenekleri()`, `state.kartGeceEtki` (geceHesapla); arayüz: `ui.js` → `kararKartiGoster()`, `sabahGoster()` |
 | Keşif (sefer, dönüş) | Veri: `src/data/exploration.js` → `KESIF_NOKTALARI`; kurallar: `state.js` → `kesfeGonder()`, `kesifSansi()`, `seferSabahi()` (gunuBitir sabahı), `state.sefer`; arayüz: `ui.js` → `kesifHtml()` (pano), `seferHtml()` (gece raporu); sahne: `sakinGuncelle()` keşiftekini gizler |
 | Memnuniyet, itiraz kartı, güven oylaması | `state.js` → `AYAR.memnuniyet*`, `memnuniyetGecesi()`, `state.guvenDusukGece`, `gunuBitir()` (`guvenKaybi` sonu); kart: `cards.js` → `itiraz`; arayüz: `ui.js` → HUD `[data-memnuniyet]`, `memnuniyetHtml()`, `SONLAR.guvenKaybi` |
 | Araştırma ve batarya | `src/state.js` → `arastirmaSec()`, `masadaArastir()`, `puanEkle()`, `geceHesapla()`; veri: `src/data/research.js` |
-| Görev ve Araştırma Panosu arayüzü | `ui.js` → `panoAc()`, `panoCiz()`; nesne: `rooms.js` (`tip: 'pano'`), doku: `GameScene.js` → `dokulariUret()` |
+| Koloni / Odalar / Keşif / Araştırma / İnşaat panelleri | `ui.js` → `panoAc(bolum)`, `panoCiz()`, `YONETIM_BOLUMLERI`, `odalarHtml()`; alt erişim: `hudKur()`; nesne: `rooms.js` (`tip: 'pano'`), doku: `GameScene.js` → `dokulariUret()` |
+| Kaynak maliyeti ve mekanik regresyonlar | `state.js` → `kaynakYeterliMi()`; `tools/mekanik-test.mjs` (`npm test`): kaynak/inşaat/kapı/hazırlık |
 | Panel eylemi yapma kuralları | `src/state.js` → `eylemYapabilirMi()`, `eylemYap()` |
 | Ziyaretçi kabul/ret kuralları | `src/state.js` → `ziyaretciKabul()`, `ziyaretciReddet()` |
 | Panel ve eylem içerikleri | `src/data/panels.js` → `PANELLER` |
@@ -36,32 +37,36 @@ Yeni bir istekte önce bu tabloya bakıp yalnızca ilgili dosyaya/fonksiyona gid
 | "Biliyor muydun?" kartları | `src/data/facts.js` → `BILGILER`, `GENEL_BILGILER`; seçim: `state.js` → `bilgiSec()` |
 | Açılış hikayesi metinleri | `src/data/story.js` → `HIKAYE` |
 | Oda düzeni, pencereler, nesne konumları | `src/data/rooms.js` → `ODALAR`, `ODA_GENISLIK`, `TAVAN_Y`, `ZEMIN_Y` |
-| Yapılacak görsellerin listesi ve durumu | Bu dosya → **Asset Listesi** bölümü (A–D); durum kontrolü: `node tools/asset-durum.mjs` |
+| Yapılacak görsellerin listesi ve durumu | Bu dosya → **Asset Listesi** bölümü (tek tablo); durum kontrolü: `node tools/asset-durum.mjs` |
 | Animasyonlar (kare yükleme, oynatma) | Tanım: `src/data/animations.js` → `ANIMASYONLAR`; yükleme: `GameScene.js` → `preload()` (1. kare), `animasyonlariYukle()`; oynatma: `animOynat()`, `animDurdur()`, `makineAnimGuncelle()`, `sakinAnimGuncelle()`, `update()` (oyuncu), `efektZiyaretci()` (kapı); dosyalar: `public/assets/anim/` |
-| Arka planlar (oda, manzara) | Yerleşim ayarları: `rooms.js` → `ODA_GENISLIK` (776, görsel oranına göre), `GORSEL_ZEMIN_ORANI`, `GORSEL_DUVAR_ORANI`, `ARKA_OLCEK`, `ODALAR[].gorsel` (`nesneOran`, `bitkiOran`, `copOran`, `suGostergeleri`, `duman`); rework şablonları: `docs/oda-sablonlari/`; brif ve promptlar: `CLAUDE.md` 6.12; `GameScene.js` → `odaGorseliYerlestir()` (oran korur, kırpar, `odaYerlesimi`, `dumanNoktasi`), `odaGecisleriCiz()` (kolon + gölge), `evCiz()` (oda-*, oda adı etiketi, arka nesne perspektifi), `dekorCiz()` (oda görseli varken süs çizimleri atlanır, tank/saksı stili), `disariCiz()` + `gorselUygula()` (manzara-*, iyi↔kötü geçiş) |
+| Arka planlar (oda, manzara) | Yerleşim ayarları: `rooms.js` → `ODA_GENISLIK` (739, birleşik oda şeridine göre), `GORSEL_ZEMIN_ORANI`, `GORSEL_DUVAR_ORANI`, `ARKA_OLCEK`, `ODALAR[].gorsel` (`nesneOran`, `bitkiOran`, `copOran`, `suGostergeleri`, `duman`); rework şablonları: `docs/oda-sablonlari/`; brif ve promptlar: `CLAUDE.md` 6.12; `GameScene.js` → `odaGorseliYerlestir()` (oran korur, kırpar, `odaYerlesimi`, `dumanNoktasi`), `odaGecisleriCiz()` (kolon + gölge), `evCiz()` (oda-*, oda adı etiketi, arka nesne perspektifi), `dekorCiz()` (oda görseli varken süs çizimleri atlanır, tank/saksı stili), `disariCiz()` + `gorselUygula()` (manzara-*, iyi↔kötü geçiş) |
 | Portre ve hikaye görselleri (HTML) | `ui.js` → `portreRozet()`, `portreBuyuk()`, `girisHikayesi()`; yollar: `assets.js` → `portreDosyasi()`, `hikayeDosyasi()` |
 | Çizim netliği (2× tuval + zoom, asset küçültme) | `GameScene.js` → `CIZIM_OLCEGI`, `SABIT_X/Y`, `ekranaSabitle()`, `yuksekKaliteKucult()`, `dokuKucult()`, `dokuKucultOran()`, `assetleriKucult()`; tuval boyu: `src/main.js` |
 | Görsel içerik kutusu (şeffaf boşluk hariç ölçek) | `GameScene.js` → `icerikKutusu()`, `animKutusu()`, `olcekle()`, `gorunurY()` |
 | Var olan asset listesi (404'süz yükleme, canlı yenileme) | `vite.config.js` → `assetListesi()` eklentisi; `src/assetListesi.js` → `assetVar()`; kullanım: `GameScene.js` → `preload()`, `animasyonlariYukle()`; `ui.js` → `varsaImg()` |
-| Nesne boyları (gerçek ölçü) | `assets.js` → `PX_METRE` (75, oda görsellerinden kalibre), `m()`; üretim standardı: `docs/olcek-standardi.md` |
+| Nesne boyları (gerçek ölçü) | `assets.js` → `PX_METRE` (74, oda görsellerinden kalibre), `m()`; üretim standardı: `docs/olcek-standardi.md` |
 | Görsel yükleme (public/assets) ve yer tutucular | Liste + hedef yükseklik: `src/data/assets.js` → `ASSETLER`; yükleme: `GameScene.js` → `preload()`; yer tutucu: `dokulariUret()` / `dokuUret()`; ölçek: `olcekle()`, `dokuAnahtari()`, `gercekAsset()`; dosyalar: `public/assets/` |
 | Dışarısı, şehir silueti | `GameScene.js` → `disariCiz()`, `sehirBoya()` |
 | Ev/oda çizimi, oda dekorları | `GameScene.js` → `evCiz()`, `dekorCiz()` |
-| Oyuncu, hareket, etkileşim (E tuşu) | `GameScene.js` → `oyuncuOlustur()`, `update()`, `oyuncuDurdur()` (pencere açıkken duruş), sabitler `HIZ`, `ETKILESIM_MESAFE` |
-| Sakinlerin sayısı/hareketi | `GameScene.js` → `sakinGuncelle()` |
+| Oyuncu, hareket, etkileşim (E tuşu) | `GameScene.js` → `oyuncuOlustur()`, `update()`, `oyuncuDurdur()` (pencere açıkken duruş), sabitler `HIZ`, `KOSU_CARPANI` (Shift, ×1,65), `ETKILESIM_MESAFE` |
+| Sakinlerin sayısı/hareketi | `GameScene.js` → `sakinGuncelle()`, `sakinIdleBaslat()`, `sakinTasi()`, `sakinAnimGuncelle(dt)`; `SAKIN_HIZI` (85 px/sn), mesafeye bağlı süre ve hıza bağlı animasyon |
 | Ütopya ↔ distopya görsel dönüşümü | `GameScene.js` → `gorselGuncelle()`, `gorselUygula()`, `renkGecis()` |
+| Arayüz asset eşlemeleri ve kontrolü | `src/data/assets.js` → `ARAYUZ_IKONLARI`, `KARAR_GORSELLERI`, `SON_GORSELLERI`, `ARAYUZ_DOSYALARI`; `ui.js` → `arayuzIkonu()`, `arayuzGorseli()`; `style.css` → 9-dilim çerçeve/buton/HUD, menü ortamı |
 | HUD (kaynak barları) | `src/ui/ui.js` → `hudKur()`, `hudGuncelle()` |
 | Panel penceresi | `ui.js` → `panelAc()`, `panelCiz()` |
 | Radyo, sabah raporu, kapı kartı | `ui.js` → `olayGoster()`, `gunBaslangici()`, `sabahGoster()`, `ziyaretciGoster()` |
 | Hikaye, başlangıç ve son ekranları | `ui.js` → `girisHikayesi()`, `baslangicEkrani()`, `SONLAR`, `sonGoster()` |
-| Genel modal / onay pencereleri | `ui.js` → `modalAc()`, `modalKapat()`, `onay()`, `bilgi()` |
+| Genel modal / onay pencereleri | `style.css` → `.kart-icerik` (iç kaydırma), `.kart > .alt` (sabit alt şerit); `ui.js` → `modalAc()`, `modalKapat()`, `onay()`, `bilgi()` |
 | Günü bitirme onayı (gece tahmini penceresi) | `ui.js` → `gunuBitirOnay()`; çağrı: `GameScene.js` → `case 'yatak'` |
-| Arayüz stili | `src/style.css` |
+| Arayüz stili | `src/style.css`; fontlar: `@font-face`, `--font-metin` (Nunito Sans), `--font-baslik` (Barlow Condensed); yerel dosyalar ve OFL lisansları: `public/fonts/` |
 | Giriş noktası (Phaser config) | `src/main.js` |
 | Denge simülasyonu | `tools/simulasyon.mjs` (`node tools/simulasyon.mjs`) |
 | Derleme / tek dosya çıktısı | `vite.config.js`, `package.json` |
 | GitHub Pages yayını | `.github/workflows/deploy.yml` |
+| Devir rehberi ve güncel asset PDF üretimi | `docs/devralma.md`, `README.md`, `tools/rehber-uret.py` (Python 3 + Pillow; `docs/asset-rehberi.pdf` üretir) |
+| PR kontrolleri | `.github/workflows/checks.yml`: Node 22, npm ci/test/build/build:tek |
 | Takım dokümanı (hikaye, mekanik, görsel promptları) | `CLAUDE.md` |
+| Codex proje yönergeleri ve proje dokümanı | `AGENTS.md` (CLAUDE.md içeriğinin Codex uyarlaması; bölüm 0.1 çalışma kuralları) |
 | Mekanik tasarım (GDD v2.0; [ÖNERİ]'ler hackathon kapsamında, faz sırası bölüm 14) | `Son_Denge_Mekanik_Tasarim_GDD.pdf` |
 
 ### Dosya ağacı
@@ -77,21 +82,27 @@ src/style.css              Arayüz stili (cqw ile ölçekleme)
 src/data/*.js              İçerik verisi (panels, events, visitors, facts, story, rooms, research, assets, animations, cards, exploration)
 public/assets/             Oyun görselleri (CLAUDE.md 6.3 adlarıyla; eksikse yer tutucu)
 public/assets/anim/        Animasyon kareleri (<animasyon>-<kare>.png)
-tools/simulasyon.mjs       4000 oyunluk denge simülasyonu
+public/fonts/             Nunito Sans (400/600/700), Barlow Condensed (600/700) ve OFL lisansları
+tools/simulasyon.mjs       Strateji başına 4000 oyunluk denge simülasyonu
+tools/mekanik-test.mjs     Kaynak, inşaat, kapı ve hazırlık regresyon testleri
 tools/asset-durum.mjs      public/assets'te hangi görsellerin ve animasyon karelerinin hazır olduğunu listeler
 .github/workflows/deploy.yml  main → GitHub Pages
+.github/workflows/checks.yml  PR → mekanik testleri ve iki derleme
 CLAUDE.md                  Takım dokümanı + asistan kuralları
+AGENTS.md                  Codex için proje dokümanı + asistan kuralları
 docs/oda-sablonlari/       Oda görselleri rework şablonları (sablon-<oda>.png, 1891×831)
 assets-orijinal/           Küçültülmeden önceki asset yedekleri (git'e girmez, .gitignore)
 docs/olcek-standardi.md    Asset üretiminde tek ölçü standardı (ölçek dizisi) + prompt
 docs/olcek-sablonu.png     Ölçek dizisi şablonu (tek taban, 1 m = 300 px, 10 yuva)
-docs/asset-rehberi.pdf     Asset rehberi PDF'i (10 sayfa): liste, 5 oda orijinal+plan+edit promptu, stil rehberi
+docs/asset-rehberi.pdf     Güncel 17 sayfalık asset rehberi: 92 satır, örnekler, odalar, sanat stili
+docs/devralma.md           Asset/mekanik/arayüz geliştirmesine devam rehberi
+tools/rehber-uret.py       PDF üreticisi (Python 3 + Pillow)
 docs/orijinal/             Ekibin beğendiği ilk oda görselleri + hikaye/manzara orijinalleri (rehberin temeli)
 docs/oda-sablonlari/plan-*.jpg  Orijinal odalar üzerinde yerleşim planları
 docs/sanat-stili-1..3.png  Ekibin Ana Sanat Stili Rehberi sayfaları
-docs/asset-promptu.md      Asset sohbeti promptu (rehber PDF ile birlikte; her yanıtta tek görsel, 38 madde)
+docs/asset-promptu.md      Asset sohbeti promptu (rehber PDF ile birlikte; her yanıtta tek görsel, kalan 21 üretim maddesi)
 docs/sifirdan-asset-promptu.md  (eski) 72 maddelik tek seferlik prompt
-docs/final-asset-promptu.md  Asset sohbetine tek seferde yapıştırılacak final prompt (eksik/düzeltilecek tüm görseller)
+docs/final-asset-promptu.md  Arşiv üretim brifi; güncel eksik listesi değildir
 PROJECT_LOG.md             Bu dosya (Project Map, borçlar, Asset Listesi, değişiklik logu)
 Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 ```
@@ -100,13 +111,12 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 
 | # | Borç | Yer | Eklenme |
 |---|---|---|---|
-| D2 | Otomatik test yok; doğrulama yalnızca simülasyon ve elle oynama | `tools/simulasyon.mjs` | 2026-10-31 |
+| D2 | Temel mekanik regresyonları `npm test` ile mevcut; tüm oyun kuralları ve görsel akışlar henüz kalıcı otomatik testlerle kapsanmıyor | `tools/simulasyon.mjs` | 2026-10-31 |
 | D3 | "Biliyor muydun?" rakamları kaynaklarından kontrol edilmedi (kaynak etiketleri 2026-11-01'de 1. el'e çekildi; sayıların doğruluğu hâlâ sunum öncesi doğrulanmalı) | `src/data/facts.js` | 2026-10-31 |
-| D6 | Simülasyon artık görev atama + araştırma seçimini kullanıyor; akıllı stilde ortalama 1.67 araştırma açılıyor. Faz 1 sayıları hâlâ tarayıcıda insan tarafından playtest edilmedi | `tools/simulasyon.mjs` | 2026-10-31 |
-| D10 | Yorgunluk ayarlarıyla dinlendirme stratejisi kötü: herkes 0'dan başlayıp 4. gece aynı anda riske giriyor; riskteki herkesi dinlendiren akıllı stil iyi sonu %82 → %20 düşürüyor. Öneri: kurucuları farklı yorgunlukla başlatmak ya da dinlenmeyi −3 / eşiği 5 yapmak (karar bekliyor) | `AYAR.yorgunluk*`, `KURUCULAR` | 2026-11-01 |
-| D12 | Hazırlıklı olaylarla zararlı olaylar ~1,6 kat sertleştirildi (hazırlık bir eylem değerinde olsun diye). Toplam zorluk arttı: akıllı+herkesi al iyi son %83 → %61 (hazırlanarak; hazırlıksız %62). 1,3 katta hazırlık bazen kötü seçim çıkıyordu. Dengeleme D10 ile birlikte yapılmalı | `events.js`, `AYAR` | 2026-11-01 |
-| D14 | Oda + manzara görselleri PNG olarak 19 MB; açılış ~35 MB. WebP'ye çevirmek yüklemeyi hızlandırır | `public/assets/oda-*`, `manzara-*`, `assets.js` | 2026-11-01 |
-| D16 | Menü asset'leri gelince arayüze bağlanmalı (9-dilim `border-image` çerçeve/buton/HUD, ikonlar emoji yerine, son/kart görselleri) | `ui.js`, `style.css` | 2026-11-01 |
+| D6 | Simülasyon artık görev atama + araştırma seçimini kullanıyor; akıllı stilde ortalama 1.66 araştırma açılıyor. Güncel tam oyun insan playtesti eksik; tarayıcıda yönetim/inşaat/keşif akışları doğrulandı | `tools/simulasyon.mjs` | 2026-10-31 |
+| D10 | Tarihsel simülasyon bulgusu (güncel kodda ayrılma eşiği 5 ve pay %20; aşağıdaki eski oranlar yeniden ölçülmeli): Yorgunluk ayarlarıyla dinlendirme stratejisi kötü: herkes 0'dan başlayıp 4. gece aynı anda riske giriyor; riskteki herkesi dinlendiren akıllı stil iyi sonu %82 → %20 düşürüyor. Öneri: kurucuları farklı yorgunlukla başlatmak ya da dinlenmeyi −3 / eşiği 5 yapmak (karar bekliyor) | `AYAR.yorgunluk*`, `KURUCULAR` | 2026-11-01 |
+| D12 | Tarihsel denge bulgusu (güncel 36.000 oyunluk sonuçlar CLAUDE.md 4.11'de; aşağıdaki eski karşılaştırma yeniden ölçülmeli): Hazırlıklı olaylarla zararlı olaylar ~1,6 kat sertleştirildi (hazırlık bir eylem değerinde olsun diye). Toplam zorluk arttı: akıllı+herkesi al iyi son %83 → %61 (hazırlanarak; hazırlıksız %62). 1,3 katta hazırlık bazen kötü seçim çıkıyordu. Dengeleme D10 ile birlikte yapılmalı | `events.js`, `AYAR` | 2026-11-01 |
+| D14 | Oda/manzara PNG'leri ve eklenen UI seti yükleme maliyetini artırıyor; UI seti 28,1 → 13,9 MB küçültüldü. WebP ve ihtiyaç halinde yükleme iyileştirmesi açık; güncel açılış boyutu ayrıca ölçülmeli | `public/assets/oda-*`, `manzara-*`, `assets.js` | 2026-11-01 |
 
 ---
 
@@ -114,7 +124,7 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 
 > Kopyası `docs/asset-listesi.md` · rehber `docs/asset-rehberi.pdf`.
 
-**Durum:** ✅ oyunda hazır (27) · 🔁 var ama yenilenmeli (9) · ⏳ eksik (12) · ⏳ menü: yeni menü asset'i (44). Toplam 92 satır.
+**Durum:** ✅ oyunda hazır (71) · 🔁 var ama yenilenmeli (9) · ⏳ eksik (12). Toplam 92 satır.
 
 **Kurallar:** Karakter/nesne: şeffaf arka plan, yandan, sağa bakar, taban altta; boy "Gerçek boy" sütununa göre (oyun ölçekler). Animasyon: tek görselde ızgara, her hücrede aynı boy/konum/taban. Menü: sanat stili rehberindeki palet ve yıpranmış metal/ahşap dili; 9-dilim görsellerin ortası düz ve boş, köşeleri belirtilen ölçüde süslü (ortası esner). İkonlar sade, kalın kontur, küçük boyda okunur. Yazı/harf yok (yazıları oyun yazar). Görselleri adlarına dokunmadan asistana verin.
 
@@ -168,56 +178,175 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | 46 | `kurucu-burak.png` | Portre: Burak | 1:1 | baş + omuz | 🔁 | Eski stil; yenilenmeli |
 | 47 | `kurucu-nur.png` | Portre: Nur | 1:1 | baş + omuz | 🔁 | Eski stil; yenilenmeli |
 | 48 | `kurucu-can.png` | Portre: Can | 1:1 | baş + omuz | 🔁 | Eski stil; yenilenmeli |
-| 49 | `logo.png` | Oyun logosu "Son Denge" (başlık ekranı, yükleme) | 3:1 yatay, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 50 | `menu-arka.png` | Başlık ekranı ve hikaye kartı arka planı (sığınak dış cephesi, akşam) | 16:9 | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 51 | `kart-cerceve.png` | Pencere çerçevesi (paneller, radyo, kapı kartı, pano, gece raporu): yıpranmış metal + ahşap kenar, ortası düz koyu | 512×512, 9-dilim (köşe 96 px), şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; ortası boş bırakılmalı |
-| 52 | `buton.png` | Buton: küçük metal plaka, perçinli | 384×128, 9-dilim (köşe 32 px) | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 53 | `buton-basili.png` | Aynı buton, basılı/vurgulu | 384×128 | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 54 | `hud-kutu.png` | Üst çubuk kutusu (kaynak göstergeleri) | 256×128, 9-dilim (köşe 24 px) | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 55 | `ikon-enerji.png` | HUD ikonu: Enerji (şimşek) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 56 | `ikon-su.png` | HUD ikonu: Su (damla) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 57 | `ikon-gida.png` | HUD ikonu: Gıda (başak) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 58 | `ikon-atik.png` | HUD ikonu: Atık (çuval) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 59 | `ikon-karbon.png` | HUD ikonu: Karbon (bulut) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 60 | `ikon-nufus.png` | HUD ikonu: Nüfus (iki kişi) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 61 | `ikon-eylem.png` | HUD ikonu: Eylem hakkı (el / dişli) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 62 | `ikon-arastirma.png` | HUD ikonu: Araştırma (cam tüp) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 63 | `ikon-batarya.png` | HUD ikonu: Batarya | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 64 | `ikon-memnuniyet.png` | HUD ikonu: Memnuniyet (yüz) | 256×256, şeffaf | — | ⏳ menü | Kod bağlantısı asset gelince; şu an emoji |
-| 65 | `son-gercek-utopya.png` | Son ekranı görseli: Yeşilvadi nefes alıyor | 3:2 yatay | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 66 | `son-yalniz-utopya.png` | Son ekranı görseli: Yalnız bir ütopya | 3:2 yatay | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 67 | `son-kapimiz-acikti.png` | Son ekranı görseli: Kapımız açıktı | 3:2 yatay | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 68 | `son-guven-kaybi.png` | Son ekranı görseli: Güven oylaması | 3:2 yatay | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 69 | `son-cokus.png` | Son ekranı görseli: Işıklar söndü | 3:2 yatay | — | ⏳ menü | Kod bağlantısı asset gelince |
-| 70 | `kart-itiraz.png` | Karar kartı görseli: Sakinlerin itirazı | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 71 | `kart-karanlik.png` | Karar kartı görseli: Karanlıkta kalan koloni | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 72 | `kart-susuz.png` | Karar kartı görseli: Su paylaşımı | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 73 | `kart-protesto.png` | Karar kartı görseli: Geri dönüşüm protestosu | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 74 | `kart-kompost.png` | Karar kartı görseli: Kompost tartışması | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 75 | `kart-soz.png` | Karar kartı görseli: Yenilenebilir enerji sözü | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 76 | `kart-toz-uyari.png` | Karar kartı görseli: Yaklaşan toz fırtınası | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 77 | `kart-sel-uyari.png` | Karar kartı görseli: Alçak katı su basabilir | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 78 | `kart-bos-makine.png` | Karar kartı görseli: Araştırma mı, tamirat mı? | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 79 | `kart-kesif-batarya.png` | Karar kartı görseli: Keşif ekibinin bulduğu bataryalar | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 80 | `kart-yeni-aile.png` | Karar kartı görseli: Yeni aileye yer var mı? | 3:2 yatay | — | ⏳ menü | İsteğe bağlı; Kod bağlantısı asset gelince |
-| 81 | `ikon-batarya.png` | Pano ikonu: Batarya Deposu | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 82 | `ikon-grisu.png` | Pano ikonu: Gri Su | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 83 | `ikon-turbin.png` | Pano ikonu: Verimli Türbin | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 84 | `ikon-hidroponik.png` | Pano ikonu: Hidroponik | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 85 | `ikon-hava-filtresi.png` | Pano ikonu: Hava Filtresi | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 86 | `ikon-yalitim.png` | Pano ikonu: Yalıtım Tesisi | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 87 | `ikon-bariyer.png` | Pano ikonu: Sel Bariyeri | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 88 | `ikon-ek-panel.png` | Pano ikonu: Ek Güneş Paneli | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 89 | `ikon-santral.png` | Pano ikonu: Keşif: santral | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 90 | `ikon-sehir.png` | Pano ikonu: Keşif: eski şehir | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 91 | `ikon-komsu.png` | Pano ikonu: Keşif: komşu yerleşim | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
-| 92 | `ikon-rezervuar.png` | Pano ikonu: Keşif: rezervuar | 256×256, şeffaf | — | ⏳ menü | İsteğe bağlı; şu an emoji |
+| 49 | `logo.png` | Oyun logosu "Son Denge" (başlık ekranı, yükleme) | 768×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 50 | `menu-arka.png` | Başlık ekranı ve hikaye kartı arka planı (sığınak dış cephesi, akşam) | 1280×720 | — | ✅ | Oyuna bağlı |
+| 51 | `kart-cerceve.png` | Pencere çerçevesi (paneller, radyo, kapı kartı, pano, gece raporu): yıpranmış metal + ahşap kenar, iç rengi CSS | 512×512, 9-dilim (köşe 96 px) | — | ✅ | 9-dilim ile oyuna bağlı |
+| 52 | `buton.png` | Buton: küçük metal plaka, perçinli | 384×128, 9-dilim (köşe 32 px) | — | ✅ | Oyuna bağlı |
+| 53 | `buton-basili.png` | Aynı buton, basılı/vurgulu | 384×128 | — | ✅ | Oyuna bağlı |
+| 54 | `hud-kutu.png` | Üst çubuk kutusu (kaynak göstergeleri) | 256×128, 9-dilim (köşe 24 px) | — | ✅ | Oyuna bağlı |
+| 55 | `ikon-enerji.png` | HUD ikonu: Enerji (şimşek) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 56 | `ikon-su.png` | HUD ikonu: Su (damla) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 57 | `ikon-gida.png` | HUD ikonu: Gıda (başak) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 58 | `ikon-atik.png` | HUD ikonu: Atık (çuval) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 59 | `ikon-karbon.png` | HUD ikonu: Karbon (bulut) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 60 | `ikon-nufus.png` | HUD ikonu: Nüfus (iki kişi) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 61 | `ikon-eylem.png` | HUD ikonu: Eylem hakkı (el / dişli) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 62 | `ikon-arastirma.png` | HUD ikonu: Araştırma (cam tüp) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 63 | `ikon-batarya.png` | HUD ikonu: Batarya | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 64 | `ikon-memnuniyet.png` | HUD ikonu: Memnuniyet (yüz) | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 65 | `son-gercek-utopya.png` | Son ekranı görseli: Yeşilvadi nefes alıyor | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 66 | `son-yalniz-utopya.png` | Son ekranı görseli: Yalnız bir ütopya | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 67 | `son-kapimiz-acikti.png` | Son ekranı görseli: Kapımız açıktı | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 68 | `son-guven-kaybi.png` | Son ekranı görseli: Güven oylaması | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 69 | `son-cokus.png` | Son ekranı görseli: Işıklar söndü | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 70 | `kart-itiraz.png` | Karar kartı görseli: Sakinlerin itirazı | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 71 | `kart-karanlik.png` | Karar kartı görseli: Karanlıkta kalan koloni | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 72 | `kart-susuz.png` | Karar kartı görseli: Su paylaşımı | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 73 | `kart-protesto.png` | Karar kartı görseli: Geri dönüşüm protestosu | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 74 | `kart-kompost.png` | Karar kartı görseli: Kompost tartışması | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 75 | `kart-soz.png` | Karar kartı görseli: Yenilenebilir enerji sözü | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 76 | `kart-toz-uyari.png` | Karar kartı görseli: Yaklaşan toz fırtınası | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 77 | `kart-sel-uyari.png` | Karar kartı görseli: Alçak katı su basabilir | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 78 | `kart-bos-makine.png` | Karar kartı görseli: Araştırma mı, tamirat mı? | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 79 | `kart-kesif-batarya.png` | Karar kartı görseli: Keşif ekibinin bulduğu bataryalar | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 80 | `kart-yeni-aile.png` | Karar kartı görseli: Yeni aileye yer var mı? | 3:2 yatay | — | ✅ | Oyuna bağlı |
+| 81 | `ikon-batarya-depo.png` | Pano ikonu: Batarya Deposu | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 82 | `ikon-grisu.png` | Pano ikonu: Gri Su | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 83 | `ikon-turbin.png` | Pano ikonu: Verimli Türbin | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 84 | `ikon-hidroponik.png` | Pano ikonu: Hidroponik | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 85 | `ikon-hava-filtresi.png` | Pano ikonu: Hava Filtresi | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 86 | `ikon-yalitim.png` | Pano ikonu: Yalıtım Tesisi | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 87 | `ikon-bariyer.png` | Pano ikonu: Sel Bariyeri | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 88 | `ikon-ek-panel.png` | Pano ikonu: Ek Güneş Paneli | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 89 | `ikon-santral.png` | Pano ikonu: Keşif: santral | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 90 | `ikon-sehir.png` | Pano ikonu: Keşif: eski şehir | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 91 | `ikon-komsu.png` | Pano ikonu: Keşif: komşu yerleşim | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
+| 92 | `ikon-rezervuar.png` | Pano ikonu: Keşif: rezervuar | en çok 256×256, şeffaf | — | ✅ | Oyuna bağlı |
 
 ---
 
 ## Değişiklik Logu
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · PR #11
+
+- **Prompt:** Push, PR ve merge; rehber/log dosyalarını devralacak ekip arkadaşının tüm asset ve mekanik geliştirmelerine devam edebileceği şekilde güncelle.
+- **Yapılan değişiklik:** Güncel devir rehberi ve README hazırlandı, asset PDF'i 17 sayfa olarak yeniden üretildi; promptlar, mevcut ayarlar ve proje haritası eşitlendi. Tüm oturum değişiklikleri mevcut `asset-listesi-guncel` dalındaki PR #11 üzerinden `main`e sunuluyor.
+
+| Dosya | Açıklama |
+|---|---|
+| `docs/devralma.md`, `README.md` | Kurulum, kontroller, beş panel, inşaat yaşam döngüsü, hareket, asset akışı, dosya eşlemeleri, test kapsamı ve sıradaki işler |
+| `docs/asset-rehberi.pdf`, `tools/rehber-uret.py` | 92 güncel asset satırı, mevcut görsel örnekleri, odalar ve üç sanat stili sayfası; tekrar üretilebilir PDF (Python 3 + Pillow) |
+| `docs/asset-promptu.md` | Hazır 44 UI assetini yeniden istemeyen, 2 animasyon seti + 9 portre + 10 isteğe bağlı sprite için 21 maddelik prompt |
+| `docs/final-asset-promptu.md`, `docs/sifirdan-asset-promptu.md` | Arşiv uyarıları ve güncel kaynak bağlantıları |
+| `CLAUDE.md`, `AGENTS.md`, `docs/olcek-standardi.md` | Gerçek yorgunluk eşikleri (4 uyarı, 5 risk, %20 pay), ölçek 74, güncel mekanik/devir referansları |
+| `docs/asset-listesi.md`, `PROJECT_LOG.md` | Hazır/yenilenecek/eksik durumları, Project Map, tarihsel borç açıklamaları ve devir kaydı |
+| `.github/workflows/checks.yml` | PR'da Node 22 ile npm ci, test, normal ve tek HTML derlemesi |
+
+- **Doğrulama:** `npm test`, `npm run build`, `npm run build:tek`, asset kontrolü başarılı; PDF 17 sayfa olarak açıldı ve örnek sayfaları görsel olarak incelendi. Bu oturumdaki 36.000 oyun simülasyonu ve tarayıcı kontrollerinin ayrıntıları önceki kayıtta.
+- **Debt:** PDF üretimi için Python/Pillow gerekir; oyun için gerekmez. İnşaat iptali/inşaatçı ataması ve dünyada ayrı yapı sprite'ı yok; devir rehberinde açık. Orijinal asset yedekleri git dışında ve push ile paylaşılmaz. Merge/yayın sonucunun kaynağı PR #11 ve GitHub Actions'tır; bu kayıt işlem öncesi devir kaydıdır.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Mekanik iyileştirmelere devam; küçük bir inşaat sistemi; koloni, oda, keşif ve araştırma panellerini ayır; koşma ekle ve NPC yürüyüşünü düzelt.
+- **Yapılan değişiklik:** Beş ayrı yönetim paneli ve alt erişim şeridi, oda filtreli bir gecelik inşaat, Shift ile koşma, hızla uyumlu NPC yürüyüşü ve kaynak/karar doğrulamaları eklendi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/ui/ui.js` | Koloni, Odalar, Keşif, Araştırma ve İnşaat panelleri; sabit panel geçişi, alt erişim; oda kontrolü/inşaat filtresi; tamamlanma raporu ve kaynak uyarıları |
+| `src/style.css` | Yönetim erişimi, panel geçiş şeridi, oda kartları ve filtre stilleri |
+| `src/state.js` | Kaynak yeterliliği, tek aktif inşaat/gece tamamlanma, gerçek kapı/hazırlık kartları; yeni sakin UID çakışması önlendi |
+| `src/data/structures.js` | Oda ve süre bilgileri; Su Geri Kazanım Hattı, Onarım Tezgâhı; yapıların malzeme maliyetleri |
+| `src/data/cards.js` | Aile kartına ziyaretçi koşulu; kapı kararları ve yarının olayına gerçek hazırlık |
+| `src/data/rooms.js` | Pano adı Sığınak Yönetimi |
+| `src/scenes/GameScene.js` | Shift ile ×1,65 koşma; NPC hızı 85 px/sn, mesafeye bağlı tween süresi, duraklama ve hıza bağlı animasyon |
+| `tools/mekanik-test.mjs`, `package.json` | `npm test`: maliyet reddi, az atık temizleme, inşaat yaşam döngüsü, kapı kararları ve olay hazırlığı regresyonları |
+| `tools/simulasyon.mjs` | Yalnızca yapılabilir eylemler seçilir; boş kart havuzu/başarısız eylem döngüsü korunur |
+| `CLAUDE.md`, `AGENTS.md`, `PROJECT_LOG.md` | Mekanikler, kontroller, Project Map ve güncel simülasyon sonuçları |
+
+- **Doğrulama:** Mekanik testleri ve Vite derlemesi başarılı. 36.000 oyun simülasyonu tamamlandı; akıllı+herkesi al iyi son %76, kimseyi alma yalnız ütopya %100. İnşaat/keşif stratejileri bu simülasyona dahil değil. Chromium'da 1440×900 ve 900×600'de beş panel, görev/araştırma/keşif ve inşaat akışları hatasız; yatay taşma yok.
+- **Debt:** Yeni görsel gerekmiyor; yeni yapılar mevcut ikonlarla yönetiliyor. D2 kısmen kapandı (temel mekanik regresyonları eklendi); D10/D12 tarihsel sonuçlar olarak işaretlendi. Diğer tasarım önerileri (eylem çeşitlendirme, araştırma süresi, kademeli yorgunluk) bu değişiklikte uygulanmadı.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Oyunun mekaniksel olarak geliştirilebilecek yanları neler?
+- **Yapılan değişiklik:** Mekanikler kod ve doküman üzerinden değerlendirildi; kaynak maliyetleri, eylem çeşitliliği, yatırım geri dönüşü, yorgunluk, hazırlık ve karar tutarlılığı için öneriler sunuldu. Oyun kodunda değişiklik yok.
+- **Dosya / Açıklama:** `PROJECT_LOG.md` — değerlendirme kaydı.
+- **Debt:** Yok; öneriler uygulanmadı. D10/D12 kayıtlarındaki eski sayılar güncel AYAR değerleri yerine kullanılmadı.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Yazılara ve genel metinlere font ekle.
+- **Yapılan değişiklik:** Başlık ve butonlarda Barlow Condensed, genel metinlerde Nunito Sans kullanıldı; fontlar Google Fonts çalışma zamanı bağımlılığı yerine yerel dosyalardan yüklenir.
+
+| Dosya | Açıklama |
+|---|---|
+| `public/fonts/` | Türkçe destekli beş font dosyası ve iki OFL lisansı (toplam yaklaşık 520 KB) |
+| `index.html` | Harici font bağlantıları kaldırıldı, temel yerel fontlar önden yüklenir |
+| `src/style.css` | Yerel @font-face tanımları, ortak font değişkenleri ve tipografi düzeni |
+| `src/scenes/GameScene.js` | Canvas yazılarında da yeni fontlar kullanılır |
+| `src/main.js` | Phaser başlamadan canvas fontlarının yüklenmesi beklenir |
+| `PROJECT_LOG.md` | Project Map, dosya ağacı ve değişiklik kaydı |
+
+- **Doğrulama:** Beş fontun Türkçe glifleri kontrol edildi; Chromium'da 1440×900 ve 900×600 boyutlarında beş ekran yatay taşma ve JavaScript hatası olmadan açıldı; üretim derlemesi başarılı.
+- **Debt:** Yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Gün/eylem/kişi kutusunun taşmasını düzelt; kutu içlerini koyudan açığa çek.
+- **Yapılan değişiklik:** Gün kutusunun genişliği ve satır aralıkları artırıldı; HUD, pencere ve buton içleri daha açık zeytin yeşili yapıldı.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/style.css` | Gün kutusuna sabit yeterli genişlik, kompakt satır ve eylem noktaları; çerçevelerin koyu merkez dolgusu kaldırılarak açık iç renkler ve okunaklı metinler uygulandı |
+| `PROJECT_LOG.md` | Değişiklik kaydı |
+
+- **Doğrulama:** Gün kutusu 1440 ve 900 px genişlikte, 4 eylem ve 18 kişiyle tarayıcıda kontrol edildi; satır taşması yok.
+- **Debt:** Yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Menüde sığmayan alanları düzenle.
+- **Yapılan değişiklik:** Modal çerçevesi sabitlendi, içerik ayrı kaydırma alanına alındı ve doğrudan alt şeritler sürekli görünür yapıldı; menü, hikâye, son ve pano yerleşimleri sıkıştırıldı.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/ui/ui.js` | `modalAc()` içinde `.kart-icerik` kaydırma alanı, sabit alt şerit ve pano yenilenirken kaydırma konumunu koruma |
+| `src/style.css` | Pencere yükseklik sınırı, satır saran butonlar, üç sütunlu görevler, geniş pano ve kompakt menü/hikâye/son yerleşimi |
+| `PROJECT_LOG.md` | Project Map ve değişiklik kaydı güncellendi |
+
+- **Doğrulama:** Derleme başarılı; Chromium'da 1440×900, 1366×768, 900×600 ve 844×390 boyutlarında beş ekran kontrol edildi. Yatay taşma veya sahne dışına çıkan pencere yok; pano alt şeridi görünür.
+- **Debt:** Yok.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** Yüklenen interface assetlerini incele ve oyuna geçir.
+- **Yapılan değişiklik:** 44 arayüz görseli menü, HUD, pano, karar kartları ve son ekranlarına bağlandı; orijinaller yedeklenerek toplam boyut 28,1 MB'tan 13,9 MB'a indirildi.
+
+| Dosya | Açıklama |
+|---|---|
+| `src/data/assets.js` | İkon, karar ve son eşlemeleri ile ortak arayüz dosya kaydı |
+| `src/ui/ui.js` | Görsel yardımcıları, logo, menü ortamı, HUD/pano ikonları, 11 karar ve 5 son görseli |
+| `src/style.css` | 9-dilim metal/ahşap çerçeveler, buton durumları, HUD kutuları ve görsel yerleşimleri |
+| `public/assets/` (44 PNG) | Yüklenen görseller uygun boyutlara küçültülüp optimize edildi; orijinaller git dışı `assets-orijinal/arayuz/` altında |
+| `tools/asset-durum.mjs` | Arayüz dosyaları artık ortak kayıttan denetlenir |
+| `PROJECT_LOG.md`, `docs/asset-listesi.md` | Asset durumları, Project Map ve borç kaydı güncellendi |
+
+- **Doğrulama:** Vite derlemesi ve asset kontrolü başarılı; Chromium'da menü, pano, karar ve son ekranları kontrol edildi.
+- **Debt:** Kapandı: D16.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com)
+
+- **Prompt:** CLAUDE.md dosyasını aynen al ve Codex'e uyarla.
+- **Yapılan değişiklik:** CLAUDE.md içeriği eksiksiz AGENTS.md'ye aktarıldı; dosyanın kendisine yönelik referanslar AGENTS.md olarak uyarlandı.
+
+| Dosya | Açıklama |
+|---|---|
+| `AGENTS.md` | Tüm proje dokümanı ve çalışma kuralları korundu; CLAUDE.md dosya referansları AGENTS.md olarak uyarlandı |
+| `PROJECT_LOG.md` | Project Map, dosya ağacı ve değişiklik kaydı güncellendi |
+
+- **Debt:** Yok.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `asset-listesi-guncel`
 

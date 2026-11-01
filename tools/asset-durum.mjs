@@ -5,7 +5,7 @@
 //  güncellerken kullanın:   node tools/asset-durum.mjs
 // =============================================================
 import fs from 'node:fs';
-import { ASSETLER } from '../src/data/assets.js';
+import { ASSETLER, ARAYUZ_DOSYALARI } from '../src/data/assets.js';
 
 const klasor = new URL('../public/assets/', import.meta.url);
 let var_ = 0;
@@ -21,9 +21,10 @@ const { ZIYARETCILER, KURUCULAR } = await import('../src/data/visitors.js');
 // Arayüz görselleri (Phaser'a yüklenmez): portreler, hikaye ekranları, kapak
 const arayuz = [
   ...ZIYARETCILER.map((z) => `ziyaretci-${z.id}.png`), ...KURUCULAR.map((k) => `kurucu-${k.id}.png`),
+  ...ARAYUZ_DOSYALARI,
   'hikaye-1.png', 'hikaye-2.png', 'hikaye-3.png', 'hikaye-4.png', 'kapak.png',
 ];
-console.log('\nArayüz görselleri (portre, hikaye, kapak):');
+console.log('\nArayüz görselleri (portre, hikaye, menü, ikon, kart, son):');
 for (const f of arayuz) console.log(`${fs.existsSync(new URL(f, klasor)) ? '✅' : '⏳'} ${f}`);
 const bilinen = new Set([...Object.values(ASSETLER).map((a) => a.dosya), ...arayuz]);
 const fazla = fs.readdirSync(klasor).filter((f) => !f.startsWith('.') && f !== 'anim' && !bilinen.has(f));

@@ -1,3 +1,5 @@
+> **ARŞİV — güncel eksik listesi değildir.** Mevcut oda, animasyon ve menü assetlerinin çoğu hazırdır. Yeni üretim için [güncel promptu](asset-promptu.md), [asset listesini](asset-listesi.md) ve [devir rehberini](devralma.md) kullanın.
+
 # Sıfırdan asset üretim promptu
 
 Hiç asset yokmuş gibi, oyunun güncel hâlinin ihtiyaç duyduğu **her görsel ve animasyon** tek listede. Yeni bir görsel üretim sohbetine olduğu gibi yapıştırın. Listenin kaynağı ve takibi: `PROJECT_LOG.md` → Asset Listesi (aynı sıra, aynı dosya adları).
