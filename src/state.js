@@ -97,7 +97,7 @@ export function rastgeleAyarla(fn) {
   rastgele = fn;
 }
 
-export function sifirla() {
+export function sifirla({ gun0 = false } = {}) {
   state.gun = 1;
   state.kaynak = { ...BASLANGIC };
   state.olay = ILK_OLAY;
@@ -140,10 +140,79 @@ export function sifirla() {
   state.kesfedilenler = [];     // bu oyunda gidilmiş keşif noktaları
   state.insaat = null;           // { id, kalan }: aynı anda tek inşaat
   state.yapilar = [];           // inşa edilen yapılar (data/structures.js)
+  state.gun0 = null;            // Gün 0 öğreticisi: { sira, kapida }
   for (const k of KURUCULAR) state.sakinler.push({ uid: state.sakinler.length + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
+  if (gun0) {
+    // Sığınak boş: kurucular kapıya teker teker gelir, makineler operatörsüz.
+    state.gun = 0;
+    state.sakinler = [];
+    state.nufus = 0;
+    state.eylem = 0;
+    state.gun0 = { sira: 0, kapida: false, incelenen: [], panoGoruldu: false };
+  }
   katkiGuncelle();
   state.denge = dengeHesapla();
   bildir();
+}
+
+// Test paneli: durumu doğrudan değiştirir, türetilmiş değerleri yeniler ve arayüze yayar.
+// Yalnız geliştirme/test içindir; oyun kuralları bunu kullanmaz.
+export function testDegistir(fn) {
+  fn(state);
+  state.nufus = state.sakinler.reduce((t, s) => t + (sakinTanimi(s.id)?.kisi || 1), 0);
+  katkiGuncelle();
+  state.denge = dengeHesapla();
+  bildir();
+}
+
+// ---------------------------------------------------------------
+//  GÜN 0 · HAZIRLIK (öğretici; kaynak/denge değiştirmez)
+// ---------------------------------------------------------------
+export const gun0Aktif = () => state.gun === 0 && !!state.gun0;
+export const gun0EkipTamam = () => gun0Aktif() && state.gun0.sira >= KURUCULAR.length;
+// Son gelen kurucunun paneli henüz incelenmediyse o makine (sıradaki kişi bunu bekler)
+export function gun0BekleyenPanel() {
+  if (!gun0Aktif() || state.gun0.sira === 0) return null;
+  const m = KURUCULAR[state.gun0.sira - 1].varsayilan;
+  return state.gun0.incelenen.includes(m) ? null : m;
+}
+export const gun0Tamam = () => gun0EkipTamam() && !gun0BekleyenPanel() && state.gun0.panoGoruldu;
+export const gun0KapidakiKurucu = () => (gun0Aktif() && state.gun0.kapida ? KURUCULAR[state.gun0.sira] || null : null);
+export function gun0PanelIncele(makine) {
+  if (!gun0Aktif() || !makineOperatoru(makine) || state.gun0.incelenen.includes(makine)) return false;
+  state.gun0.incelenen.push(makine);
+  bildir();
+  return true;
+}
+export function gun0PanoGor() {
+  if (!gun0EkipTamam() || gun0BekleyenPanel() || state.gun0.panoGoruldu) return false;
+  state.gun0.panoGoruldu = true;
+  bildir();
+  return true;
+}
+export function gun0KapiyaGel() {
+  if (!gun0Aktif() || state.gun0.kapida || gun0EkipTamam() || gun0BekleyenPanel()) return false;
+  state.gun0.kapida = true;
+  bildir();
+  return true;
+}
+// Kapıdaki kurucuyu içeri alıp kendi makinesine yönlendirir
+export function gun0Karsila() {
+  const k = gun0KapidakiKurucu();
+  if (!k) return null;
+  state.sakinler.push({ uid: state.gun0.sira + 1, id: k.id, gorev: k.varsayilan, yorgunluk: 0 });
+  state.nufus = state.sakinler.length;
+  state.gun0.sira += 1;
+  state.gun0.kapida = false;
+  bildir();
+  return k;
+}
+// Gün 1'e geçiş: her zamanki başlangıç durumu (kararGecmisi Gün 0'da boş kalır)
+export function gun0Bitir() {
+  if (!gun0Aktif()) return false;
+  sifirla();
+  gunBasiniKaydet(state);
+  return true;
 }
 
 export function kayittanDevamEt(kayit) {

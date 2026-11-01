@@ -87,3 +87,7 @@ Uzak main’deki `a056a6d` ve `390a8bd` commitleriyle aşağıdaki on MP3 ve ça
 ## Regresyon kontrolü
 
 `npm test` mekanik testlerine ek olarak `tools/ses-test.mjs` dosyasını çalıştırır: gecikmiş play, hızlı aç/kapat, parça değişimi, fade iptali, efekt susturma ve autoplay tekrar denemesi. Vite HMR dispose aşaması eski müzikleri susturup olay dinleyicilerini kaldırır.
+
+## Tekrarlanan efekt maliyeti (1 Kasım 2026)
+
+`sesCal` her adım/tıklama için yeni Audio oluşturmaz. Her efekt için en fazla üç kanal tutulur; biten kanal sıfırdan oynatılır. Üçü de meşgulse yeni istek atlanır; hızlı tıklama/adım yükü sınırsız büyümez. Kullanım numarası, eski play yanıtının tekrar kullanılan sesi susturmasını engeller. Havuzlar kullanıcı sessize alınca yeni ses başlatmaz; aktif kanallar anında durur, açılınca eski efektler geri dönmez. HMR havuzları temizler. `tools/ses-test.mjs` yüz tekrarın yeni nesne üretmemesini, kanal sınırını ve gecikmiş yanıtı denetler.

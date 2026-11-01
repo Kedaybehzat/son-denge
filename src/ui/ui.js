@@ -5,7 +5,10 @@
 // =============================================================
 import { state, abone, eylemYap, eylemYapabilirMi, nufusTuketimi, ziyaretciNetEtki, geceTahmini, AYAR, KAYNAKLAR,
   sakinTanimi, sakinCiktisi, gorevAta, arastirmaSec, arastirmaAcik, masadaArastir, masadaArastirabilirMi,
-  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi, kapaliMakineler, makineKapali, YAPILAR, yapiAcik, yapiKur, yapiKurabilirMi, CALISMA_MODLARI, BAKIM, makineModu, makineModuSec, makineUretimi, bakimYap, bakimYapabilirMi, geriKazanimMiktari, insaatci, insaatTahmini, insaatDuraklat, insaatIptal, insaataYardimEt, moralVer, moralVerebilirMi, havaUretimEtkisi, dinlenmeSozuVer, dinlenmeSozuVerebilirMi, SENARYO_HEDEFLERI, hedefYardimiGonder, hedefYardimiGonderebilirMi, kesifKarariSec, kesifKarariYapabilirMi, kayittanDevamEt, panelIncelendi } from '../state.js';
+  MAKINELER, gorevBilgisi, makineOperatoru, makineCalisiyorMu, bosMakineler, kendinCalis, kendinCalisabilirMi, yarinkiYorgunluk, ayrilmaSansi , olayEtkisi, hazirlan, hazirlanabilirMi , kartSecenekleri, kartSecebilirMi, kartSec , kesifSansi, kesfeGonder, kesfeGonderebilirMi, kapaliMakineler, makineKapali, YAPILAR, yapiAcik, yapiKur, yapiKurabilirMi, CALISMA_MODLARI, BAKIM, makineModu, makineModuSec, makineUretimi, bakimYap, bakimYapabilirMi, geriKazanimMiktari, insaatci, insaatTahmini, insaatDuraklat, insaatIptal, insaataYardimEt, moralVer, moralVerebilirMi, havaUretimEtkisi, dinlenmeSozuVer, dinlenmeSozuVerebilirMi, SENARYO_HEDEFLERI, hedefYardimiGonder, hedefYardimiGonderebilirMi, kesifKarariSec, kesifKarariYapabilirMi, kayittanDevamEt, panelIncelendi, sifirla, gun0Aktif, gun0Tamam, gun0EkipTamam, gun0BekleyenPanel, gun0PanelIncele, gun0PanoGor } from '../state.js';
+import { testPaneliToggle } from './testPaneli.js';
+import { GUN0_KURUCULAR, GUN0_METIN, GUN0_PANEL_BOLUMLERI, GUN0_PANO_TURU } from '../data/gun0.js';
+import { MOD_EK_ETKILERI } from '../data/production.js';
 import { ARASTIRMALAR, GOREVLER, MASA_ARASTIRMA, BATARYA_KAPASITE, OYUNCU_CALISMA_MALIYETI } from '../data/research.js';
 import { ODALAR } from '../data/rooms.js';
 import { PANELLER } from '../data/panels.js';
@@ -158,24 +161,24 @@ export function hudKur() {
       ${Object.entries(KAYNAKLAR).map(([ad, k]) => `
         <div class="kaynak" data-k="${ad}" title="${k.ad}${k.yuksekIyi ? '' : ' (düşük olması iyi)'}">
           <span class="ikon">${arayuzIkonu(ad, k.ikon)}</span>
-          <div class="bar"><i></i></div>
+          <span class="kaynak-govde"><span class="kaynak-ad">${k.ad}</span><div class="bar"><i></i></div></span>
           <b></b>
         </div>`).join('')}
     </div>
     <div class="hud-ekstra">
       <div class="kaynak hud-arastirma" data-arastirma title="Aktif araştırma">
         <span class="ikon" data-ar-ikon>${arayuzIkonu('arastirma', '🧪')}</span>
-        <div class="bar"><i data-ar-bar></i></div>
+        <span class="kaynak-govde"><span class="kaynak-ad">Araştırma</span><div class="bar"><i data-ar-bar></i></div></span>
         <b data-ar-puan></b>
       </div>
       <div class="kaynak hud-memnuniyet" data-memnuniyet title="Sakinlerin memnuniyeti (yönetime güven)">
         <span class="ikon">${arayuzIkonu('memnuniyet', '🙂')}</span>
-        <div class="bar"><i data-mem-bar></i></div>
+        <span class="kaynak-govde"><span class="kaynak-ad">Memnuniyet</span><div class="bar"><i data-mem-bar></i></div></span>
         <b data-mem></b>
       </div>
       <div class="kaynak hud-batarya" data-batarya title="Batarya deposu">
         <span class="ikon">${arayuzIkonu('bataryaHud', '🔋')}</span>
-        <div class="bar"><i data-bat-bar></i></div>
+        <span class="kaynak-govde"><span class="kaynak-ad">Batarya</span><div class="bar"><i data-bat-bar></i></div></span>
         <b data-bat></b>
       </div>
     </div>
@@ -193,6 +196,11 @@ export function hudKur() {
   erisim.querySelectorAll('button[data-yonetim]').forEach((b) => b.addEventListener('click', () => {
     if ((!acik || panoAcik) && !state.bitti) panoAc(b.dataset.yonetim);
   }));
+  // Pencereler HUD'un altından başlasın: kaynak şeridi hiç örtülmesin.
+  const sahne = document.getElementById('sahne');
+  const hudYuksekligi = () => sahne.style.setProperty('--hud-h', `${hud.offsetHeight}px`);
+  if (window.ResizeObserver) new ResizeObserver(hudYuksekligi).observe(hud);
+  hudYuksekligi();
   erisim.querySelector('[data-ayarlar]').addEventListener('click', () => {
     if (!acik) ayarlarAc();
   });
@@ -257,14 +265,38 @@ function hudGuncelle(s) {
     batBox.style.display = 'none';
   }
 
+  gun0HedefGuncelle();
   if (aktifPanel) panelCiz();
   if (panoAcik) panoCiz();
+}
+
+// Gün 0'da HUD altında o anki hedefi gösteren ince şerit
+function gun0HedefGuncelle() {
+  let el = document.querySelector('.gun0-hedef');
+  if (!gun0Aktif()) { el?.remove(); return; }
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'gun0-hedef';
+    modal.before(el);
+  }
+  const toplam = KURUCULAR.length, gelen = state.gun0.sira;
+  const bekleyen = gun0BekleyenPanel();
+  el.innerHTML = gun0Tamam()
+    ? `<b>Gün 0</b> · Hazırsın. Yaşam alanındaki yatağa git ve Gün 1'i başlat.`
+    : bekleyen
+      ? `<b>Gün 0</b> · <b>${kacis(sakinTanimi(makineOperatoru(bekleyen).id).ad)}</b> ${kacis(MAKINELER[bekleyen].ad)} odasına geçti. Oradaki panele git ve <b>E</b> ile incele.`
+    : gun0EkipTamam()
+      ? `<b>Gün 0</b> · Ekip tamam (${gelen}/${toplam}). Yaşam alanındaki <b>Sığınak Yönetimi</b> panosuna git (ya da sol alttaki düğmeler).`
+    : state.gun0.kapida
+      ? `<b>Gün 0</b> · Kapı çalıyor! Kapıya git, <b>${kacis(KURUCULAR[gelen].ad)}</b> geldi (${gelen}/${toplam}).`
+      : `<b>Gün 0</b> · Ekip yolda (${gelen}/${toplam}). Beklerken odaları gez, panellere bak.`;
 }
 
 // ---------------------------------------------------------------
 //  KONTROL PANELİ
 // ---------------------------------------------------------------
 export function panelAc(def, anahtar = null) {
+  if (gun0Aktif()) return gun0PanelGoster(def, anahtar);
   panelIncelendi(anahtar);
   aktifPanel = def;
   aktifPanelAnahtar = anahtar;
@@ -675,6 +707,10 @@ function odalarHtml() {
   }).join('')}</div>`;
 }
 export function panoAc(bolum = 'koloni') {
+  if (gun0Aktif()) {
+    if (gun0EkipTamam() && !gun0BekleyenPanel()) return gun0PanoTuru();
+    return bilgi('Sığınak Yönetimi', GUN0_METIN.pano);
+  }
   aktifPanel = null;
   aktifPanelAnahtar = null;
   panoBolumu = bolum;
@@ -978,6 +1014,7 @@ export function sakinleKonus(uid) {
   if (!s || s.gorev === 'kesif' || state.bitti) return;
   aktifPanel = null; aktifPanelAnahtar = null;
   const z = sakinTanimi(s.id);
+  if (gun0Aktif()) return bilgi(z.ad, GUN0_METIN.konusma);
   const cerceve = (oyuncu) => `<div class="diyalog-cerceve ${oyuncu ? 'oyuncu' : 'sakin'}">${oyuncu ? varsaImg(`${ARAYUZ_ASSET_KLASORU}oyuncu.png`, 'diyalog-portre') : sakinPortresi(z.id, 'diyalog-portre')}<span>${oyuncu ? 'Sen' : kacis(z.ad)}</span></div>`;
   function ciz(konusan, metin, devam = null) {
     const oyuncu = konusan === 'oyuncu';
@@ -1098,13 +1135,13 @@ export function baslangicEkrani(basla) {
       </div>
       <p class="aciklama kontrol-ozet"><kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> yürü · <kbd>Shift</kbd> koş · <kbd>E</kbd> etkileşim · <kbd>F</kbd> tam ekran</p>
     </div>`, { kapatma: false, sinif: 'baslangic' });
-  kart.querySelector('[data-basla]').addEventListener('click', () => {
+  kart.querySelector('[data-basla]').addEventListener('click', () => yeniOyunSecimi((egitim) => {
+    sifirla({ gun0: egitim });
     hudGorunurlugu(true);
-    modalKapat();
-    gunBasiniKaydet(state);
+    if (state.gun > 0) gunBasiniKaydet(state); // Gün 0 kaydedilmez; Gün 1 başında kaydedilir
     muzikCal('muzik-umut');
     basla();
-  });
+  }, () => baslangicEkrani(basla)));
   kart.querySelector('[data-kayit-devam]')?.addEventListener('click', () => {
     if (!kayittanDevamEt(kayit)) return bilgi('Kayıt açılamadı', 'Bu kayıt güncel sürümle uyumlu değil. Yeni oyun başlatabilirsin.');
     hudGorunurlugu(true); modalKapat(); muzikCal('muzik-umut'); yayinla('kayitYuklendi', { onBitti: basla });
@@ -1154,12 +1191,15 @@ export function ayarlarAc(donus) {
           <span><kbd>F</kbd> tam ekran</span>
           <span><kbd>Esc</kbd> pencereyi kapat</span>
           <span><kbd>Enter</kbd> varsayılan düğme</span>
+          <span><kbd>F9</kbd> test paneli</span>
         </div>
       </div>
     </div>
     <div class="alt sag">
+      <button class="ikincil" data-test-paneli>🛠 Test paneli</button>
       <button data-kapat data-varsayilan>Kapat</button>
     </div>`, { sinif: 'bilgi ayarlar-kart', kapatma: !donus });
+  kart.querySelector('[data-test-paneli]').addEventListener('click', () => { modalKapat(); testPaneliToggle(); });
   kart.querySelector('[data-tamekran]').addEventListener('click', () => {
     window.tamEkranToggle?.();
     setTimeout(() => ayarlarAc(donus), 120);
@@ -1260,4 +1300,144 @@ export function sonGoster({ tip, bilgi }, tekrar) {
     muzikCal('muzik-umut');
     tekrar();
   });
+}
+
+// ---------------------------------------------------------------
+//  GÜN 0 · HAZIRLIK (öğretici)
+// ---------------------------------------------------------------
+// Yeni oyunun ilk ekranı: Gün 0 ise öğretici girişi, değilse 1. gün radyosu
+export function oyunuBaslat() {
+  if (gun0Aktif()) gunBasligi(0, GUN0_METIN.giris.baslik.split('·')[1]?.trim() || 'Hazırlık', gun0Giris);
+  else gunBasligi(state.gun, state.olay.baslik, () => olayGoster(state.olay));
+}
+
+// "Tekrar oyna" sonrası eğitimi yapma/atlama seçimi
+export function yeniOyunSecimi(secildi, geri = null) {
+  modalAc(`
+    <div class="panel-ust"><span class="etiket">▸ YENİ OYUN<i class="led"></i></span><h2>Eğitim yapılsın mı?</h2></div>
+    <p>Gün 0'da sığınak boş başlar; kurucular kapıya teker teker gelir ve oyunun temel kuralları tanıtılır. Atlarsan doğrudan Gün 1'den, ekip yerinde başlarsın.</p>
+    <div class="alt sag">
+      ${geri ? '<button class="ikincil" data-geri>Geri</button>' : ''}
+      <button class="ikincil" data-secim="atla">Eğitimi atla (Gün 1)</button>
+      <button data-secim="egitim" data-varsayilan>Eğitimle başla (Gün 0)</button>
+    </div>`, { kapatma: false, sinif: geri ? 'baslangic' : 'bilgi' });
+  kart.querySelector('[data-geri]')?.addEventListener('click', geri);
+  kart.querySelectorAll('[data-secim]').forEach((b) => b.addEventListener('click', () => {
+    modalKapat();
+    secildi(b.dataset.secim === 'egitim');
+  }));
+}
+
+function gun0Giris() {
+  modalAc(`
+    <div class="panel-ust"><span class="etiket">▸ GÜN 0 · HAZIRLIK<i class="led"></i></span><h2>${kacis(GUN0_METIN.giris.baslik)}</h2></div>
+    ${paragraf(GUN0_METIN.giris.metin)}
+    <div class="alt sag">
+      <button class="ikincil" data-gun0-atla>Eğitimi atla</button>
+      <button data-gun0-basla data-varsayilan>Başla</button>
+    </div>`, { kapatma: false, sinif: 'radyo-kart' });
+  kart.querySelector('[data-gun0-basla]').addEventListener('click', () => { modalKapat(); yayinla('gun0Planla'); });
+  kart.querySelector('[data-gun0-atla]').addEventListener('click', () => { modalKapat(); yayinla('gun0Atla'); });
+}
+
+// Gün 0'da paneller kullanılamaz: operatör yoksa "çevrimdışı", varsa "yarın hazır"
+function gun0PanelGoster(def, anahtar) {
+  aktifPanel = null; aktifPanelAnahtar = null;
+  const op = anahtar ? makineOperatoru(anahtar) : null;
+  const durum = op ? GUN0_METIN.panelHazir(sakinTanimi(op.id).ad) : GUN0_METIN.panelBos;
+  const uretim = anahtar && MAKINELER[anahtar] ? etkiChipleri(MAKINELER[anahtar].uretim) : '';
+  if (op && anahtar) return gun0PanelRehberi(def, anahtar, op);
+  const eylemler = def.eylemler.map((e, i) => `
+    <button class="eylem ${e.kirli ? 'kirli' : ''}" disabled>
+      <span class="no">${i + 1}</span>
+      <span class="govde"><span class="ad">${kacis(e.ad)}${e.kirli ? ' <em>⚠ kirletir</em>' : ''}</span><span class="chipler">${etkiChipleri(e.etki)}</span></span>
+      <span class="maliyet">Gün 1'de</span>
+    </button>`).join('');
+  modalAc(`
+    <div class="panel-ust">
+      <span class="etiket">▸ ${kacis(def.kod || 'KONTROL')} // ${op ? 'BEKLEMEDE' : 'ÇEVRİMDIŞI'}<i class="led uyari"></i></span>
+      <h2>${kacis(def.baslik)}</h2>
+    </div>
+    <div class="kullanilamaz ${op ? 'hazir' : ''}">
+      <b>${op ? '⏳ GÜN 1\'DE ÇALIŞACAK' : '⛔ KULLANILAMAZ'}</b>
+      <p>${kacis(durum)}</p>
+      ${uretim ? `<div class="ziyaretci-satir"><span>Operatörle her gece:</span>${uretim}</div>` : ''}
+    </div>
+    <p class="aciklama">${kacis(def.aciklama)} Yarından itibaren kullanabileceğin seçenekler:</p>
+    <div class="eylemler">${eylemler}</div>
+    <div class="alt sag"><button class="ikincil" data-kapat data-varsayilan>Kapat (Esc)</button></div>`, { sinif: 'panel', tema: def.tema });
+}
+
+// Kapıdaki kurucu: tanıtım + mekanik dersi + çalışma alanına yönlendirme
+export function gun0KapiGoster(k, gonder) {
+  const veri = GUN0_KURUCULAR[k.id] || {};
+  const makine = MAKINELER[k.varsayilan];
+  modalAc(`
+    <div class="panel-ust"><span class="etiket">▸ KAPIDA EKİPTEN BİRİ VAR<i class="led"></i></span><h2>${portreRozet(k.id, k.ikon)}${kacis(k.ad)}</h2></div>
+    ${portreBuyuk(k.id)}
+    <p>${kacis(veri.gelis || k.guclu)}</p>
+    <div class="ziyaretci-satir"><span>Çalışma alanı:</span><span class="chip iyi">${makine.ikon} ${kacis(makine.ad)}</span><span>Her gece:</span>${etkiChipleri(makine.uretim)}</div>
+    ${veri.ders ? `<section class="bilgi-karti"><span class="etiket">📘 NASIL OYNANIR · ${KURUCULAR.indexOf(k) + 1}/${KURUCULAR.length}</span><h3>${kacis(veri.ders.baslik)}</h3><p>${kacis(veri.ders.metin)}</p></section>` : ''}
+    <div class="alt sag"><button data-gonder data-varsayilan>İçeri al · ${makine.ikon} ${kacis(makine.ad)} odasına yönlendir</button></div>`, { kapatma: false, sinif: 'kapi' });
+  kart.querySelector('[data-gonder]').addEventListener('click', () => {
+    modalKapat();
+    gonder();
+    yayinla('ziyaretciKabul', { kisi: 1 });
+  });
+}
+
+// Operatörü gelmiş panelin ayrıntılı rehberi; "Anladım" sıradaki kurucuyu çağırır
+function gun0PanelRehberi(def, id, op) {
+  const kurucu = sakinTanimi(op.id);
+  const ipucu = GUN0_KURUCULAR[op.id]?.panel;
+  const modlar = Object.entries(CALISMA_MODLARI).map(([mod, m]) => {
+    const ek = etkiChipleri(MOD_EK_ETKILERI[id]?.[mod]);
+    return `<div class="ziyaretci-satir"><span class="chip">${kacis(m.ad)} · ×${m.carpani}</span><span>${kacis(m.aciklama)}</span>${ek ? `<span>Ek:</span>${ek}` : ''}</div>`;
+  }).join('');
+  const eylemler = def.eylemler.map((e, i) => `
+    <button class="eylem ${e.kirli ? 'kirli' : ''}" disabled>
+      <span class="no">${i + 1}</span>
+      <span class="govde"><span class="ad">${kacis(e.ad)}${e.kirli ? ' <em>⚠ kirletir</em>' : ''}</span><span class="chipler">${etkiChipleri(e.etki)}${e.geriKazanim ? `<span class="chip iyi">+malzeme</span>` : ''}</span></span>
+      <span class="maliyet">${e.maliyet ?? 1} eylem</span>
+    </button>`).join('');
+  const bolum = (i, ic) => `<section class="bilgi-karti gun0-bolum"><span class="etiket">📘 ${i + 1}/${GUN0_PANEL_BOLUMLERI.length} · ${kacis(GUN0_PANEL_BOLUMLERI[i].baslik)}</span><p>${kacis(GUN0_PANEL_BOLUMLERI[i].metin)}</p>${ic}</section>`;
+  modalAc(`
+    <div class="panel-ust">
+      <span class="etiket">▸ ${kacis(def.kod || 'KONTROL')} // PANEL REHBERİ<i class="led"></i></span>
+      <h2>${kacis(def.baslik)}</h2>
+    </div>
+    <p class="aciklama">${kacis(def.aciklama)}</p>
+    ${bolum(0, `<div class="ziyaretci-satir makine"><span>Operatör:</span><span class="chip iyi">${kurucu.ikon} ${kacis(kurucu.ad)}</span><span>Her gece:</span>${etkiChipleri(MAKINELER[id].uretim)}</div>`)}
+    ${bolum(1, modlar)}
+    ${bolum(2, `<div class="ziyaretci-satir"><span>Aşınma:</span><span class="chip">${state.makineAsinma[id]}/10</span><span class="chip">Bakım: ${BAKIM.eylem} eylem + ${BAKIM.malzeme} malzeme → −${BAKIM.onarim}</span></div>`)}
+    ${bolum(3, `<div class="eylemler">${eylemler}</div>${ipucu ? `<p class="mesaj">&gt; ${kacis(kurucu.ad)}: "${kacis(ipucu)}"</p>` : ''}`)}
+    <div class="alt sag"><button data-anladim data-varsayilan>Anladım</button></div>`, { kapatma: false, sinif: 'panel', tema: def.tema });
+  kart.querySelector('[data-anladim]').addEventListener('click', () => {
+    modalKapat();
+    if (gun0PanelIncele(id)) yayinla('gun0Planla');
+  });
+}
+
+// Sığınak Yönetimi panosunun sayfa sayfa turu
+function gun0PanoTuru(i = 0) {
+  const sayfa = GUN0_PANO_TURU[i];
+  const son = i === GUN0_PANO_TURU.length - 1;
+  modalAc(`
+    <div class="panel-ust"><span class="etiket">▸ SIĞINAK YÖNETİMİ · TUR ${i + 1}/${GUN0_PANO_TURU.length}<i class="led"></i></span><h2>${kacis(sayfa.baslik)}</h2></div>
+    <div class="tur-sekmeler">${Object.values(YONETIM_BOLUMLERI).map((ad) => `<span class="chip ${sayfa.baslik.includes(ad) ? 'iyi' : ''}">${kacis(ad)}</span>`).join('')}</div>
+    ${paragraf(sayfa.metin)}
+    <div class="alt sag">
+      ${i > 0 ? '<button class="ikincil" data-tur-geri>Geri</button>' : ''}
+      <button data-tur-ileri data-varsayilan>${son ? 'Turu bitir' : 'İleri'}</button>
+    </div>`, { kapatma: false, sinif: 'pano' });
+  kart.querySelector('[data-tur-geri]')?.addEventListener('click', () => gun0PanoTuru(i - 1));
+  kart.querySelector('[data-tur-ileri]').addEventListener('click', () => {
+    if (!son) return gun0PanoTuru(i + 1);
+    gun0PanoGor();
+    gun0Kapanis();
+  });
+}
+
+export function gun0Kapanis() {
+  bilgi(GUN0_METIN.kapanis.baslik, GUN0_METIN.kapanis.metin);
 }

@@ -2,7 +2,7 @@
 // Yöntemler GameScene üzerinde çalışır; Phaser yaşam döngüsünü sahne yönetir.
 import Phaser from 'phaser';
 import { ODA_GENISLIK } from '../../data/rooms.js';
-import { state, KAYNAKLAR } from '../../state.js';
+import { state, KAYNAKLAR, gun0KapidakiKurucu } from '../../state.js';
 import * as ui from '../../ui/ui.js';
 import { muzikCal } from '../../sesler.js';
 import { EKRAN_G, EKRAN_Y, DUMAN_KONUMU } from './ayarlar.js';
@@ -244,7 +244,7 @@ export const efektler = {
     }
     this.atmosfer.setAlpha((1 - t) * 0.42);
 
-    const ziyaretciVar = !!state.ziyaretci && !state.bitti;
+    const ziyaretciVar = (!!state.ziyaretci || !!gun0KapidakiKurucu()) && !state.bitti;
     this.kapiIsaret.setVisible(ziyaretciVar);
     if (ziyaretciVar) this.kapiTakTakBaslat();
     else this.kapiTakTakDurdur();

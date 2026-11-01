@@ -59,6 +59,32 @@ test('Ses yöneticisi regresyonları', async (t) => {
     s.sesToggle(); s.muzikSeviyeAyarla(1); assert.equal(a.volume, 0);
   });
 
+  await t.test('Tekrarlanan efektler yeniden kullanılır, eşzamanlı ses sayısı sınırlanır', async () => {
+    const s = await kur();
+    for (let i = 0; i < 20; i++) s.sesCal('adim');
+    assert.equal(s.sesler.length, 3, 'Aynı efekt en çok üç kanal açmalı');
+    const a = s.sesler[0];
+    a.istekler[0].resolve(); await s.coz();
+    a.olaylar.get('ended')(); a.currentTime = 0.1;
+    for (let i = 0; i < 100; i++) {
+      s.sesCal('adim');
+      assert.equal(a.currentTime, 0);
+      a.istekler.at(-1).resolve(); await s.coz(); a.olaylar.get('ended')();
+    }
+    assert.equal(s.sesler.length, 3, 'Yüz adım yeni Audio nesnesi üretmemeli');
+    s.sesCal('kapi'); assert.equal(s.sesler.length, 4, 'Farklı efekt ayrı havuz kullanmalı');
+  });
+
+  await t.test('Havuzdaki eski play yanıtı yeniden kullanılan sesi susturmaz', async () => {
+    const s = await kur(); s.sesCal('adim'); const a = s.sesler[0];
+    s.sesToggle(); s.sesToggle(); s.sesCal('adim');
+    assert.equal(s.sesler.length, 1);
+    a.istekler[1].resolve(); await s.coz();
+    a.istekler[0].reject({ name: 'AbortError' }); await s.coz();
+    assert.equal(a.paused, false); assert.equal(a.muted, false);
+    s.sesToggle(); assert.equal(a.paused, true); assert.equal(a.muted, true);
+  });
+
   await t.test('Kapatma fade içindeki müziği ve tüm efektleri anında susturur', async () => {
     const s = await kur();
     s.muzikCal('ana'); s.sesCal('kapi');

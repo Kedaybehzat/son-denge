@@ -98,6 +98,7 @@ Dört açılış ekranı `src/data/story.js` içinde; Geç ile atlanır. Tarihle
 - **E**: yakındaki nesneyle etkileşim (panel, radyo, yatak, kapı)
 - **1 / 2 / 3**: açık paneldeki eylemi seç
 - **Esc**: pencereyi kapat · **Enter**: varsayılan buton
+- **F9**: test paneli (geliştirme; Ayarlar menüsünden de açılır)
 
 ### 4.2 Gün döngüsü
 1. **Sabah:** Radyodan günün olayı gelir. 2. günden itibaren kapıya bir ziyaretçi gelir (kapının üstünde sarı "!" çıkar).
@@ -849,3 +850,11 @@ GameScene 362 satırdır; çizim/doku/animasyon/NPC/efekt yöntemleri `src/scene
 ### 4.23 Seçimlerin öğrenme geri bildirimi (1 Kasım 2026)
 
 `state.kararGecmisi` başarılı panel eylemlerinin gerçek kaynak/malzeme değişimini, seçilen kartın kendi sonuç metnini, hazırlığı ve gece gerçekten çalışan makinelerin son üretim modunu saklar. İnceleme kayıtları yalnız ilk gün rehberine hizmet eder. `src/ogrenme.js` bir gece/son özeti için en çok üç kayıt seçer. Önizleme, başarısız işlem veya vazgeçilen üretim modu gerçekleşmiş tercih sayılmaz. Eski kayıtta geçmiş yoksa boş başlar; geçmiş uydurulmaz. Gece raporundaki seçim anı değişimleri gece tüketimine tekrar eklenmez. Son ekranda oyun puanı/zaman ölçeği açıklanır. `tools/ogrenme-test.mjs`, `npm test` içindedir. Bu özellik öğrenme fırsatı sağlar; öğrenme kazanımının oyuncularla ölçüldüğü iddia edilmez.
+
+### 4.24 Gün 0 öğreticisi ve test paneli (1 Kasım 2026)
+
+"Oyuna Başla / Yeni oyun" düğmesi önce **Eğitimle başla (Gün 0)** / **Eğitimi atla (Gün 1)** sorar (Tekrar oyna'da da). Gün 0'da sığınak boştur, eylem hakkı 0'dır ve paneller "Kullanılamaz" ekranı gösterir. Kurucular (Selin → Burak → Nur → Can) kapıyı sırayla çalar; kapı kartında bir ders (operatör, kaynak çubukları, eylem hakkı, denge) vardır, kişi kendi odasına yürür. Oyuncu o odanın paneline gidince 4 bölümlü panel rehberi (operatör, çalışma modu, aşınma/bakım, eylemler + kurucunun ipucu) açılır; "Anladım" sonrası sıradaki gelir. Dördü bitince Sığınak Yönetimi panosu sayfa sayfa tanıtılır, sonra yatakla Gün 1 başlar. Gün 0 kaynakları değiştirmez ve kaydedilmez; Gün 1 her zamanki başlangıçla açılır. Metinler `src/data/gun0.js`, test `tools/gun0-test.mjs`.
+
+**Test paneli (F9):** kaynakları ve diğer değişkenleri kaydırıcıyla değiştirir; sakin görev/yorgunluğu, ziyaretçi getirme/alma, bugünün olayı/yarının tahmini, karar kartı, araştırma/yapı açma, günü bitirme, son ekranı ve yeni oyun tetikler. Yalnız test içindir (`src/ui/testPaneli.js`, `state.js` → `testDegistir`).
+
+HUD artık pencerelerin üstünde kalır; kaynak adları barların üstünde yazar.
