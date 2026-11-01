@@ -1,16 +1,28 @@
 // =============================================================
 //  SES YÖNETİCİSİ — aynı anda tek müzik, iptal edilebilir fade-in.
+//  Müzik ve efekt seviyeleri ayrı; her çağrı kendi seviyesiyle çarpılır.
 //  Kapatma tüm müzik/efektleri anında susturur. Geciken play()
 //  yanıtları ve autoplay denemeleri eski parçayı canlandıramaz.
 //  Dosyalar ve kullanım noktaları: SOUNDS.md
 // =============================================================
 const SES_YOLU = `${import.meta.env?.BASE_URL ?? './'}sounds/`;
 const DEPO_ANAHTAR = 'sondenge:ses';
+const DEPO_MUZIK = 'sondenge:ses-muzik';
+const DEPO_EFEKT = 'sondenge:ses-efekt';
 const FADE_ADIM_MS = 70;
 const FADE_ADIM = 0.05;
+const sinirla01 = (v) => Math.max(0, Math.min(1, v));
 
 let sesAcik = true;
-try { sesAcik = localStorage.getItem(DEPO_ANAHTAR) !== 'kapali'; } catch {}
+let muzikSeviye = 0.7;
+let efektSeviye = 0.8;
+try {
+  sesAcik = localStorage.getItem(DEPO_ANAHTAR) !== 'kapali';
+  const m = parseFloat(localStorage.getItem(DEPO_MUZIK));
+  const e = parseFloat(localStorage.getItem(DEPO_EFEKT));
+  if (!Number.isNaN(m)) muzikSeviye = sinirla01(m);
+  if (!Number.isNaN(e)) efektSeviye = sinirla01(e);
+} catch {}
 let aktifLoop = null;
 let bekleyen = null;
 const birDefa = new Set();
@@ -60,6 +72,9 @@ function muzikBaslat(parca) {
   });
 }
 
+const efektifMuzik = (mix) => sinirla01(mix) * muzikSeviye;
+const efektifEfekt = (mix) => sinirla01(mix) * efektSeviye;
+
 export function muzikCal(ad, { hedefSes = 0.55, loop = true } = {}) {
   if (!ad || aktifLoop?.ad === ad) return;
   muzikDurdur(); // Yeni play çağrısından önce eski parçayı kesin olarak durdur.
@@ -67,7 +82,7 @@ export function muzikCal(ad, { hedefSes = 0.55, loop = true } = {}) {
   audio.loop = loop;
   audio.volume = 0;
   audio.muted = !sesAcik;
-  aktifLoop = { ad, audio, hedefSes: Math.max(0, Math.min(1, hedefSes)), loop, deneme: 0 };
+  aktifLoop = { ad, audio, mix: sinirla01(hedefSes), hedefSes: efektifMuzik(hedefSes), loop, deneme: 0 };
   muzikBaslat(aktifLoop);
 }
 
@@ -81,7 +96,7 @@ export function muzikDurdur() {
 export function sesCal(ad, { ses = 0.7 } = {}) {
   if (!sesAcik || !ad) return;
   const audio = new Audio(yol(ad));
-  audio.volume = Math.max(0, Math.min(1, ses));
+  audio.volume = efektifEfekt(ses);
   birDefa.add(audio);
   audio.addEventListener('ended', () => birDefa.delete(audio), { once: true });
   audio.addEventListener('error', () => birDefa.delete(audio), { once: true });
@@ -91,6 +106,27 @@ export function sesCal(ad, { ses = 0.7 } = {}) {
 }
 
 export function sesAcikMi() { return sesAcik; }
+export const muzikSeviyesi = () => muzikSeviye;
+export const efektSeviyesi = () => efektSeviye;
+
+export function muzikSeviyeAyarla(v) {
+  muzikSeviye = sinirla01(v);
+  try { localStorage.setItem(DEPO_MUZIK, String(muzikSeviye)); } catch {}
+  if (aktifLoop) {
+    aktifLoop.hedefSes = efektifMuzik(aktifLoop.mix);
+    if (sesAcik && !aktifLoop.audio.paused) {
+      fadeIptal(aktifLoop.audio);
+      aktifLoop.audio.volume = aktifLoop.hedefSes;
+    }
+  }
+  return muzikSeviye;
+}
+
+export function efektSeviyeAyarla(v) {
+  efektSeviye = sinirla01(v);
+  try { localStorage.setItem(DEPO_EFEKT, String(efektSeviye)); } catch {}
+  return efektSeviye;
+}
 
 export function sesToggle() {
   sesAcik = !sesAcik;
