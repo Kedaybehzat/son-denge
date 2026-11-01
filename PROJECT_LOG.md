@@ -274,6 +274,19 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 
 <!-- Yeni kayıtları bu satırın hemen altına ekleyin (en yeni en üstte). -->
 
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · PR #12 incelemesi ve çakışma çözümü
+
+- **Prompt:** PR #12'yi incele; uygunsa onu da merge et.
+- **Yapılan değişiklik:** Çerçeve PNG'si görsel ve piksel düzeyinde incelendi: boyut 512×512 kaldı, dış köşeler şeffaflaştı; 17.847 değişen pikselin 17.736'sı tamamen şeffaf, 111'i yarı şeffaf kenar pikselleri. Çerçeve/panel görseli korundu. PR #13 main'e merge edildi (`182cede`); #12'ye güncel main alınarak yalnız PROJECT_LOG çakışması iki tarafın kayıtları korunarak çözüldü.
+
+| Dosya | Açıklama |
+|---|---|
+| `public/assets/kart-cerceve.png` | PR #12'deki şeffaf dış zemin düzeltmesi korundu |
+| `PROJECT_LOG.md` | İki tarafın kayıtları ve bu inceleme; PR #13 main'de, #12 için CI tekrar çalışacak |
+
+- **Debt:** Yeni asset yok, mevcut çerçeve düzeltildi; #12 merge/yayın sonucu GitHub PR/Actions kayıtlarında izlenir.
+
+
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · Güncel paketin PR ile birleştirilmesi
 
 - **Prompt:** Gamejam değerlendirmesine devam etmeden önce mevcut hali push, PR ve merge yap.
@@ -499,6 +512,17 @@ Son_Denge_Mekanik_Tasarim_GDD.pdf  Mekanik tasarım dokümanı (9 sayfa)
 | `PROJECT_LOG.md` | Project Map'e Ayarlar menüsü + Tam ekran satırları; bu kayıt |
 
 - **Debt:** Yeni açık borç yok. İsteğe bağlı asset: `yapi-yalitim.png`, `yapi-bariyer.png` — şimdilik kodla çiziliyor, promptlar sohbette verildi; gelirse `_cizYapilar` yerine `this.add.image` ile değiştirilir.
+
+### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · dal: `menu-cerceve`
+
+- **Prompt:** Yüklediğim dosyaları oyuna aktar (menü asset'leri; kullanım sınırı sonrası devam).
+- **Yapılan değişiklik:** Menü asset'leri ve bağlantıları main'e zaten girmişti (`83cf8b5`). Kalan tek sorun giderildi: `kart-cerceve.png` dışı beyaz zeminliydi (9-dilim çerçevenin köşelerinde beyaz görünüyordu); kenardan flood-fill ile beyaz silindi, iç panel ve metal/ahşap kenar korundu (orijinal `assets-orijinal/kart-cerceve-beyaz.png`). Başlık, panel, karar kartı, son ekranı headless görüntüyle doğrulandı; `npm test` ve derleme temiz.
+
+| Dosya | Açıklama |
+|---|---|
+| `public/assets/kart-cerceve.png` | Dış beyaz zemin şeffaf |
+
+- **Debt:** Yok.
 
 ### 2026-11-01 · Timujaponya (arda.timucinacar@gmail.com) · PR #11
 
